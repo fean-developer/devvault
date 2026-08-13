@@ -153,3 +153,20 @@ T21 strengthens the remaining security boundary evidence without changing the ap
 T22 stabilized the serial verification gate, added explicit non-interactive consent enforcement evidence and verified authenticated read-only capability requests. T23 closes the remaining controllable verifier findings by sanitizing human-readable output, suppressing unexpected step exception details and enforcing non-interactive consent at the command boundary.
 
 Two consecutive serial full gates passed with 133 tests each. Remaining gaps are environmental or live-system validation: Windows native, Docker Desktop, live remote Vault, live least privilege/Project A/B isolation, `/proc`, child-process inspection and formal reproducible mutation-run artifacts.
+
+## T24 Verification Cycle
+
+**Status: PENDING VERIFICATION**
+
+This entry responds to the historical FAIL records from the T19/T20/T23 cycles without rewriting them. T24 classifies and addresses the remaining findings as follows:
+
+| Gap | Classification | Evidence/status |
+| --- | --- | --- |
+| `unsealed` redaction precision | FIXABLE-NOW | Sanitization regression in `apps/cli/src/commands/setup.test.ts` |
+| Historical `validation.md` FAIL | PROCESS-GAP | This non-destructive T24 entry is appended with pending verdict |
+| `/proc`, child processes, dumps and global logs | PROCESS-GAP / ENVIRONMENT-BLOCKED | No global logger or child-process secret transport exists in Phase 0; live process inspection requires an authorized runner |
+| Formal mutation sensor | PROCESS-GAP | `pnpm mutation:test` creates isolated worktrees and writes `docs/phase-0-mutation-report.json` |
+| Native Windows | ENVIRONMENT-BLOCKED | Requires Windows CI/runner with Credential Manager and native CLI execution |
+| Docker Desktop | ENVIRONMENT-BLOCKED | Current corporate environment blocks Docker Desktop installation/execution |
+| Live Remote Vault | ENVIRONMENT-BLOCKED | Requires provisioned endpoint, network access and authorized credentials |
+| Live least privilege / Project A/B | ENVIRONMENT-BLOCKED | Requires provisioned Vault, two policies/users and authorized test credentials |

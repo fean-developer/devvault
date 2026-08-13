@@ -292,4 +292,20 @@ describe('setup command', () => {
     expect(output.mock.calls.flat().join('')).not.toContain('human-secret');
     output.mockRestore();
   });
+
+  it('preserves lifecycle state words while redacting real credentials', () => {
+    const result = sanitizeSetupResult({
+      status: 'BLOCKED',
+      completedSteps: ['sealed', 'unsealed'],
+      pendingSteps: [],
+      blockers: ['Vault lifecycle is unsealed.', 'token=hvs.secret-value'],
+      warnings: ['sealed state is operator-actionable'],
+      metadata: { vaultLifecycle: 'unsealed' },
+    });
+
+    expect(result.completedSteps).toEqual(['sealed', 'unsealed']);
+    expect(result.metadata.vaultLifecycle).toBe('unsealed');
+    expect(JSON.stringify(result)).toContain('unsealed');
+    expect(JSON.stringify(result)).not.toContain('hvs.secret-value');
+  });
 });

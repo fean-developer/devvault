@@ -527,6 +527,27 @@ Tasks execute according to the explicit dependency graph below.
 **Status**: Complete
 **Evidence**: Two consecutive serial full gates passed with 133 tests each; human/JSON sanitization, generic step exceptions and non-interactive consent enforcement are covered. Windows, Docker Desktop, live remote Vault and live least-privilege remain environmental limitations.
 
+### T24: Close remaining verifier findings
+
+**What**: Correct sanitization precision, preserve audit history, add reproducible mutation-sensor execution and track environment-blocked/live validation gaps.
+**Why**: The independent verifier identified `unsealed` being redacted, incomplete process/log coverage, absent formal mutation execution and unavailable native/live environments.
+**Where**: `apps/cli/src/commands/setup.ts`, `apps/cli/src/commands/setup.test.ts`, `scripts/phase0-mutation-sensor.mjs`, `docs/phase-0-mutation-report.json`, `vitest.config.ts` and Phase 0 evidence docs.
+**Depends on**: T20, T23
+**Requirement**: SETUP-005, SETUP-011, SETUP-012, SETUP-018
+**Design reference**: `design.md#Setup State Security`, `design.md#Error Model`, `design.md#Distribution Boundary`
+**Tests**: sanitization regression, security acceptance, mutation sensor and two serial full gates
+**Gate**: full
+**Done when**:
+- [ ] `unsealed` and lifecycle state words remain visible while real credentials remain redacted.
+- [ ] Historical FAIL entries remain intact and T24 is appended as pending independent verification.
+- [ ] Mutation sensor is runnable and uses isolated worktrees only.
+- [ ] Process/log/child coverage is either evidenced or explicitly classified as PROCESS-GAP/ENVIRONMENT-BLOCKED.
+- [ ] Windows, Docker Desktop, live Remote Vault and live A/B least privilege have named blockers and unblock plans.
+**Evidence**: `docs/phase-0-mutation-report.json`, test output and updated readiness report.
+**Commit**: `fix(setup): close sanitization precision, audit trail, and coverage gaps`
+
+**Status**: In Progress
+
 ## Requirement → Task Matrix
 
 | Requirement | Tasks |
@@ -646,6 +667,7 @@ flowchart TD
     T20 --> T21[T21 Security/isolation evidence]
     T21 --> T22[T22 Verification stabilization]
     T22 --> T23[T23 Final verifier findings]
+    T23 --> T24[T24 Final audit and environment tracking]
 ```
 
 ## Phase 0 Tasks Gate

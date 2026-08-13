@@ -247,7 +247,7 @@ function sanitizeMetadataValue(value: unknown): string | number | boolean | null
 }
 
 function sanitizeText(value: string): string {
-  return value.replace(/(password|token|secret|secretid|unseal|recovery|rootcredential|authorization|bearer)[^\s]*/gi, '[redacted]');
+  return value.replace(/(password|token|secret|secretid|unseal(?:[ _-]key)?\b|recovery(?:[ _-]key)?\b|rootcredential|authorization|bearer)[^\s]*/gi, '[redacted]');
 }
 
 function isSensitiveKey(key: string): boolean {

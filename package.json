@@ -1,6 +1,6 @@
 {
   "name": "devvault",
-  "version": "0.1.51",
+  "version": "0.1.52",
   "private": true,
   "packageManager": "pnpm@10.15.0",
   "engines": {
@@ -10,7 +10,8 @@
     "build": "corepack pnpm --recursive build",
     "lint": "eslint .",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "mutation:test": "node scripts/phase0-mutation-sensor.mjs"
   },
   "dependencies": {
     "commander": "^14.0.0",

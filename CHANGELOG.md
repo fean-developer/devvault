@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.52] - 2026-08-13
+
+- Preserved lifecycle state words during sanitization and added the reproducible Phase 0 mutation sensor/audit trail.
+
 ## [0.1.51] - 2026-08-13
 
 - Closed final controllable Phase 0 verifier findings for human output sanitization, step exceptions and non-interactive consent.
