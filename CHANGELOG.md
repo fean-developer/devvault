@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.26] - 2026-08-12
+
+- Added Core Vault backend detection, capability and validation contracts.
+- Canonicalized Vault lifecycle contracts without adding infrastructure dependencies.
+
 ## [0.1.25] - 2026-08-12
 
 - Added the Phase 0 setup result, exit code and readiness profile model.

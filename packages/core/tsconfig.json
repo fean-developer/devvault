@@ -7,5 +7,5 @@
     "rootDir": "src",
     "paths": {}
   },
-  "include": ["src/index.ts", "src/errors.ts", "src/application.ts", "src/lifecycle.ts", "src/setup-model.ts"]
+  "include": ["src/index.ts", "src/errors.ts", "src/application.ts", "src/lifecycle.ts", "src/setup-model.ts", "src/vault-backend.ts", "src/vault-lifecycle.ts"]
 }

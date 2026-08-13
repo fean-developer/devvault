@@ -93,6 +93,9 @@ Tasks execute according to the explicit dependency graph below.
 **Evidence**: Type-level tests and dependency scan output.
 **Commit**: `feat(setup): define vault backend contracts`
 
+**Status**: Complete
+**Evidence**: 7 lifecycle/backend contract tests pass; typecheck and Core platform-import scan pass.
+
 ### T3: Define setup ports and step orchestration contracts
 
 **What**: Define `SetupOrchestrator`, `SetupStep`, `DependencyChecker`, `ConsentService`, `InstallationManager`, `BackendSelector` and `SetupValidator` ports.

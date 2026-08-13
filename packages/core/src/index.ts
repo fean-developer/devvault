@@ -2,6 +2,8 @@ export * from './errors.js';
 export * from './application.js';
 export * from './lifecycle.js';
 export * from './setup-model.js';
+export * from './vault-backend.js';
+export * from './vault-lifecycle.js';
 
 export interface CredentialStore {
   get(key: string): Promise<string | null>;
