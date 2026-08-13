@@ -4,7 +4,16 @@ DevVault is a developer experience layer over HashiCorp Vault. It lets local com
 
 ## Status
 
-The project is under active MVP development. The current release contains the monorepo foundation, safe `devvault.yaml` validation, project discovery, tested Vault HTTP/backend adapters, setup state persistence, readiness orchestration and the `setup`, `init-project`, `status` and `doctor` commands.
+The project is under active MVP development. The current release (v0.1.0-mvp) contains the monorepo foundation, safe `devvault.yaml` validation, project discovery, tested Vault HTTP/backend adapters, setup state persistence, readiness orchestration and the `setup`, `init-project`, `status` and `doctor` commands.
+
+**Phase 0 — Core Correctness (Tier 1):** PASS
+**Phase 0 — Infra-Verified (Tier 2):** PENDING (see limitations below)
+
+## Scope & Limitations (MVP Release)
+
+This release targets **Linux and macOS developers** with **local/dev-mode Vault instances**. Native Windows, Docker Desktop, live remote Vault, and multi-project least-privilege isolation are **not validated**. See [RELEASE-NOTES.md](RELEASE-NOTES.md) for detailed platform status, known limitations, and risk acceptance guidance.
+
+This is **v0.1.0-mvp** (pre-1.0), not v1.0.0. Full Phase 0 completion and Phase 1 features are future releases. Do not use this release in production or for untrusted external developers without understanding and accepting the limitations.
 
 ## Requirements
 
@@ -132,6 +141,9 @@ Unit tests live beside package source. Docker-backed integration tests and end-t
 
 ## Documentation
 
+- [Release Notes — v0.1.0-mvp](RELEASE-NOTES.md) — platform support, limitations, risk acceptance
+- [MVP Decision & Tier 2 Tracking](docs/artefatos/ADR-Phase0-MVP-Release-Scope.md) — formal decision, known blockers, unblock plans
+- [Phase 0 Readiness Report](docs/phase-0-readiness-report.md) — verification evidence and timeline
 - [Usage guide](docs/usage.md)
 - [Architecture](docs/architecture.md)
 - [Security](docs/security.md)
@@ -140,7 +152,4 @@ Unit tests live beside package source. Docker-backed integration tests and end-t
 - [Threat model](docs/threat-model.md)
 - [Platform compatibility](docs/platform-compatibility.md)
 - [Setup guide](docs/setup.md)
-- [Phase 0 readiness report](docs/phase-0-readiness-report.md)
 - [Distribution evaluation](docs/distribution.md)
-- [Phase 1 gate report](docs/phase-1-gate-report.md)
-- [Real project quickstart](docs/real-project-quickstart.md)

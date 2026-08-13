@@ -152,7 +152,24 @@ T21 strengthens the remaining security boundary evidence without changing the ap
 
 T22 stabilized the serial verification gate, added explicit non-interactive consent enforcement evidence and verified authenticated read-only capability requests. T23 closes the remaining controllable verifier findings by sanitizing human-readable output, suppressing unexpected step exception details and enforcing non-interactive consent at the command boundary.
 
-Two consecutive serial full gates passed with 133 tests each. Remaining gaps are environmental or live-system validation: Windows native, Docker Desktop, live remote Vault, live least privilege/Project A/B isolation, `/proc`, child-process inspection and formal reproducible mutation-run artifacts.
+Two consecutive serial full gates passed with 133 tests each.
+
+## Phase 0 MVP Decision: Two-Tier Gate Model
+
+After five correction cycles (T19–T24), a formal decision was made to adopt a **Two-Tier Gate Model** for Phase 0 status:
+
+- **Tier 1 — Core Correctness:** Setup logic, validation, security, and error semantics proven in exercised environments (Linux, macOS, local/dev-mode Vault). Evidence: T19–T24 commits, mutation sensor (8/8 killed), test suite (134 tests, 2 serial runs), static gates (lint, typecheck, build, spec/tasks validation).
+  - **Verdict:** PASS
+
+- **Tier 2 — Infra-Verified:** Same logic validated against real target environments (native Windows, Docker Desktop, live remote Vault, real multi-policy Vault).
+  - **Verdict:** PENDING (tracked, scheduled, not blocking MVP release)
+
+See [ADR-Phase0-MVP-Release-Scope.md](../../docs/artefatos/ADR-Phase0-MVP-Release-Scope.md) for the formal decision, risk acceptance, tracked unblock conditions and sign-off structure.
+
+**Remaining gaps are now categorized, not unresolved:**
+- Tier 2 items #1–#4: infrastructure-dependent, tracked with named blockers and unblock preconditions.
+- Tier 2 item #5 (full proc/log coverage): code-only work, scheduled as T25-series correction cycle independent of items #1–#4.
+- All gaps remain important and non-silent; they are explicitly communicated in release notes and documentation.
 
 ## T24 Verification Cycle
 

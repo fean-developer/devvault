@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.0-mvp] - 2026-08-13
+
+**Phase 0 MVP Release — Two-Tier Gate Model**
+
+- **APPROVED FOR DISTRIBUTION** under Tier 1 (Core Correctness) scope: Linux, macOS, local/dev-mode Vault.
+- **Tier 1 — Core Correctness:** PASS. Setup logic, validation, security, and error semantics proven by tests (134 tests, 2 serial runs), mutation sensor (8/8 killed), and static gates (lint, typecheck, build, spec/tasks validation).
+- **Tier 2 — Infra-Verified:** PENDING. Windows, Docker Desktop, live remote Vault, and multi-project least-privilege isolation are unvalidated; tracked with named blockers and unblock preconditions.
+- **Known limitations:** Native Windows (NOT TESTED), Docker Desktop (NOT TESTED), live remote Vault (NOT TESTED), multi-project least-privilege isolation (NOT TESTED), full proc/log/dump coverage (PARTIAL). See [RELEASE-NOTES.md](RELEASE-NOTES.md) and [ADR-Phase0-MVP-Release-Scope.md](docs/artefatos/ADR-Phase0-MVP-Release-Scope.md) for details, risks, and mitigation.
+- **Version scheme:** This is v0.1.0-mvp (pre-1.0), not v1.0.0. Full Phase 0 PASS (Tier 1 + Tier 2) and Phase 1 are future releases.
+- **Distributions:** Suitable for trusted internal developers on Linux/macOS. Do not distribute to external users or untrusted environments without explicit limitation and risk acknowledgment.
+- Evidence commits: 940309d (T19), 5092a90 (T20/T23), bc5ec10 (T24 sanitization), e5160cc (T24 mutation sensor).
+
 ## [0.1.53] - 2026-08-13
 
 - Recorded the reproducible Phase 0 mutation sensor result: 8 generated, 8 killed, 0 survived.

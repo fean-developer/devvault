@@ -1,0 +1,1 @@
+process.stdout.write(`${process.env.TEST_SECRET}\n`);

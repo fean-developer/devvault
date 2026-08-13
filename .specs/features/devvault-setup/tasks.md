@@ -538,16 +538,37 @@ Tasks execute according to the explicit dependency graph below.
 **Tests**: sanitization regression, security acceptance, mutation sensor and two serial full gates
 **Gate**: full
 **Done when**:
-- [ ] `unsealed` and lifecycle state words remain visible while real credentials remain redacted.
-- [ ] Historical FAIL entries remain intact and T24 is appended as pending independent verification.
-- [ ] Mutation sensor is runnable and uses isolated worktrees only.
-- [ ] Process/log/child coverage is either evidenced or explicitly classified as PROCESS-GAP/ENVIRONMENT-BLOCKED.
-- [ ] Windows, Docker Desktop, live Remote Vault and live A/B least privilege have named blockers and unblock plans.
+- [x] `unsealed` and lifecycle state words remain visible while real credentials remain redacted.
+- [x] Historical FAIL entries remain intact and T24 is appended as pending independent verification.
+- [x] Mutation sensor is runnable and uses isolated worktrees only.
+- [x] Process/log/child coverage is either evidenced or explicitly classified as PROCESS-GAP/ENVIRONMENT-BLOCKED.
+- [x] Windows, Docker Desktop, live Remote Vault and live A/B least privilege have named blockers and unblock plans.
 **Evidence**: `docs/phase-0-mutation-report.json`, test output and updated readiness report.
-**Commit**: `fix(setup): close sanitization precision, audit trail, and coverage gaps`
+**Commit**: `fix(setup): close sanitization precision, audit trail, and coverage gaps` (bc5ec10), `test(setup): record phase zero mutation evidence` (e5160cc)
 
 **Status**: Complete
 **Evidence**: `corepack pnpm mutation:test` generated `docs/phase-0-mutation-report.json` with 8 mutations, 8 killed and 0 survived; the lifecycle-word precision test and two serial full gates also pass.
+
+### T25: Extend proc/child-process/dump/log coverage (Tier 2 item #5)
+
+**What**: Close the remaining controllable code-only gap: comprehensive coverage of process arguments, child-process invocation, crash dumps, and global log sinks to ensure no secret material can leak through any process-surface.
+**Why**: Tier 2 item #5 (Phase 0 MVP decision, ADR-Phase0-MVP-Release-Scope.md §5) is pure engineering work, not infrastructure-dependent. It should be scheduled and completed independent of items #1–#4 (Windows/Docker Desktop/Remote Vault/multi-policy Vault approval delays).
+**Where**: `packages/core/src/`, `packages/platform/src/`, `packages/vault-client/src/` and integration tests.
+**Depends on**: T19, T20, T23, T24
+**Requirement**: SETUP-005, INV-004, INV-005, INV-018
+**Design reference**: `design.md#Error Model`, `design.md#Logging and Observability`
+**Tests**: comprehensive process/log/dump/exception coverage tests
+**Gate**: full
+**Done when**:
+- [ ] No secret material (tokens, keys, authorization headers, unseal keys) can be found in process arguments, child-process environment or invocation.
+- [ ] All exception paths (including unhandled exceptions in child processes) map to sanitized, generic error messages.
+- [ ] Global logger and all log sinks (not just human/JSON output) are audited and tested for secret leakage.
+- [ ] Crash dump surfaces and `/proc` inspection scenarios are either covered by tests or explicitly documented as environment-dependent blockers.
+**Evidence**: expanded test suite, mutation-sensor runs, audit log.
+**Commit**: `test(setup): extend process/log coverage`
+
+**Status**: Planned (not-started)
+**Notes**: This task is independent of Tier 2 items #1–#4 and should be prioritized as ordinary engineering work, not deferred behind infrastructure-approval items.
 
 ## Requirement → Task Matrix
 

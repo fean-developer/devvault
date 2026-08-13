@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@devvault/core": ["packages/core/src/index.ts"],
+      "@devvault/config": ["packages/config/src/index.ts"],
+      "@devvault/vault-client": ["packages/vault-client/src/index.ts"],
+      "@devvault/auth": ["packages/auth/src/index.ts"],
+      "@devvault/platform": ["packages/platform/src/index.ts"]
+    }
+  },
+  "include": ["apps", "packages", "tests", "vitest.config.ts", "tsup.config.ts"]
+}
