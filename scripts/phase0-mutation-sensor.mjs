@@ -2,8 +2,9 @@ import { execFileSync } from 'node:child_process';
 import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath, URL } from 'node:url';
 
-const root = new URL('..', import.meta.url).pathname;
+const root = fileURLToPath(new URL('..', import.meta.url));
 const mutations = [
   ['lifecycle-state-word', 'apps/cli/src/commands/setup.ts', '(unseal(?:[ _-]key)?\\b)', '(unseal)'],
   ['human-output-sanitization', 'apps/cli/src/commands/setup.ts', 'const safeResult = sanitizeSetupResult(result);', 'const safeResult = result;'],

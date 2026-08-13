@@ -170,3 +170,5 @@ This entry responds to the historical FAIL records from the T19/T20/T23 cycles w
 | Docker Desktop | ENVIRONMENT-BLOCKED | Current corporate environment blocks Docker Desktop installation/execution |
 | Live Remote Vault | ENVIRONMENT-BLOCKED | Requires provisioned endpoint, network access and authorized credentials |
 | Live least privilege / Project A/B | ENVIRONMENT-BLOCKED | Requires provisioned Vault, two policies/users and authorized test credentials |
+
+Formal T24 sensor execution: `corepack pnpm mutation:test` produced `docs/phase-0-mutation-report.json` with 8 generated mutations, 8 killed and 0 survived. The T24 verdict remains `PENDING VERIFICATION` until the independent Verifier reviews this cycle.

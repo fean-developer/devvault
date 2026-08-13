@@ -546,7 +546,8 @@ Tasks execute according to the explicit dependency graph below.
 **Evidence**: `docs/phase-0-mutation-report.json`, test output and updated readiness report.
 **Commit**: `fix(setup): close sanitization precision, audit trail, and coverage gaps`
 
-**Status**: In Progress
+**Status**: Complete
+**Evidence**: `corepack pnpm mutation:test` generated `docs/phase-0-mutation-report.json` with 8 mutations, 8 killed and 0 survived; the lifecycle-word precision test and two serial full gates also pass.
 
 ## Requirement → Task Matrix
 
@@ -668,6 +669,7 @@ flowchart TD
     T21 --> T22[T22 Verification stabilization]
     T22 --> T23[T23 Final verifier findings]
     T23 --> T24[T24 Final audit and environment tracking]
+    T20 --> T24
 ```
 
 ## Phase 0 Tasks Gate

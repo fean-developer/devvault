@@ -1,0 +1,38 @@
+{
+  "generatedAt": "2026-08-13T15:09:28.481Z",
+  "command": "node scripts/phase0-mutation-sensor.mjs",
+  "mutations": [
+    {
+      "name": "lifecycle-state-word",
+      "killed": true
+    },
+    {
+      "name": "human-output-sanitization",
+      "killed": true
+    },
+    {
+      "name": "mandatory-pending-degraded",
+      "killed": true
+    },
+    {
+      "name": "kv-static-flag",
+      "killed": true
+    },
+    {
+      "name": "policy-static-flag",
+      "killed": true
+    },
+    {
+      "name": "skip-kv-validation",
+      "killed": true
+    },
+    {
+      "name": "skip-policy-validation",
+      "killed": true
+    },
+    {
+      "name": "step-exception-leak",
+      "killed": true
+    }
+  ]
+}

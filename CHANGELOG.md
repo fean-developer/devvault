@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.53] - 2026-08-13
+
+- Recorded the reproducible Phase 0 mutation sensor result: 8 generated, 8 killed, 0 survived.
+
 ## [0.1.52] - 2026-08-13
 
 - Preserved lifecycle state words during sanitization and added the reproducible Phase 0 mutation sensor/audit trail.

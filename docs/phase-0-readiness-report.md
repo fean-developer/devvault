@@ -84,6 +84,7 @@ Core does not import Docker, filesystem, keyring or platform APIs. Remote Vault 
 - T22 stabilizes the serial gate and verifies non-interactive consent plus authenticated read-only capability requests; Windows, Docker Desktop and live remote Vault remain environmental limitations.
 - T23 closes controllable verifier findings for human output sanitization, generic step exceptions and non-interactive consent; live-system and platform limitations remain explicitly open.
 - T24 classifies remaining gaps honestly, preserves historical FAIL records, adds lifecycle-word sanitization precision and a reproducible isolated mutation-sensor command; T24 remains pending independent verification.
+- T24 mutation evidence: `corepack pnpm mutation:test` generated 8 mutations, killed 8 and left 0 survived in `docs/phase-0-mutation-report.json`.
 - The current setup command surface is the Phase 0 orchestration boundary; full human authentication, CredentialStore expansion, AppRole, OIDC, final policies, dynamic secrets and Vault Agent remain future phases.
 - Standalone packaging is a documented future decision; no binary, installer or auto-update path is implemented.
 
