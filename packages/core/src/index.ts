@@ -11,6 +11,7 @@ export * from './setup-state-store.js';
 export * from './consent.js';
 export * from './backend-selector.js';
 export * from './setup-validator.js';
+export * from './setup-orchestrator.js';
 
 export interface CredentialStore {
   get(key: string): Promise<string | null>;

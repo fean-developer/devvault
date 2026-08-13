@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.36] - 2026-08-13
+
+- Added Core StepSetupOrchestrator with consent, check-mode and state-store coordination.
+- Added orchestration tests for ordered steps, blocked consent and read-only checks.
+
 ## [0.1.35] - 2026-08-13
 
 - Added profile-scoped SetupValidator with READY/DEGRADED/BLOCKED/FAILED mapping.

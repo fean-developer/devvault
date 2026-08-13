@@ -295,6 +295,9 @@ Tasks execute according to the explicit dependency graph below.
 **Evidence**: Step recorder, interruption, repair and concurrency integration outputs.
 **Commit**: `feat(setup): orchestrate setup steps`
 
+**Status**: Complete
+**Evidence**: 9 orchestration/validator/state-store tests pass; step order, consent, check read-only, pending steps and state persistence are covered.
+
 ### T13: Implement SetupStateStore platform adapter
 
 **What**: Implement strict state persistence through user configuration paths, atomic replacement, lock and recovery.
