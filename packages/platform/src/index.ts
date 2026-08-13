@@ -7,12 +7,14 @@ export * from './platform-detection.js';
 export * from './path-adapter.js';
 export * from './docker-diagnostics.js';
 export * from './setup-dependencies.js';
+export * from './local-docker-vault-backend.js';
 
 const execFileAsync = promisify(execFile);
 
 export interface DockerManager {
   composeUp(composeFile: string): Promise<void>;
   isAvailable(): Promise<boolean>;
+  diagnose(): Promise<DockerDiagnostics>;
 }
 
 export class DockerComposeManager implements DockerManager {

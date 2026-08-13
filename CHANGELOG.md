@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.32] - 2026-08-13
+
+- Added the read-only LocalDockerVaultBackend adapter.
+- Added Docker/container/Vault lifecycle validation without destructive operations.
+
 ## [0.1.31] - 2026-08-13
 
 - Added the platform `DependencyChecker` adapter for Docker, Compose, Vault container and WSL capabilities.

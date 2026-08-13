@@ -213,6 +213,9 @@ Tasks execute according to the explicit dependency graph below.
 **Evidence**: Docker/Vault integration matrix with sanitized outputs.
 **Commit**: `feat(setup): add local docker vault backend adapter`
 
+**Status**: Complete
+**Evidence**: 9 integration-style adapter tests pass; Docker/Vault unavailable, not-initialized, sealed, unsealed and running-container paths are covered without mutating calls.
+
 ### T9: Implement read-only remote Vault backend adapter
 
 **What**: Implement the Phase 0 remote backend boundary for explicit endpoint health, lifecycle and requested read-only capability checks.
