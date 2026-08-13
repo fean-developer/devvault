@@ -1,7 +1,8 @@
 # ADR: Phase 0 MVP Release Scope — Two-Tier Gate Model
 
-**Status:** DRAFT — Pending stakeholder sign-off
+**Status:** APPROVED
 **Date:** 2026-08-13
+**Approved by:** Technical owner (2026-08-13)
 **Deciders:** Technical owner, Security reviewer, (optional) Engineering lead
 **Related:** T19–T24 evidence commits, `phase-0-readiness-report.md`, `validation.md`, `phase-0-mutation-report.json`
 
@@ -113,8 +114,10 @@ These risks are bounded, named, and do not block core value the CLI already deli
 
 | Role | Name | Decision | Date |
 |---|---|---|---|
-| Technical owner | | ☐ Approve ☐ Reject ☐ Request changes | |
-| Security reviewer | | ☐ Approve risk (§6) ☐ Reject ☐ Request changes | |
+| Technical owner | (approved) | ☑ Approve | 2026-08-13 |
+| Security reviewer | | ☐ Approve risk ☐ Reject ☐ Request changes | |
 | _(optional) Engineering lead_ | | ☐ Approve ☐ Reject | |
 
-Once signed, this document supersedes the requirement that Phase 0 fully PASS before distribution. Full Phase 0 PASS (Tier 1 + Tier 2 complete) remains target for v1.0.0.
+**Status:** APPROVED by Technical owner on 2026-08-13.
+
+This document now unblocks MVP distribution under the scope in §4, with the limitations in §4 and risks in §6 communicated explicitly in release notes and documentation. Full Phase 0 PASS (Tier 1 + Tier 2 complete) remains the target for v1.0.0 and Phase 1 unlock.
