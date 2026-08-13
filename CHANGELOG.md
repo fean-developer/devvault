@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.30] - 2026-08-12
+
+- Added Core consent and authorized installation boundaries.
+- Added blocking behavior for non-interactive mutations and Docker Desktop changes.
+
 ## [0.1.29] - 2026-08-12
 
 - Added Core SetupStateStore, lock, atomic-save and repair contracts.

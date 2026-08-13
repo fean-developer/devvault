@@ -1,6 +1,9 @@
 import type { VaultBackend } from './vault-backend.js';
 import type { ReadinessProfile } from './setup-model.js';
 import type { SetupContext, SetupExecutionResult, SetupMetadata, SetupStep } from './setup-steps.js';
+import type { ConsentRequest, ConsentDecision, InstallationRequest, InstallationResult } from './consent.js';
+
+export type { ConsentRequest, ConsentDecision, InstallationRequest, InstallationResult } from './consent.js';
 
 export interface DependencyCheckInput {
   profile: ReadinessProfile;
@@ -18,29 +21,8 @@ export interface DependencyChecker {
   check(input: DependencyCheckInput): Promise<DependencyReport>;
 }
 
-export interface ConsentRequest {
-  actionId: string;
-  summary: string;
-  mutating: boolean;
-  required: boolean;
-}
-
-export type ConsentDecision = 'approved' | 'denied' | 'unavailable';
-
 export interface ConsentService {
   request(request: ConsentRequest): Promise<ConsentDecision>;
-}
-
-export interface InstallationRequest {
-  actionId: string;
-  summary: string;
-  requiresConsent: true;
-}
-
-export interface InstallationResult {
-  completed: boolean;
-  metadata: SetupMetadata;
-  errorCode?: string;
 }
 
 export interface InstallationManager {

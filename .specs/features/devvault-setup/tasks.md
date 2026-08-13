@@ -173,6 +173,9 @@ Tasks execute according to the explicit dependency graph below.
 **Evidence**: Consent decision matrix and mutation recorder expectations.
 **Commit**: `feat(setup): define consent and installation boundaries`
 
+**Status**: Complete
+**Evidence**: 6 unit tests pass; consent denial, non-interactive blocking, prohibited Docker Desktop mutation and read-only approval are covered.
+
 ### T7: Implement platform dependency checker adapter
 
 **What**: Adapt existing platform detection and Docker diagnostics to the Phase 0 `DependencyChecker` port.
