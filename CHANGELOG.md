@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.27] - 2026-08-12
+
+- Added Core setup ports and typed SetupStep orchestration contracts.
+- Added explicit read-only setup check mode representation.
+
 ## [0.1.26] - 2026-08-12
 
 - Added Core Vault backend detection, capability and validation contracts.

@@ -113,6 +113,9 @@ Tasks execute according to the explicit dependency graph below.
 **Evidence**: Contract tests and Core dependency scan.
 **Commit**: `feat(setup): define orchestration ports`
 
+**Status**: Complete
+**Evidence**: 7 unit tests pass; typecheck and Core forbidden-import scan pass.
+
 ### T4: Define strict SetupState schema
 
 **What**: Define the allowlisted SetupState schema, forbidden credential detection and sanitized metadata model.
