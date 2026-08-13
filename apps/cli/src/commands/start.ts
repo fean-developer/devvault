@@ -33,17 +33,33 @@ export async function runStartCommand(
 }
 
 export function writeStartResult(result: LifecycleResult, json: boolean): void {
+  const safeResult = sanitizeStartResult(result);
   if (json) {
-    process.stdout.write(`${JSON.stringify(result)}\n`);
+    process.stdout.write(`${JSON.stringify(safeResult)}\n`);
     return;
   }
 
   process.stdout.write('DevVault\n\n');
-  if (result.status === 'READY') {
+  if (safeResult.status === 'READY') {
     process.stdout.write('DevVault is ready.\n');
     return;
   }
   process.stdout.write('DevVault could not prepare the local environment.\n');
-  for (const blocker of result.blockers) process.stdout.write(`Reason: ${blocker}\n`);
+  for (const blocker of safeResult.blockers) process.stdout.write(`Reason: ${blocker}\n`);
   process.stdout.write('Run: devvault doctor\n');
+}
+
+export function sanitizeStartResult(result: LifecycleResult): LifecycleResult {
+  return {
+    ...result,
+    blockers: result.blockers.map((value) => sanitizeText(value)),
+    warnings: result.warnings.map((value) => sanitizeText(value)),
+    metadata: Object.fromEntries(
+      Object.entries(result.metadata).map(([key, value]) => [key, typeof value === 'string' ? sanitizeText(value) : value]),
+    ),
+  };
+}
+
+function sanitizeText(value: string): string {
+  return value.replace(/(password|token|secret|secretid|unseal(?:[ _-]key)?\b|recovery(?:[ _-]key)?\b|rootcredential|authorization|bearer)[^\s]*/gi, '[redacted]');
 }

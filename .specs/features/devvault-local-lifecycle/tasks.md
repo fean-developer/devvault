@@ -252,6 +252,9 @@ T7 -> T8
 **Tests**: e2e
 **Gate**: full
 
+**Status**: Complete
+**Evidence**: `tests/e2e/devvault-local-lifecycle.test.ts` and start command tests pass 7 focused cases; the full suite passes 39 files and 158 tests, covering production registration, repeat start, non-interactive blocking and output sanitization.
+
 ### T8: Document and version the lifecycle release
 
 **What**: Update user-facing lifecycle documentation and bump the monorepo/CLI version with a matching changelog entry after implementation evidence passes.
