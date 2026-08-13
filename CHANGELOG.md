@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.51] - 2026-08-13
+
+- Closed final controllable Phase 0 verifier findings for human output sanitization, step exceptions and non-interactive consent.
+
 ## [0.1.50] - 2026-08-13
 
 - Stabilized the Phase 0 serial verification gate and added non-interactive/read-only capability evidence.

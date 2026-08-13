@@ -82,6 +82,7 @@ Core does not import Docker, filesystem, keyring or platform APIs. Remote Vault 
 - T20 correction adds effective KV v2 mount inspection and effective Vault capability checks; final independent re-verification remains pending.
 - T21 strengthens recursive result sanitization, validator exception handling, argv stability and Project A/B policy isolation evidence; live Vault isolation remains pending.
 - T22 stabilizes the serial gate and verifies non-interactive consent plus authenticated read-only capability requests; Windows, Docker Desktop and live remote Vault remain environmental limitations.
+- T23 closes controllable verifier findings for human output sanitization, generic step exceptions and non-interactive consent; live-system and platform limitations remain explicitly open.
 - The current setup command surface is the Phase 0 orchestration boundary; full human authentication, CredentialStore expansion, AppRole, OIDC, final policies, dynamic secrets and Vault Agent remain future phases.
 - Standalone packaging is a documented future decision; no binary, installer or auto-update path is implemented.
 

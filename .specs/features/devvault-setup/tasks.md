@@ -507,6 +507,26 @@ Tasks execute according to the explicit dependency graph below.
 **Status**: Complete
 **Evidence**: Two consecutive serial full gates passed with 131 tests each; non-interactive consent, authenticated read-only capability requests and timeout stabilization are covered. Windows, Docker Desktop and live remote Vault remain environmental limitations.
 
+### T23: Close final controllable verifier findings
+
+**What**: Sanitize human-readable setup output, suppress unexpected step exception details and enforce non-interactive consent at the command boundary.
+**Why**: Independent verification found these remaining controllable security/semantics gaps.
+**Where**: `apps/cli/src/commands/setup.ts`, `packages/core/src/setup-orchestrator.ts` and focused tests.
+**Depends on**: T22
+**Requirement**: SETUP-002, SETUP-003, SETUP-005, SETUP-018
+**Design reference**: `design.md#Command Surface`, `design.md#Error Model`, `design.md#Setup State Security`
+**Tests**: security, CLI and orchestrator regression tests
+**Gate**: full
+**Done when**:
+- [ ] Human and JSON output use the same sanitized result.
+- [ ] Unexpected step exceptions become generic `FAILED` results.
+- [ ] Non-interactive mode never calls an interactive consent service without `--yes`.
+**Evidence**: Focused tests and two consecutive serial full gates.
+**Commit**: `fix(setup): close final verifier findings`
+
+**Status**: Complete
+**Evidence**: Two consecutive serial full gates passed with 133 tests each; human/JSON sanitization, generic step exceptions and non-interactive consent enforcement are covered. Windows, Docker Desktop, live remote Vault and live least-privilege remain environmental limitations.
+
 ## Requirement → Task Matrix
 
 | Requirement | Tasks |
@@ -625,6 +645,7 @@ flowchart TD
     T19 --> T20[T20 Effective KV/policy validation]
     T20 --> T21[T21 Security/isolation evidence]
     T21 --> T22[T22 Verification stabilization]
+    T22 --> T23[T23 Final verifier findings]
 ```
 
 ## Phase 0 Tasks Gate

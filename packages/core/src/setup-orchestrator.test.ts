@@ -88,6 +88,20 @@ describe('StepSetupOrchestrator', () => {
     expect(result.blockers).toContain('STEP_FAILED');
   });
 
+  it('sanitizes unexpected setup step exceptions into FAILED', async () => {
+    const result = await new StepSetupOrchestrator(store().value, { request: async () => 'approved' }).setup({
+      mode: 'setup', profile: 'local-bootstrap', metadata: {},
+    }, [{
+      id: 'throws',
+      mutating: false,
+      requiresConsent: false,
+      run: async () => { throw new Error('token=secret-from-exception'); },
+    }]);
+
+    expect(result.status).toBe('FAILED');
+    expect(JSON.stringify(result)).not.toContain('secret-from-exception');
+  });
+
   it('revalidates marked readiness steps during repair', async () => {
     const state: SetupStateStore = {
       acquireLock: async () => ({ release: async () => undefined }),

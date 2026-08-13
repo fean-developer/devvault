@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ProfileSetupValidator, setupExitCodes, type BackendSelectionInput, type VaultBackend } from '@devvault/core';
 import { Command } from 'commander';
-import { registerSetupCommand, runSetupCommand, sanitizeSetupResult, type SetupCommandDependencies } from './setup.js';
+import { registerSetupCommand, runSetupCommand, sanitizeSetupResult, writeSetupResult, type SetupCommandDependencies } from './setup.js';
 
 function dependencies(): SetupCommandDependencies {
   return {
@@ -231,8 +231,10 @@ describe('setup command', () => {
   });
 
   it('blocks a required mutation in non-interactive mode without --yes', async () => {
+    let consentCalls = 0;
     const result = await runSetupCommand({
       ...dependencies(),
+      consent: { request: async () => { consentCalls += 1; return 'approved'; } },
       steps: [{
         id: 'required-mutation',
         mutating: true,
@@ -243,6 +245,7 @@ describe('setup command', () => {
 
     expect(result.status).toBe('BLOCKED');
     expect(setupExitCodes[result.status]).toBe(4);
+    expect(consentCalls).toBe(0);
   });
 
   it('returns a sanitizable result shape for JSON consumers without sensitive metadata', async () => {
@@ -273,5 +276,20 @@ describe('setup command', () => {
 
     expect(JSON.stringify(sanitized)).not.toMatch(/completed-secret|pending-secret|blocked-secret|warning-secret|private-key-value/);
     expect(sanitized.metadata).toEqual({ safe: '[redacted]' });
+  });
+
+  it('sanitizes human-readable output as well as JSON output', () => {
+    const output = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    writeSetupResult({
+      status: 'BLOCKED',
+      completedSteps: [],
+      pendingSteps: [],
+      blockers: ['token=human-secret'],
+      warnings: [],
+      metadata: {},
+    }, false);
+
+    expect(output.mock.calls.flat().join('')).not.toContain('human-secret');
+    output.mockRestore();
   });
 });

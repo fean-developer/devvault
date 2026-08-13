@@ -1,7 +1,7 @@
 import { validateSetupState, type SetupState } from './setup-state.js';
 import type { ConsentService, SetupOrchestrator as SetupOrchestratorPort } from './setup-ports.js';
 import type { SetupStateStore } from './setup-state-store.js';
-import type { SetupContext, SetupExecutionResult, SetupMetadata, SetupStep } from './setup-steps.js';
+import type { SetupContext, SetupExecutionResult, SetupMetadata, SetupStep, SetupStepResult } from './setup-steps.js';
 
 export class StepSetupOrchestrator implements SetupOrchestratorPort {
   constructor(
@@ -65,7 +65,12 @@ export class StepSetupOrchestrator implements SetupOrchestratorPort {
           }
         }
 
-        const result = await step.run(context);
+        let result: SetupStepResult;
+        try {
+          result = await step.run(context);
+        } catch {
+          return this.failedResult(`Setup step failed: ${step.id}`);
+        }
         metadata = { ...metadata, ...result.metadata };
         if (result.status === 'completed') {
           completed.push(step.id);

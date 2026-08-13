@@ -65,7 +65,9 @@ export async function runSetupCommand(
     yes: options.yes === true,
   };
   const steps = dependencies.steps ?? createSetupSteps(dependencies, metadata);
-  const consent: ConsentService = options.yes === true || dependencies.approveAllMutations === true
+  const consent: ConsentService = options.nonInteractive === true && options.yes !== true
+    ? { request: async () => 'denied' }
+    : options.yes === true || dependencies.approveAllMutations === true
     ? { request: async () => 'approved' }
     : dependencies.consent;
   const orchestrator = new StepSetupOrchestrator(dependencies.stateStore, consent);
@@ -206,16 +208,17 @@ function createSetupSteps(
 }
 
 export function writeSetupResult(result: SetupExecutionResult, json: boolean): void {
+  const safeResult = sanitizeSetupResult(result);
   if (json) {
-    process.stdout.write(`${JSON.stringify(sanitizeSetupResult(result))}\n`);
+    process.stdout.write(`${JSON.stringify(safeResult)}\n`);
     return;
   }
 
-  process.stdout.write(`DevVault Setup: ${result.status}\n`);
-  if (result.completedSteps.length > 0) process.stdout.write(`Completed: ${result.completedSteps.join(', ')}\n`);
-  if (result.pendingSteps.length > 0) process.stdout.write(`Pending: ${result.pendingSteps.join(', ')}\n`);
-  for (const blocker of result.blockers) process.stdout.write(`Blocker: ${blocker}\n`);
-  for (const warning of result.warnings) process.stdout.write(`Warning: ${warning}\n`);
+  process.stdout.write(`DevVault Setup: ${safeResult.status}\n`);
+  if (safeResult.completedSteps.length > 0) process.stdout.write(`Completed: ${safeResult.completedSteps.join(', ')}\n`);
+  if (safeResult.pendingSteps.length > 0) process.stdout.write(`Pending: ${safeResult.pendingSteps.join(', ')}\n`);
+  for (const blocker of safeResult.blockers) process.stdout.write(`Blocker: ${blocker}\n`);
+  for (const warning of safeResult.warnings) process.stdout.write(`Warning: ${warning}\n`);
 }
 
 export function sanitizeSetupResult(result: SetupExecutionResult): SetupExecutionResult {
@@ -233,8 +236,14 @@ function sanitizeMetadata(metadata: SetupMetadata): SetupMetadata {
   return Object.fromEntries(
     Object.entries(metadata)
       .filter(([key]) => !isSensitiveKey(key))
-      .map(([key, value]) => [key, typeof value === 'string' ? sanitizeText(value) : value]),
+      .map(([key, value]) => [key, sanitizeMetadataValue(value)]),
   );
+}
+
+function sanitizeMetadataValue(value: unknown): string | number | boolean | null {
+  if (typeof value === 'string') return sanitizeText(value);
+  if (typeof value === 'number' || typeof value === 'boolean' || value === null) return value;
+  return '[redacted]';
 }
 
 function sanitizeText(value: string): string {
