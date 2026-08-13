@@ -1,12 +1,13 @@
 export interface ProjectConfig {
   project: string;
   environment: string;
+  protected?: boolean;
   vault: { mount: string; path: string };
   runtime: { mappings: Record<string, string> };
 }
 
 export interface ProjectConfigLoader {
-  load(directory: string): Promise<ProjectConfig>;
+  load(directory: string, environment?: string): Promise<ProjectConfig>;
 }
 
 export interface SecretOperations {
@@ -27,8 +28,8 @@ export class ProjectApplicationService {
     private readonly runtime: RuntimeOperations,
   ) {}
 
-  load(directory: string): Promise<ProjectConfig> {
-    return this.configLoader.load(directory);
+  load(directory: string, environment?: string): Promise<ProjectConfig> {
+    return this.configLoader.load(directory, environment);
   }
 
   setSecret(config: ProjectConfig, key: string, value: string): Promise<void> {

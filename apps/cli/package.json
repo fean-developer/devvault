@@ -1,6 +1,6 @@
 {
   "name": "@devvault/cli",
-  "version": "0.1.7-mvp",
+  "version": "0.1.8-mvp",
   "private": true,
   "type": "module",
   "bin": {

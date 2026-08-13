@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import type { ReturnTypeOfComposition } from '../composition-root.js';
-import { readSecretFromProcess } from '../input.js';
+import { confirmMutation, readSecretFromProcess } from '../input.js';
 
 export function registerSecretCommand(program: Command, composition: ReturnTypeOfComposition): void {
   program
@@ -8,36 +8,42 @@ export function registerSecretCommand(program: Command, composition: ReturnTypeO
     .description('Manage project secrets in Vault')
     .addCommand(new Command('set')
       .argument('<key>', 'Secret key, for example database.password')
-      .action(async (key: string) => {
+      .option('--environment <name>', 'Environment override')
+      .option('--yes', 'Confirm protected-environment mutation')
+      .action(async (key: string, options: { environment?: string; yes?: boolean }) => {
         const application = await composition.createProjectApplication();
-        const config = await application.load(process.cwd());
+        const config = await application.load(process.cwd(), options.environment);
+        if (config.protected && !options.yes && !await confirmMutation(`Current environment: ${config.environment}. This operation will modify a protected environment. Continue?`)) throw new Error('Protected environment mutation was not authorized.');
         await application.setSecret(config, key, await readSecretFromProcess(`Secret value for ${key}: `));
         process.stdout.write(`Secret stored: ${key}\n`);
       }))
     .addCommand(new Command('get')
       .argument('<key>', 'Secret key')
+      .option('--environment <name>', 'Environment override')
       .option('--show', 'Print the secret value explicitly')
-      .action(async (key: string, options: { show?: boolean }) => {
+      .action(async (key: string, options: { show?: boolean; environment?: string }) => {
         const application = await composition.createProjectApplication();
-        const config = await application.load(process.cwd());
+        const config = await application.load(process.cwd(), options.environment);
         const value = await application.getSecret(config, key);
         if (value === undefined) throw new Error(`Secret not found: ${key}`);
         process.stdout.write(options.show ? `${value}\n` : 'Secret exists. Use --show to display it.\n');
       }))
     .addCommand(new Command('list')
-      .action(async () => {
+      .option('--environment <name>', 'Environment override')
+      .action(async (options: { environment?: string }) => {
         const application = await composition.createProjectApplication();
-        const config = await application.load(process.cwd());
+        const config = await application.load(process.cwd(), options.environment);
         const keys = await application.listSecrets(config);
         process.stdout.write(`${keys.join('\n')}${keys.length ? '\n' : ''}`);
       }))
     .addCommand(new Command('delete')
       .argument('<key>', 'Secret key')
       .option('--yes', 'Confirm deletion')
-      .action(async (key: string, options: { yes?: boolean }) => {
+      .option('--environment <name>', 'Environment override')
+      .action(async (key: string, options: { yes?: boolean; environment?: string }) => {
         if (!options.yes) throw new Error('Deletion requires --yes.');
         const application = await composition.createProjectApplication();
-        const config = await application.load(process.cwd());
+        const config = await application.load(process.cwd(), options.environment);
         if (!await application.deleteSecret(config, key)) throw new Error(`Secret not found: ${key}`);
         process.stdout.write(`Secret deleted: ${key}\n`);
       }));

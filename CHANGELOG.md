@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.8-mvp] - 2026-08-13
+
+- Added multi-environment project configuration under `environments/<name>/devvault.yaml`.
+- Added `devvault environment set|current|list` and deterministic environment resolution.
+- Added explicit environment overrides, protected-environment mutation confirmation and legacy config compatibility.
+
 ## [0.1.7-mvp] - 2026-08-13
 
 - Automatically create and refresh the local least-privilege developer session during `devvault start`.

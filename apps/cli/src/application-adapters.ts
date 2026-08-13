@@ -7,7 +7,7 @@ import type { HttpVaultClient } from '@devvault/vault-client';
 
 export function createProjectApplicationService(client: HttpVaultClient): ProjectApplicationService {
   return new ProjectApplicationService(
-    { load: (directory: string) => loadProjectConfig(directory) },
+    { load: (directory: string, environment?: string) => loadProjectConfig(directory, environment) },
     {
       set: (config: ProjectConfig, key: string, value: string) => setSecret(config, client, key, value),
       get: (config: ProjectConfig, key: string) => getSecret(config, client, key),

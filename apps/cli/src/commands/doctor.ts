@@ -7,12 +7,14 @@ export function registerDoctorCommand(program: Command, composition: ReturnTypeO
     .command('doctor')
     .description('Diagnose local DevVault and project configuration')
     .option('--json', 'Print machine-readable JSON')
-    .action(async (options: { json?: boolean }) => {
+    .option('--environment <name>', 'Environment override')
+    .action(async (options: { json?: boolean; environment?: string }) => {
       const report = await createDoctorReport(
         process.cwd(),
         await composition.createVaultClient(),
         undefined,
         { platform: composition.platform, docker: await composition.docker.diagnose() },
+        options.environment,
       );
       process.stdout.write(options.json ? `${JSON.stringify(report)}\n` : formatDoctorReport(report));
       if (reportHasFailures(report)) process.exitCode = 1;

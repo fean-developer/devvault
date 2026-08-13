@@ -41,6 +41,26 @@ devvault run -- npm start
 
 `start` owns local Vault bootstrap. It does not replace human authentication or use the internal root bootstrap credential for application processes.
 
+### Multiple environments
+
+Create independent configurations without overwriting another environment:
+
+```bash
+devvault init-project --environment development
+devvault init-project --environment production
+devvault environment set development
+devvault environment current
+```
+
+Use a one-command override without changing the active context:
+
+```bash
+devvault secret list --environment production
+devvault run --environment production -- npm start
+```
+
+The active context is stored in `.devvault/context.json`, which contains only the environment name and is local-only. There is no silent fallback to `development`.
+
 The local developer session is prepared automatically by `start`. Application secrets remain project-owned and must be entered explicitly:
 
 ```bash

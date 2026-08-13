@@ -1,5 +1,6 @@
 import { stdin as defaultInput, stderr as defaultOutput } from 'node:process';
 import type { Readable, Writable } from 'node:stream';
+import { createInterface } from 'node:readline/promises';
 
 export async function readSecretValue(
   input: Readable & { isTTY?: boolean; setRawMode?: (mode: boolean) => void },
@@ -61,4 +62,14 @@ export async function readSecretValue(
 
 export function readSecretFromProcess(prompt?: string): Promise<string> {
   return readSecretValue(defaultInput, defaultOutput, prompt);
+}
+
+export async function confirmMutation(prompt: string): Promise<boolean> {
+  const readline = createInterface({ input: defaultInput, output: defaultOutput });
+  try {
+    const answer = await readline.question(`${prompt} [y/N] `);
+    return /^y(es)?$/i.test(answer.trim());
+  } finally {
+    readline.close();
+  }
 }

@@ -17,7 +17,7 @@ export interface DiagnosticCheck {
 
 export interface DoctorReport {
   checks: DiagnosticCheck[];
-  project?: { name: string; environment: string };
+  project?: { name: string; environment: string; protected: boolean };
   lifecycle?: VaultLifecycleState;
   platform?: PlatformInfo;
   docker?: DockerDiagnostics;
@@ -25,15 +25,17 @@ export interface DoctorReport {
 
 export async function loadConfigForDiagnostics(
   directory: string,
+  environment?: string,
 ): Promise<ProjectConfig> {
-  return loadProjectConfig(directory);
+  return loadProjectConfig(directory, environment);
 }
 
 export async function createDoctorReport(
   directory: string,
   client: DiagnosticClient,
-  configLoader: (directory: string) => Promise<ProjectConfig> = loadConfigForDiagnostics,
+  configLoader: (directory: string, environment?: string) => Promise<ProjectConfig> = loadConfigForDiagnostics,
   context?: { platform?: PlatformInfo; docker?: DockerDiagnostics },
+  environment?: string,
 ): Promise<DoctorReport> {
   const checks: DiagnosticCheck[] = [
     { name: 'Node.js', ok: true, detail: process.version },
@@ -43,8 +45,8 @@ export async function createDoctorReport(
   let authorized = false;
 
   try {
-    const config = await configLoader(directory);
-    project = { name: config.project, environment: config.environment };
+    const config = await configLoader(directory, environment);
+    project = { name: config.project, environment: config.environment, protected: config.protected === true };
     checks.push({ name: 'Project configuration', ok: true });
   } catch (error) {
     checks.push({
@@ -109,7 +111,7 @@ export function formatDoctorReport(report: DoctorReport): string {
     lines.push(`${check.ok ? 'OK' : 'FAIL'} ${check.name}${check.detail ? `: ${check.detail}` : ''}`);
   }
   if (report.project) {
-    lines.push('', `Project: ${report.project.name}`, `Environment: ${report.project.environment}`);
+    lines.push('', `Project: ${report.project.name}`, `Environment: ${report.project.environment}`, `Protected: ${report.project.protected ? 'yes' : 'no'}`);
   }
   return `${lines.join('\n')}\n`;
 }

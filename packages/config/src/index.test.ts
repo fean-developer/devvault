@@ -1,8 +1,8 @@
-import { mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { findProjectConfig, loadProjectConfig, parseProjectConfig } from './index.js';
+import { findProjectConfig, loadProjectConfig, parseProjectConfig, resolveProjectConfig, setActiveEnvironment } from './index.js';
 
 describe('projectConfigSchema', () => {
   it('accepts non-sensitive project configuration', () => {
@@ -90,5 +90,29 @@ describe('projectConfigSchema', () => {
     const directory = await mkdtemp(join(tmpdir(), 'devvault-empty-'));
 
     await expect(findProjectConfig(directory)).rejects.toThrow('Could not find devvault.yaml');
+  });
+
+  it('resolves explicit environment before active context without changing context', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'devvault-environments-'));
+    for (const environment of ['development', 'production']) {
+      await mkdir(join(root, 'environments', environment), { recursive: true });
+      await writeFile(join(root, 'environments', environment, 'devvault.yaml'), [
+        'version: 1', 'project: my-api', `environment: ${environment}`, 'vault:', '  mount: secret', `  path: projects/my-api/${environment}`, 'runtime:', '  mappings: {}',
+      ].join('\n'));
+    }
+    await setActiveEnvironment(root, 'development');
+
+    await expect(resolveProjectConfig(root, 'production')).resolves.toMatchObject({ environment: 'production' });
+    await expect(readFile(join(root, '.devvault/context.json'), 'utf8')).resolves.toContain('development');
+  });
+
+  it('fails without explicit or active environment in the new model', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'devvault-no-environment-'));
+    await mkdir(join(root, 'environments', 'production'), { recursive: true });
+    await writeFile(join(root, 'environments', 'production', 'devvault.yaml'), [
+      'version: 1', 'project: my-api', 'environment: production', 'vault:', '  mount: secret', '  path: projects/my-api/production', 'runtime:', '  mappings: {}',
+    ].join('\n'));
+
+    await expect(resolveProjectConfig(root)).rejects.toThrow('No environment selected.');
   });
 });
