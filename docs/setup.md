@@ -64,6 +64,12 @@ Phase 0 provides the setup contracts, platform/backend adapters, readiness valid
 
 Docker Desktop installation or modification is reported as blocked by policy. Run setup on an environment where Docker and the local Vault service are already available, or use the explicit remote backend boundary for read-only checks.
 
+## Project Directory Rule
+
+Run infrastructure commands such as `init` from the DevVault checkout. Run project commands such as `init-project`, `bootstrap`, `login`, `secret` and `run` from the root of the real application. `bootstrap` derives the project policy from the current directory name, so running it in the DevVault checkout assigns the human identity to the wrong project.
+
+The `Secret value:` prompt shown by `bootstrap` asks for the new Userpass human password. The prompt is hidden input; it is not asking for a Vault root token, unseal key or application secret. Application secrets are entered later with `secret set <key>`.
+
 ## Security Notes
 
 Environment variables are used only where they are required for application compatibility. They are not a complete security boundary: `/proc`, process inspection, debuggers, child processes and crash dumps may expose values. Never place credentials in `devvault.yaml`, command arguments, Git, logs or project files.

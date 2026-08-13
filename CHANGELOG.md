@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.44] - 2026-08-13
+
+- Clarified the real-project workflow and renamed the bootstrap password prompt to distinguish it from application secrets.
+
 ## [0.1.43] - 2026-08-13
 
 - Added the Phase 0 gate review report and recorded the phase as partially validated due to native Windows and Docker Desktop evidence limits.

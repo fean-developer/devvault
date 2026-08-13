@@ -103,7 +103,7 @@ devvault secret delete <key> --yes
 devvault run -- <command>
 ```
 
-`devvault init` starts the Compose service and enables KV v2 idempotently when `VAULT_TOKEN` is available. `devvault bootstrap` is a separate administrative operation that enables Userpass and creates one human identity. A new Vault still requires one-time operator initialization and unseal; DevVault does not print or persist those credentials automatically.
+`devvault init` starts the Compose service and enables KV v2 idempotently when `VAULT_TOKEN` is available. For a real application, run `init-project` and `bootstrap` from the application's root directory, not from the DevVault checkout; the policy name is derived from the current directory. During `bootstrap`, the hidden `Secret value` prompt asks for the new human user's password. It is not an application secret, root token or unseal key. A new Vault still requires one-time operator initialization and unseal; DevVault does not print or persist those credentials automatically.
 
 `devvault login` uses Vault Userpass and stores the short-lived session in the operating system keyring through `keytar`. It does not fall back to plaintext files. Linux requires Secret Service, Windows uses Credential Manager, and WSL requires an explicitly configured keyring integration.
 
