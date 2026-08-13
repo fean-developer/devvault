@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.40] - 2026-08-13
+
+- Added Phase 0 E2E/readiness scenarios for setup repetition, repair, blocked environments, consent and remote read-only checks.
+
 ## [0.1.39] - 2026-08-13
 
 - Added Phase 0 security acceptance coverage for setup state, JSON output, errors, URLs, temporary files and project secret-file boundaries.

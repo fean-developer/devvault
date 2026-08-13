@@ -379,6 +379,9 @@ Tasks execute according to the explicit dependency graph below.
 **Evidence**: E2E report with sanitized setup results and backend call recordings.
 **Commit**: `test(setup): add phase zero readiness scenarios`
 
+**Status**: Complete
+**Evidence**: 4 Phase 0 readiness scenarios pass; clean/repeated setup, interruption/repair, Docker/Desktop policy and consent BLOCKED paths, and remote-check read-only validation are covered.
+
 ### T17: Evaluate standalone distribution
 
 **What**: Compare Node SEA, pkg, nexe and Bun compiled distribution without producing final binaries.
