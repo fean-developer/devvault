@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.43] - 2026-08-13
+
+- Added the Phase 0 gate review report and recorded the phase as partially validated due to native Windows and Docker Desktop evidence limits.
+
 ## [0.1.42] - 2026-08-13
 
 - Completed Phase 0 setup documentation, platform limitations and readiness evidence.
