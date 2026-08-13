@@ -26,17 +26,24 @@ export class StepSetupOrchestrator implements SetupOrchestratorPort {
     steps: readonly SetupStep[],
     readOnly: boolean,
   ): Promise<SetupExecutionResult> {
-    const loaded = await this.stateStore.load();
-    if (loaded.status === 'corrupt') return this.failedResult('Setup state is corrupt.');
-
-    const completed = loaded.status === 'valid' ? [...loaded.state.completedSteps] : [];
+    let completed: string[] = [];
     const pending: string[] = [];
     const blockers: string[] = [];
     const warnings: string[] = [];
     let metadata: SetupMetadata = { ...context.metadata };
-    const lock = readOnly ? undefined : await this.stateStore.acquireLock();
+    let lock;
+    let stateCorrupt = false;
+    try {
+      lock = readOnly ? undefined : await this.stateStore.acquireLock();
+      const loaded = await this.stateStore.load();
+      stateCorrupt = loaded.status === 'corrupt';
+      completed = loaded.status === 'valid' ? [...loaded.state.completedSteps] : [];
+    } catch (error) {
+      return this.failedResult(error instanceof Error ? error.message : 'Setup state lock failed.');
+    }
 
     try {
+      if (stateCorrupt) return this.failedResult('Setup state is corrupt.');
       for (const step of steps) {
         if (completed.includes(step.id)) continue;
         if (readOnly && step.mutating) {

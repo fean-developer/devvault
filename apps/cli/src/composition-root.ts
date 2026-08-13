@@ -1,11 +1,15 @@
 import { UserpassAuthenticationProvider } from '@devvault/auth';
+import { CapabilityBackendSelector, ProfileSetupValidator } from '@devvault/core';
+import { fileURLToPath } from 'node:url';
 import { createProjectApplicationService } from './application-adapters.js';
 import {
   detectPlatform,
   DockerComposeManager,
   FileSetupStateStore,
   KeytarCredentialStore,
+  LocalDockerVaultBackend,
   PlatformDependencyChecker,
+  RemoteVaultBackend,
   defaultSetupStatePath,
 } from '@devvault/platform';
 import { HttpVaultClient } from '@devvault/vault-client';
@@ -19,6 +23,31 @@ export function createCompositionRoot() {
   const setupStateStore = new FileSetupStateStore({ statePath: defaultSetupStatePath() });
   const setupDependencyChecker = new PlatformDependencyChecker();
   const setupConsent = { request: async () => process.env.DEVAULT_SETUP_YES === '1' ? 'approved' as const : 'denied' as const };
+  const setupVault = new HttpVaultClient({
+    address: process.env.VAULT_ADDR ?? 'http://127.0.0.1:8200',
+    token: process.env.VAULT_TOKEN,
+  });
+  const setupLocalBackend = new LocalDockerVaultBackend({ docker, vault: setupVault });
+  const setupRemoteBackend = process.env.DEVAULT_REMOTE_ADDR
+    ? new RemoteVaultBackend({ address: process.env.DEVAULT_REMOTE_ADDR, client: setupVault })
+    : undefined;
+  const setupBackendSelector = new CapabilityBackendSelector();
+  const setupValidator = new ProfileSetupValidator({
+    collect: async (context) => ({
+      capabilities: {
+        platform: context.metadata.platform !== 'unknown',
+        backend: typeof context.metadata.backend === 'string',
+        'vault-lifecycle': ['configured', 'ready'].includes(String(context.metadata.vaultLifecycle)),
+        kv: context.metadata.kv === true,
+        'setup-state': true,
+      },
+      blockers: [],
+      warnings: [],
+      metadata: context.metadata,
+    }),
+  });
+  const setupComposeFile = process.env.DEVAULT_COMPOSE_FILE
+    ?? fileURLToPath(new URL('../../../infra/vault/docker-compose.yml', import.meta.url));
 
   return {
     credentialStore,
@@ -27,6 +56,11 @@ export function createCompositionRoot() {
     setupStateStore,
     setupDependencyChecker,
     setupConsent,
+    setupBackendSelector,
+    setupLocalBackend,
+    setupRemoteBackend,
+    setupValidator,
+    startLocalVault: () => docker.composeUp(setupComposeFile),
     createVaultClient: async () => {
       let session: string | null = null;
       try {

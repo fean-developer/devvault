@@ -102,7 +102,7 @@ describe('Phase 0 setup security acceptance', () => {
     const statePath = join(projectDirectory, 'user-config', 'setup-state.json');
     const result = await runSetupCommand(commandDependencies(statePath), { check: true, json: true });
 
-    expect(result.status).toBe('READY');
+    expect(['BLOCKED', 'FAILED']).toContain(result.status);
     for (const filename of ['.env', '.env.local', '.env.development', 'secrets.json', 'secrets.yaml']) {
       await expect(access(join(projectDirectory, filename))).rejects.toThrow();
     }

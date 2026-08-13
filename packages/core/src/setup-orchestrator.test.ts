@@ -52,4 +52,24 @@ describe('StepSetupOrchestrator', () => {
     expect(result.status).toBe('BLOCKED');
     expect(result.pendingSteps).toEqual(['mutate']);
   });
+
+  it('acquires the writer lock before loading state and maps lock errors to FAILED', async () => {
+    const order: string[] = [];
+    const state: SetupStateStore = {
+      acquireLock: async () => { order.push('lock'); return { release: async () => undefined }; },
+      load: async () => { order.push('load'); return { status: 'missing' }; },
+      save: async () => ({ status: 'saved', previousStateRetained: true }),
+    };
+    const result = await new StepSetupOrchestrator(state, { request: async () => 'approved' }).setup({
+      mode: 'setup', profile: 'local-bootstrap', metadata: {},
+    }, []);
+    expect(order).toEqual(['lock', 'load']);
+    expect(result.status).toBe('READY');
+
+    const locked = await new StepSetupOrchestrator({
+      ...state,
+      acquireLock: async () => { throw new Error('locked'); },
+    }, { request: async () => 'approved' }).setup({ mode: 'setup', profile: 'local-bootstrap', metadata: {} }, []);
+    expect(locked.status).toBe('FAILED');
+  });
 });

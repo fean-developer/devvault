@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.46] - 2026-08-13
+
+- Wired the production setup command to backend selection, Vault readiness, profile validation and consent-gated local start.
+- Added regression coverage for blocked/failed readiness outcomes and real Commander exit codes.
+
 ## [0.1.45] - 2026-08-13
 
 - Added contextual hidden prompts for application secrets and Userpass passwords.

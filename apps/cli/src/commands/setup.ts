@@ -2,12 +2,16 @@ import { Command } from 'commander';
 import {
   StepSetupOrchestrator,
   setupExitCodes,
+  type BackendSelector,
   type ConsentService,
+  type SetupValidator,
   type DependencyChecker,
   type SetupExecutionResult,
   type SetupMetadata,
   type SetupStateStore,
   type SetupStep,
+  type SetupStepResult,
+  type VaultBackend,
 } from '@devvault/core';
 import type { ReturnTypeOfComposition } from '../composition-root.js';
 
@@ -15,6 +19,11 @@ export interface SetupCommandDependencies {
   stateStore: SetupStateStore;
   dependencyChecker: DependencyChecker;
   consent: ConsentService;
+  backendSelector?: BackendSelector;
+  localBackend?: VaultBackend;
+  remoteBackend?: VaultBackend;
+  validator?: SetupValidator;
+  startLocalVault?: () => Promise<void>;
   approveAllMutations?: boolean;
   steps?: readonly SetupStep[];
 }
@@ -71,20 +80,121 @@ function createSetupSteps(
   dependencies: SetupCommandDependencies,
   metadata: SetupMetadata,
 ): readonly SetupStep[] {
-  return [
+  let dependencyReport: Awaited<ReturnType<DependencyChecker['check']>> | undefined;
+  let selectedBackend: VaultBackend | undefined;
+  let backendDetection: Awaited<ReturnType<VaultBackend['detect']>> | undefined;
+  let backendValidation: Awaited<ReturnType<VaultBackend['validate']>> | undefined;
+  let requiresLocalStart = false;
+  const startLocalVaultStep: SetupStep = {
+    id: 'start-local-vault',
+    mutating: false,
+    requiresConsent: true,
+    run: async (): Promise<SetupStepResult> => {
+      if (!requiresLocalStart) return { status: 'completed', metadata: {} };
+      if (!dependencies.startLocalVault) return { status: 'blocked', metadata: {}, nextAction: 'Local Vault start is unavailable.' };
+      try {
+        await dependencies.startLocalVault();
+        return { status: 'completed', metadata: { vaultContainer: 'running' } };
+      } catch {
+        return { status: 'failed', metadata: {}, errorCode: 'LOCAL_VAULT_START_FAILED' };
+      }
+    },
+  };
+
+  const steps: SetupStep[] = [
     {
       id: 'dependencies',
       mutating: false,
       requiresConsent: false,
       run: async (context) => {
-        const report = await dependencies.dependencyChecker.check({ profile: context.profile, metadata });
-        return {
-          status: report.blockers.length > 0 ? 'blocked' : 'completed',
-          metadata: { ...report.metadata, ...metadata },
-          nextAction: report.blockers.join(' '),
-        };
+        dependencyReport = await dependencies.dependencyChecker.check({ profile: context.profile, metadata });
+        const localOnlyBlockers = dependencyReport.blockers.filter((blocker) => !/docker|vault container/i.test(blocker));
+        const canUseRemote = Boolean(dependencies.remoteBackend) && localOnlyBlockers.length === 0;
+        requiresLocalStart = Boolean(dependencies.startLocalVault)
+          && dependencyReport.metadata.dockerState === 'available'
+          && dependencyReport.metadata.vaultContainer !== 'running'
+          && !canUseRemote;
+        startLocalVaultStep.mutating = requiresLocalStart;
+        return localOnlyBlockers.length > 0 || (!canUseRemote && dependencyReport.blockers.length > 0)
+          && !requiresLocalStart
+          ? { status: 'blocked', metadata: { ...dependencyReport.metadata, ...metadata }, nextAction: dependencyReport.blockers.join(' ') }
+          : { status: 'completed', metadata: { ...dependencyReport.metadata, ...metadata } };
       },
     },
+    {
+      id: 'backend-selection',
+      mutating: false,
+      requiresConsent: false,
+      run: async () => {
+        if (!dependencies.backendSelector || !dependencies.localBackend) {
+          return { status: 'failed', metadata: {}, errorCode: 'SETUP_BACKEND_NOT_CONFIGURED' };
+        }
+        const selection = await dependencies.backendSelector.select({
+          local: dependencies.localBackend,
+          remote: dependencies.remoteBackend,
+          preferred: metadata.preferredBackend === 'remote-vault' ? 'remote-vault' : undefined,
+        });
+        selectedBackend = selection.backend;
+        return selection.backend
+          ? { status: 'completed', metadata: { ...selection.metadata, backend: selection.backend.kind() } }
+          : { status: 'blocked', metadata: selection.metadata, nextAction: selection.blockers.join(' ') };
+      },
+    },
+    {
+      id: 'backend-readiness',
+      mutating: false,
+      requiresConsent: false,
+      run: async () => {
+        if (!selectedBackend) return { status: 'blocked', metadata: {}, nextAction: 'No viable Vault backend was selected.' };
+        backendDetection = await selectedBackend.detect();
+        if (!backendDetection.available) return { status: 'blocked', metadata: {}, nextAction: backendDetection.detail ?? 'Selected Vault backend is unavailable.' };
+        backendValidation = await selectedBackend.validate(backendDetection.capabilities);
+        const readinessMetadata = {
+          backend: selectedBackend.kind(),
+          vaultLifecycle: backendValidation.lifecycle,
+          kv: backendValidation.kvValid,
+          policy: backendValidation.policyValid,
+        };
+        if (['unavailable', 'not-initialized', 'sealed'].includes(backendValidation.lifecycle)) {
+          return { status: 'blocked', metadata: readinessMetadata, nextAction: `Vault lifecycle is ${backendValidation.lifecycle}.` };
+        }
+        if (!backendValidation.kvValid || !backendValidation.policyValid) {
+          return { status: 'blocked', metadata: readinessMetadata, nextAction: 'Mandatory Vault capabilities are unavailable.' };
+        }
+        return { status: 'completed', metadata: readinessMetadata };
+      },
+    },
+    {
+      id: 'profile-validation',
+      mutating: false,
+      requiresConsent: false,
+      run: async (context) => {
+        if (!dependencies.validator || !dependencyReport || !backendDetection || !backendValidation) {
+          return { status: 'failed', metadata: {}, errorCode: 'SETUP_VALIDATION_NOT_CONFIGURED' };
+        }
+        const report = await dependencies.validator.validate({
+          ...context,
+          metadata: {
+            ...dependencyReport.metadata,
+            ...metadata,
+            backend: selectedBackend?.kind() ?? null,
+            vaultLifecycle: backendValidation.lifecycle,
+            kv: backendValidation.kvValid,
+            policy: backendValidation.policyValid,
+          },
+        });
+        if (report.status === 'FAILED') return { status: 'failed', metadata: report.metadata, errorCode: 'SETUP_VALIDATION_FAILED' };
+        if (report.status === 'BLOCKED') return { status: 'blocked', metadata: report.metadata, nextAction: report.blockers.join(' ') || 'Profile validation blocked setup.' };
+        if (report.status === 'DEGRADED') return { status: 'pending', metadata: report.metadata, nextAction: report.warnings.join(' ') };
+        return { status: 'completed', metadata: report.metadata };
+      },
+    },
+  ];
+  startLocalVaultStep.mutating = requiresLocalStart;
+  return [
+    ...steps.slice(0, 1),
+    startLocalVaultStep,
+    ...steps.slice(1),
   ];
 }
 
@@ -119,5 +229,10 @@ export function createSetupDependencies(
     stateStore: composition.setupStateStore,
     dependencyChecker: composition.setupDependencyChecker,
     consent: composition.setupConsent,
+    backendSelector: composition.setupBackendSelector,
+    localBackend: composition.setupLocalBackend,
+    remoteBackend: composition.setupRemoteBackend,
+    validator: composition.setupValidator,
+    startLocalVault: composition.startLocalVault,
   };
 }

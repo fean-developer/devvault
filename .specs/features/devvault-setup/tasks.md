@@ -421,6 +421,28 @@ Tasks execute according to the explicit dependency graph below.
 **Status**: Complete
 **Evidence**: README, setup guide, platform compatibility matrix and Phase 0 readiness report now distinguish implemented/tested/not-tested/blocked states and preserve the Phase 0 boundary.
 
+### T19: Correct production setup pipeline wiring
+
+**What**: Connect the real `devvault setup` command to the complete Phase 0 step pipeline: dependency detection, consent-gated local start, backend selection, Vault lifecycle/KV readiness and profile validation.
+**Why**: Independent verification found that the production command executed only the dependency step and could report `READY` without mandatory backend validation.
+**Where**: `apps/cli/src/commands/setup.ts`, `apps/cli/src/composition-root.ts`, `packages/core/src/setup-orchestrator.ts`, and production-path tests.
+**Depends on**: T8, T9, T10, T11, T12, T14, T15, T16
+**Requirement**: SETUP-001, SETUP-002, SETUP-003, SETUP-004, SETUP-008, SETUP-009, SETUP-010, SETUP-013, SETUP-014, SETUP-016, SETUP-017
+**Design reference**: `design.md#SetupOrchestrator`, `design.md#BackendSelector`, `design.md#READY Gate`, `design.md#Command Surface`
+**Tests**: production command regression and orchestrator integration tests
+**Gate**: full
+**Done when**:
+- [ ] Production command invokes backend selector, backend readiness and profile validator.
+- [ ] Backend/lifecycle/mandatory capability blockers cannot become `READY`.
+- [ ] Consent-gated local start and remote fallback are exercised.
+- [ ] Real Commander registration maps public result exit codes.
+- [ ] Lock is acquired before state load and lock failures map to `FAILED`.
+**Evidence**: Production pipeline test matrix and full Phase 0 gate output.
+**Commit**: `fix(setup): wire production readiness pipeline`
+
+**Status**: Complete
+**Evidence**: 14 production-command regression tests cover READY gating, no backend, sealed/uninitialized Vault, mandatory capability failure, remote fallback, consent-gated local start, blocked/failed steps, Commander exit codes, read-only check and blocker mutation resistance.
+
 ## Requirement → Task Matrix
 
 | Requirement | Tasks |
@@ -528,6 +550,14 @@ flowchart TD
     T15 --> T18[T18 Documentation/readiness]
     T16 --> T18
     T17 --> T18
+    T8 --> T19[T19 Production pipeline correction]
+    T9 --> T19
+    T10 --> T19
+    T11 --> T19
+    T12 --> T19
+    T14 --> T19
+    T15 --> T19
+    T16 --> T19
 ```
 
 ## Phase 0 Tasks Gate
