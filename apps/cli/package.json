@@ -1,0 +1,22 @@
+{
+  "name": "@devvault/cli",
+  "version": "0.1.25",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "devvault": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup --config tsup.config.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@devvault/config": "workspace:*",
+    "@devvault/core": "workspace:*",
+    "@devvault/auth": "workspace:*",
+    "@devvault/platform": "workspace:*",
+    "@devvault/vault-client": "workspace:*",
+    "commander": "^14.0.0",
+    "keytar": "^7.9.0"
+  }
+}
