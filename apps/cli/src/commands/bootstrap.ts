@@ -17,8 +17,7 @@ export function registerBootstrapCommand(program: Command, composition: ReturnTy
       if (health.sealed) throw new Error('Vault is sealed. Unseal it with the operator procedure before devvault bootstrap.');
       await client.ensureUserpass();
       const username = options.username ?? await readUsername();
-      process.stderr.write(`Password for Userpass user ${username}: `);
-      const password = await readSecretFromProcess();
+      const password = await readSecretFromProcess(`Password for Userpass user ${username}: `);
       const project = basename(process.cwd()).toLowerCase().replace(/[^a-z0-9-]/g, '-');
       await client.createUserpassUser(username, password, [`devvault-${project}-${options.environment}-developer`]);
       process.stdout.write(`Userpass identity created: ${username}\n`);

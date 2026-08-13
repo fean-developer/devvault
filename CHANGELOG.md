@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.45] - 2026-08-13
+
+- Added contextual hidden prompts for application secrets and Userpass passwords.
+
 ## [0.1.44] - 2026-08-13
 
 - Clarified the real-project workflow and renamed the bootstrap password prompt to distinguish it from application secrets.

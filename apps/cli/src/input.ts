@@ -4,6 +4,7 @@ import type { Readable, Writable } from 'node:stream';
 export async function readSecretValue(
   input: Readable & { isTTY?: boolean; setRawMode?: (mode: boolean) => void },
   output: Writable,
+  prompt?: string,
 ): Promise<string> {
   if (!input.isTTY) {
     const chunks: Buffer[] = [];
@@ -17,6 +18,7 @@ export async function readSecretValue(
     throw new Error('Interactive secret input is unavailable in this terminal.');
   }
 
+  if (prompt) output.write(prompt);
   input.setRawMode(true);
   input.resume();
 
@@ -57,6 +59,6 @@ export async function readSecretValue(
   });
 }
 
-export function readSecretFromProcess(): Promise<string> {
-  return readSecretValue(defaultInput, defaultOutput);
+export function readSecretFromProcess(prompt?: string): Promise<string> {
+  return readSecretValue(defaultInput, defaultOutput, prompt);
 }
