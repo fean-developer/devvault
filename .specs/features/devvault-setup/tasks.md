@@ -418,6 +418,9 @@ Tasks execute according to the explicit dependency graph below.
 **Evidence**: Documentation review checklist and readiness report.
 **Commit**: `docs(setup): document phase zero readiness`
 
+**Status**: Complete
+**Evidence**: README, setup guide, platform compatibility matrix and Phase 0 readiness report now distinguish implemented/tested/not-tested/blocked states and preserve the Phase 0 boundary.
+
 ## Requirement → Task Matrix
 
 | Requirement | Tasks |

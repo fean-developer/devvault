@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.42] - 2026-08-13
+
+- Completed Phase 0 setup documentation, platform limitations and readiness evidence.
+
 ## [0.1.41] - 2026-08-13
 
 - Documented standalone distribution options and deferred a Node SEA proof of concept.
