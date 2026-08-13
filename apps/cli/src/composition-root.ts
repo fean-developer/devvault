@@ -65,6 +65,7 @@ export function createCompositionRoot() {
     localLifecycle,
     bootstrapStore,
     projectContext: { load: async () => { const config = await loadProjectConfig(process.cwd()); return { name: config.project, environment: config.environment }; } },
+    sessionStore: credentialStore,
     stateStore: setupStateStore,
     consent: lifecycleConsent,
   });

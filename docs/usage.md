@@ -41,6 +41,13 @@ devvault run -- npm start
 
 `start` owns local Vault bootstrap. It does not replace human authentication or use the internal root bootstrap credential for application processes.
 
+The local developer session is prepared automatically by `start`. Application secrets remain project-owned and must be entered explicitly:
+
+```bash
+devvault secret set database.username
+devvault secret set database.password
+```
+
 ## 3. Start Vault
 
 ```bash

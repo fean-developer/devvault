@@ -37,15 +37,22 @@ export interface LocalLifecyclePort {
   useBootstrapMaterial?(material: LocalBootstrapMaterial): void;
   unseal(material: LocalBootstrapMaterial): Promise<void>;
   configure?(project: { name: string; environment: string }): Promise<void>;
+  ensureDeveloperSession?(material: LocalBootstrapMaterial, project: { name: string; environment: string }): Promise<{ token: string; material: LocalBootstrapMaterial }>;
 }
 
 export interface ProjectContextProvider {
   load(): Promise<{ name: string; environment: string }>;
 }
 
+export interface DeveloperSessionStore {
+  set(key: string, value: string): Promise<void>;
+}
+
 export interface LocalBootstrapMaterial {
   rootToken: string;
   unsealKey: string;
+  developerUsername?: string;
+  developerPassword?: string;
 }
 
 export interface LocalBootstrapMaterialStore {

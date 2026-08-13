@@ -1,6 +1,7 @@
 import type { LocalBootstrapMaterial, LocalLifecyclePort } from '@devvault/core';
 import type { DockerManager } from './index.js';
 import { createApplicationPolicy, createDeveloperPolicy } from '@devvault/vault-client';
+import { randomBytes } from 'node:crypto';
 
 export interface LocalVaultLifecycleClient {
   health(): Promise<{ initialized: boolean; sealed: boolean }>;
@@ -9,6 +10,9 @@ export interface LocalVaultLifecycleClient {
   initialize?(): Promise<LocalBootstrapMaterial>;
   unseal(key: string): Promise<void>;
   setToken?(token: string): void;
+  ensureUserpass?(): Promise<void>;
+  createUserpassUser?(username: string, password: string, policies: string[]): Promise<void>;
+  loginUserpass?(mount: string, username: string, password: string): Promise<{ token: string; leaseDuration: number }>;
 }
 
 export interface LocalVaultLifecycleOptions {
@@ -56,5 +60,15 @@ export class LocalVaultLifecycleAdapter implements LocalLifecyclePort {
 
   useBootstrapMaterial(material: LocalBootstrapMaterial): void {
     this.options.vault.setToken?.(material.rootToken);
+  }
+
+  async ensureDeveloperSession(material: LocalBootstrapMaterial, project: { name: string; environment: string }): Promise<{ token: string; material: LocalBootstrapMaterial }> {
+    if (!this.options.vault.ensureUserpass || !this.options.vault.createUserpassUser || !this.options.vault.loginUserpass) throw new Error('Vault developer authentication is unavailable.');
+    const username = material.developerUsername ?? 'alice';
+    const password = material.developerPassword ?? randomBytes(32).toString('base64url');
+    await this.options.vault.ensureUserpass();
+    await this.options.vault.createUserpassUser(username, password, [`devvault-${project.name}-${project.environment}-developer`]);
+    const token = (await this.options.vault.loginUserpass('userpass', username, password)).token;
+    return { token, material: { ...material, developerUsername: username, developerPassword: password } };
   }
 }

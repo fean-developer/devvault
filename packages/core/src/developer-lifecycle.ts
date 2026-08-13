@@ -8,6 +8,7 @@ import {
   type LocalBootstrapMaterialStore,
   type EphemeralSecretInput,
   type ProjectContextProvider,
+  type DeveloperSessionStore,
   type LifecycleBackendKind,
   type LifecycleResult,
   type LocalLifecyclePort,
@@ -27,6 +28,7 @@ export interface DeveloperLifecycleDependencies {
   stateStore: SetupStateStore;
   consent: ConsentService;
   projectContext?: ProjectContextProvider;
+  sessionStore?: DeveloperSessionStore;
 }
 
 export class DefaultDeveloperLifecycleService implements DeveloperLifecycleService {
@@ -146,6 +148,15 @@ export class DefaultDeveloperLifecycleService implements DeveloperLifecycleServi
       }
     }
 
+    if (validation.lifecycle !== 'sealed' && validation.lifecycle !== 'not-initialized' && selection.backend.kind() === 'local-docker' && this.dependencies.localLifecycle?.configure && this.dependencies.projectContext) {
+      try {
+        await this.dependencies.localLifecycle.configure(await this.dependencies.projectContext.load());
+        validation = { lifecycle: 'configured', kvValid: true, policyValid: true };
+      } catch {
+        return this.result('FAILED', validation.lifecycle, 'local-docker', ['The local DevVault environment could not be configured.']);
+      }
+    }
+
     if (validation.lifecycle === 'unsealed' && (!validation.kvValid || !validation.policyValid) && selection.backend.kind() === 'local-docker' && this.dependencies.localLifecycle?.configure && this.dependencies.projectContext) {
       const consent = await this.dependencies.consent.request({
         actionId: 'configure-local-vault',
@@ -177,6 +188,18 @@ export class DefaultDeveloperLifecycleService implements DeveloperLifecycleServi
     }
     if (!validation.kvValid || !validation.policyValid) {
       return { status: 'BLOCKED', lifecycle: validation.lifecycle, backend: selection.backend.kind(), blockers: ['Mandatory local DevVault capabilities are unavailable.'], warnings: [], metadata: validatedMetadata };
+    }
+    if (validation.lifecycle === 'configured' && selection.backend.kind() === 'local-docker' && this.dependencies.bootstrapStore && this.dependencies.localLifecycle?.ensureDeveloperSession && this.dependencies.projectContext && this.dependencies.sessionStore) {
+      const material = await this.dependencies.bootstrapStore.load();
+      if (material) {
+        try {
+          const session = await this.dependencies.localLifecycle.ensureDeveloperSession(material, await this.dependencies.projectContext.load());
+          await this.dependencies.bootstrapStore.save(session.material);
+          await this.dependencies.sessionStore.set('session', session.token);
+        } catch {
+          return this.result('FAILED', 'configured', 'local-docker', ['The local developer session could not be prepared.']);
+        }
+      }
     }
     if (this.dependencies.validator) {
       const report = await this.dependencies.validator.validate({

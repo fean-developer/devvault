@@ -7,6 +7,10 @@ export interface ProjectPolicyInput {
 export function createDeveloperPolicy(input: ProjectPolicyInput): string {
   const path = projectPath(input);
   return [
+    `path "${path.data}" {`,
+    '  capabilities = ["create", "read", "update"]',
+    '}',
+    '',
     `path "${path.data}/*" {`,
     '  capabilities = ["create", "read", "update"]',
     '}',
@@ -21,6 +25,10 @@ export function createDeveloperPolicy(input: ProjectPolicyInput): string {
 export function createApplicationPolicy(input: ProjectPolicyInput): string {
   const path = projectPath(input);
   return [
+    `path "${path.data}" {`,
+    '  capabilities = ["read"]',
+    '}',
+    '',
     `path "${path.data}/*" {`,
     '  capabilities = ["read"]',
     '}',

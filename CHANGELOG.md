@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.7-mvp] - 2026-08-13
+
+- Automatically create and refresh the local least-privilege developer session during `devvault start`.
+- Store only the developer session token in the OS keyring; keep root/bootstrap material inside the local bootstrap boundary.
+- Preserve application secret ownership: missing project secrets remain explicit runtime errors.
+
 ## [0.1.6-mvp] - 2026-08-13
 
 - Completed automatic local Vault bootstrap through `devvault start`.
