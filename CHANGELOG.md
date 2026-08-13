@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.38] - 2026-08-13
+
+- Added the `devvault setup` command with check, repair, JSON, non-interactive and explicit approval options.
+- Added CLI result/exit-code and output sanitization coverage.
+
 ## [0.1.37] - 2026-08-13
 
 - Added filesystem-backed SetupStateStore with atomic writes, exclusive lock and corruption handling.

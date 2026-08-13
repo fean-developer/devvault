@@ -338,6 +338,9 @@ Tasks execute according to the explicit dependency graph below.
 **Evidence**: CLI E2E output, exit codes, mutation recorder and JSON scan.
 **Commit**: `feat(setup): add setup command surface`
 
+**Status**: Complete
+**Evidence**: 3 CLI command tests pass; packaged `setup --check --json` returned sanitized `READY` with exit code 0 in the available local Docker/Vault environment.
+
 ### T15: Add Phase 0 security acceptance suite
 
 **What**: Test state, JSON, logs, errors, exceptions, temporary files, URLs and command boundaries for credential leakage.
