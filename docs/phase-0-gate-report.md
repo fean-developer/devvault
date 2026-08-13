@@ -6,9 +6,9 @@ Phase 0 - DevVault Setup and Readiness Foundation
 
 ## Status
 
-**PARTIAL**
+**FAIL**
 
-The implementation and automated evidence for the defined Phase 0 scope are present. The phase cannot be marked `COMPLETED` because native Windows execution remains `NOT TESTED` and Docker Desktop validation is `BLOCKED BY ENVIRONMENT`, as required by the repository governance rules.
+The implementation and basic automated gates pass, but independent verification found a critical production-wiring gap: the default `devvault setup` path runs only dependency detection and can report `READY` without backend, Vault lifecycle, KV or mandatory capability validation.
 
 ## Implementation
 
@@ -31,7 +31,7 @@ No AppRole, OIDC, CI/CD, full human authentication, final policies, dynamic secr
 Executed during this gate:
 
 ```text
-corepack pnpm test       PASS - 33 test files, 106 tests
+corepack pnpm test       PASS - 33 test files, 107 tests
 corepack pnpm lint       PASS
 corepack pnpm typecheck  PASS
 corepack pnpm build      PASS
@@ -50,7 +50,7 @@ The `rg` utility was unavailable, so the forbidden-import scan used `grep` with 
 
 ## Security
 
-**PASS for the tested scope.**
+**PASS WITH GAPS for the tested scope.**
 
 - Forbidden credential categories are rejected from setup state.
 - State, JSON output, errors and temporary files are covered by security tests.
@@ -63,7 +63,7 @@ No CRITICAL or HIGH security finding was opened during this review.
 
 ## Architecture
 
-**PASS for the reviewed boundaries.**
+**PARTIAL for the reviewed boundaries.**
 
 - CLI setup command delegates to the Core orchestrator and ports.
 - Core has no imports from platform, Docker, keyring or Node filesystem/process APIs.
@@ -71,6 +71,7 @@ No CRITICAL or HIGH security finding was opened during this review.
 - Local and remote Vault backends share the capability contract; remote does not expose Docker operations.
 - Setup state persistence is behind the `SetupStateStore` port.
 - Authentication and CredentialStore remain abstracted and later-phase scoped.
+- Backend selector, lifecycle/KV validation and ProfileSetupValidator are not connected to the production setup command.
 
 No Architecture Decision Record was required by this gate.
 
@@ -130,7 +131,7 @@ Documentation explicitly distinguishes `IMPLEMENTED`, `TESTED`, `NOT TESTED`, `B
 | Criterion | Status | Evidence |
 | --- | --- | --- |
 | Phase 0 requirements implemented | PASS WITH LIMITATIONS | T1-T18 commits and task traceability |
-| Unit/integration/E2E/security tests pass | PASS | 33 files, 106 tests |
+| Unit/integration/E2E/security tests pass | PASS | 33 files, 107 tests |
 | Lint, typecheck and build pass | PASS | gate commands above |
 | Security review complete | PASS | security acceptance suite and scans |
 | Architecture review complete | PASS | boundary scan and invariant review |
@@ -142,6 +143,6 @@ Documentation explicitly distinguishes `IMPLEMENTED`, `TESTED`, `NOT TESTED`, `B
 
 ## Recommendation
 
-**PARTIALLY VALIDATED**
+**NEEDS FIXES**
 
-Keep the Phase 0 implementation and evidence. Do not begin the next phase until the Phase Gate is explicitly approved. Native Windows and Docker Desktop limitations must remain visible in all release and compatibility claims.
+Do not approve Phase 0 completion or begin Phase 1. Fix the ranked gaps in `.specs/features/devvault-setup/validation.md`, then rerun the independent verifier and all gates. Native Windows and Docker Desktop limitations must remain visible in all release and compatibility claims.

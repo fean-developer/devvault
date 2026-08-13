@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-13
 **Scope:** DevVault setup orchestration and readiness foundation
-**Status:** Phase Gate reviewed - PARTIALLY VALIDATED
+**Status:** Verification Gate FAILED - NEEDS FIXES
 
 This report records implementation evidence for Phase 0. It is not a claim of production readiness, native Windows compatibility or completion of later authentication and policy phases.
 
@@ -29,10 +29,10 @@ Implemented in the Phase 0 task sequence:
 | --- | --- | --- |
 | Core contracts and profiles | `packages/core/src/**/*.test.ts` | PASS |
 | Platform and backend adapters | `packages/platform/src/**/*.test.ts` | PASS |
-| Setup command | `apps/cli/src/commands/setup.test.ts` and packaged `setup --check --json` | PASS in current Linux/WSL environment |
+| Setup command | `apps/cli/src/commands/setup.test.ts` and packaged `setup --check --json` | FAIL for production wiring: default pipeline only runs dependency step |
 | Security acceptance | `tests/security/devvault-setup.test.ts` | PASS, 4 tests |
 | Readiness scenarios | `tests/e2e/devvault-setup.test.ts` | PASS, 4 tests |
-| Repository validation | `corepack pnpm test` | PASS, 33 files / 106 tests |
+| Repository validation | `corepack pnpm test` | PASS, 33 files / 107 tests |
 | Build validation | `corepack pnpm lint`, `typecheck`, `build` | PASS |
 | Distribution decision | `docs/distribution.md` | REVIEWED, implementation deferred |
 
@@ -61,11 +61,11 @@ Core does not import Docker, filesystem, keyring or platform APIs. Remote Vault 
 
 | Invariant group | Status | Evidence |
 | --- | --- | --- |
-| `INV-001..INV-005` secret/file/log boundaries | PASS | `packages/core/src/setup-state.test.ts`, `tests/security/devvault-setup.test.ts` |
+| `INV-001..INV-005` secret/file/log/argv boundaries | PARTIAL | State/security tests pass, but global logs, exceptions and argv are not comprehensively covered |
 | `INV-006..INV-008` Core dependency boundaries | PASS | Core typecheck and package import structure |
 | `INV-009..INV-011` provider/store abstraction | PASS | Core ports and adapter tests |
-| `INV-012..INV-014` backend capability/lifecycle separation | PASS | backend selector, local backend and remote backend tests |
-| `INV-015..INV-018` runtime and extensibility boundaries | PASS WITH LIMITATIONS | setup command and orchestration tests; later auth capabilities remain deferred |
+| `INV-012..INV-014` backend capability/lifecycle separation | PARTIAL | Adapters pass in isolation; production setup does not consume selector/lifecycle validation |
+| `INV-015..INV-018` runtime and extensibility boundaries | PARTIAL | Runtime/provider boundaries pass; INV-018 lacks individual evidence for every invariant |
 | `INV-SETUP-001..INV-SETUP-005` result/profile/state/idempotency/recovery | PASS | model, state store, orchestrator and E2E readiness tests |
 | `INV-SETUP-006..INV-SETUP-008` consent, restricted environment and platform boundary | PASS | consent, dependency and readiness tests |
 | `INV-SETUP-009..INV-SETUP-012` no-secret state, backend and command boundaries | PASS | security acceptance and remote backend tests |
@@ -77,11 +77,13 @@ Core does not import Docker, filesystem, keyring or platform APIs. Remote Vault 
 - Docker Desktop installation and modification are intentionally blocked by policy.
 - Environment variables can be inspected by local tools and child processes.
 - A compromised workstation, Docker daemon or Vault deployment can expose secrets.
+- The independent verifier found that the production setup path does not wire backend selection, lifecycle/KV validation or `ProfileSetupValidator`.
+- The discrimination sensor found a surviving mutant in the default setup dependency step.
 - The current setup command surface is the Phase 0 orchestration boundary; full human authentication, CredentialStore expansion, AppRole, OIDC, final policies, dynamic secrets and Vault Agent remain future phases.
 - Standalone packaging is a documented future decision; no binary, installer or auto-update path is implemented.
 
 ## Recommendation
 
-**PARTIALLY VALIDATED - SEE [PHASE GATE REPORT](phase-0-gate-report.md).**
+**NEEDS FIXES - SEE [INDEPENDENT VALIDATION](../.specs/features/devvault-setup/validation.md).**
 
-Phase 0 has implementation and test evidence for its defined scope. Native Windows remains `NOT TESTED` and Docker Desktop remains `BLOCKED BY ENVIRONMENT`; therefore governance does not permit marking the phase `COMPLETED`. The next feature work must not be interpreted as native Windows or production distribution support.
+The automated repository gates pass, but independent verification found a critical production-wiring gap: `devvault setup` can report `READY` without validating backend, Vault lifecycle, KV or mandatory capabilities. Native Windows remains `NOT TESTED` and Docker Desktop remains `BLOCKED BY ENVIRONMENT`. Do not mark Phase 0 `COMPLETED` or begin Phase 1 until the ranked gaps are fixed and re-verified.
