@@ -1,11 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { RemoteVaultBackend } from './remote-vault-backend.js';
 
+function client(health: () => Promise<{ initialized: boolean; sealed: boolean }>, calls?: string[]) {
+  return {
+    health,
+    validateKvV2: async () => { calls?.push('kv'); return true; },
+    checkCapabilities: async () => { calls?.push('capabilities'); return ['read']; },
+  };
+}
+
 describe('RemoteVaultBackend', () => {
   it('accepts an explicit clean endpoint and exposes no Docker capability', async () => {
     const backend = new RemoteVaultBackend({
       address: 'https://vault.example.test/',
-      client: { health: async () => ({ initialized: true, sealed: false }) },
+      client: client(async () => ({ initialized: true, sealed: false })),
     });
 
     await expect(backend.detect()).resolves.toMatchObject({
@@ -18,7 +26,7 @@ describe('RemoteVaultBackend', () => {
 
   it('rejects credentials and query parameters in the endpoint', () => {
     for (const address of ['https://user:password@vault.example.test', 'https://vault.example.test?token=value']) {
-      expect(() => new RemoteVaultBackend({ address, client: { health: async () => ({ initialized: true, sealed: false }) } })).toThrow();
+      expect(() => new RemoteVaultBackend({ address, client: client(async () => ({ initialized: true, sealed: false })) })).toThrow();
     }
   });
 
@@ -31,7 +39,7 @@ describe('RemoteVaultBackend', () => {
     for (const [health, lifecycle] of states) {
       const backend = new RemoteVaultBackend({
         address: 'https://vault.example.test',
-        client: { health: async () => { if (health instanceof Error) throw health; return health; } },
+        client: client(async () => { if (health instanceof Error) throw health; return health; }),
       });
       await expect(backend.validate({ canStart: false, canConfigure: false, canValidateKv: true, canValidatePolicy: true }))
         .resolves.toMatchObject({ lifecycle });
@@ -42,10 +50,23 @@ describe('RemoteVaultBackend', () => {
     const calls: string[] = [];
     const backend = new RemoteVaultBackend({
       address: 'https://vault.example.test',
-      client: { health: async () => { calls.push('health'); return { initialized: true, sealed: false }; } },
+      client: client(async () => { calls.push('health'); return { initialized: true, sealed: false }; }, calls),
     });
     await backend.detect();
     await backend.validate({ canStart: false, canConfigure: false, canValidateKv: true, canValidatePolicy: true });
-    expect(calls).toEqual(['health', 'health']);
+    expect(calls).toEqual(['health', 'health', 'kv', 'capabilities']);
+  });
+
+  it('does not accept static capability flags without effective checks', async () => {
+    const backend = new RemoteVaultBackend({
+      address: 'https://vault.example.test',
+      client: {
+        health: async () => ({ initialized: true, sealed: false }),
+        validateKvV2: async () => false,
+        checkCapabilities: async () => ['read'],
+      },
+    });
+    await expect(backend.validate({ canStart: false, canConfigure: false, canValidateKv: true, canValidatePolicy: true }))
+      .resolves.toMatchObject({ lifecycle: 'unsealed', kvValid: false, policyValid: true });
   });
 });

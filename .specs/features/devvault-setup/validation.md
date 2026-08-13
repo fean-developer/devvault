@@ -128,3 +128,18 @@ The Phase 0 implementation has substantial contracts, adapters and tests, but th
 **NEEDS FIXES. Do not approve Phase 0 completion and do not start Phase 1.**
 
 The next action, if authorized, should be a separate fix task focused on wiring and production-path verification. This report itself does not implement those fixes.
+
+## Subsequent Correction Record: T19 and T20
+
+The historical verdict above remains unchanged. T19 (`940309d`) wired the production pipeline. T20 adds effective read-only KV v2 mount inspection through `HttpVaultClient.validateKvV2()` and effective policy capability checks through `checkCapabilities()` in both Vault backend adapters.
+
+T20 evidence:
+
+- 35 focused T19/T20 tests passed before the final full gate.
+- 120 tests passed serially in the preceding T19 gate; T20 adds adapter, repair and production checks.
+- Static capability flags with effective KV/policy failure return `BLOCKED`.
+- `--check` invokes backend validation and does not invoke local Vault start.
+- Repair revalidates steps marked `revalidateOnRepair`.
+- Mandatory pending setup work returns `BLOCKED`, not `DEGRADED`.
+
+Independent re-verification is still required after the T20 commit. Remaining known gaps from the previous review remain open: global argv/proc/log/exception coverage, live least-privilege and Project A/B isolation, native Windows, and Docker Desktop.

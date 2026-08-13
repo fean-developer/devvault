@@ -10,11 +10,15 @@ import type { DockerManager } from './index.js';
 
 export interface LocalVaultHealthClient {
   health(): Promise<{ initialized: boolean; sealed: boolean }>;
+  validateKvV2(mount: string): Promise<boolean>;
+  checkCapabilities(path: string): Promise<string[]>;
 }
 
 export interface LocalDockerVaultBackendOptions {
   docker: DockerManager & { diagnose(): Promise<DockerDiagnostics> };
   vault: LocalVaultHealthClient;
+  kvMount?: string;
+  capabilityPath?: string;
 }
 
 export class LocalDockerVaultBackend implements VaultBackend {
@@ -52,19 +56,33 @@ export class LocalDockerVaultBackend implements VaultBackend {
   async validate(capabilities: BackendCapabilities): Promise<BackendValidation> {
     const health = await this.health();
     let lifecycle: BackendValidation['lifecycle'] = 'unavailable';
+    const kvMount = this.options.kvMount ?? 'secret';
+    const capabilityPath = this.options.capabilityPath ?? `secret/data/projects`;
+    let kvValid = false;
+    let policyValid = false;
+    if (health.reachable && !health.sealed && health.initialized) {
+      try {
+        kvValid = await this.options.vault.validateKvV2(kvMount);
+        const effectiveCapabilities = await this.options.vault.checkCapabilities(capabilityPath);
+        policyValid = effectiveCapabilities.includes('read');
+      } catch {
+        kvValid = false;
+        policyValid = false;
+      }
+    }
     if (health.reachable) {
       lifecycle = !health.initialized
         ? 'not-initialized'
         : health.sealed
           ? 'sealed'
-          : capabilities.canValidateKv && capabilities.canValidatePolicy
+          : capabilities.canValidateKv && capabilities.canValidatePolicy && kvValid && policyValid
             ? 'configured'
             : 'unsealed';
     }
     return {
       lifecycle,
-      kvValid: health.reachable && !health.sealed && capabilities.canValidateKv,
-      policyValid: health.reachable && !health.sealed && capabilities.canValidatePolicy,
+      kvValid: health.reachable && !health.sealed && capabilities.canValidateKv && kvValid,
+      policyValid: health.reachable && !health.sealed && capabilities.canValidatePolicy && policyValid,
     };
   }
 }

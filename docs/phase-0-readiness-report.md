@@ -79,6 +79,7 @@ Core does not import Docker, filesystem, keyring or platform APIs. Remote Vault 
 - A compromised workstation, Docker daemon or Vault deployment can expose secrets.
 - The independent verifier found that the production setup path does not wire backend selection, lifecycle/KV validation or `ProfileSetupValidator`.
 - The discrimination sensor found a surviving mutant in the default setup dependency step.
+- T20 correction adds effective KV v2 mount inspection and effective Vault capability checks; final independent re-verification remains pending.
 - The current setup command surface is the Phase 0 orchestration boundary; full human authentication, CredentialStore expansion, AppRole, OIDC, final policies, dynamic secrets and Vault Agent remain future phases.
 - Standalone packaging is a documented future decision; no binary, installer or auto-update path is implemented.
 
@@ -86,4 +87,4 @@ Core does not import Docker, filesystem, keyring or platform APIs. Remote Vault 
 
 **NEEDS FIXES - SEE [INDEPENDENT VALIDATION](../.specs/features/devvault-setup/validation.md).**
 
-The automated repository gates pass, but independent verification found a critical production-wiring gap: `devvault setup` can report `READY` without validating backend, Vault lifecycle, KV or mandatory capabilities. Native Windows remains `NOT TESTED` and Docker Desktop remains `BLOCKED BY ENVIRONMENT`. Do not mark Phase 0 `COMPLETED` or begin Phase 1 until the ranked gaps are fixed and re-verified.
+The historical verification found the production-wiring gap. T19 and T20 address production wiring and effective KV/policy validation, but the Phase 0 status remains `NEEDS FIXES` until the independent verifier re-runs after T20. Native Windows remains `NOT TESTED` and Docker Desktop remains `BLOCKED BY ENVIRONMENT`. Do not mark Phase 0 `COMPLETED` or begin Phase 1.

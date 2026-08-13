@@ -4,6 +4,7 @@ import { LocalDockerVaultBackend } from './local-docker-vault-backend.js';
 function backend(
   docker: { state: 'available' | 'daemon-unavailable'; vaultContainer: 'running' | 'stopped' | 'missing' },
   health: { initialized: boolean; sealed: boolean } | Error,
+  effective: { kv: boolean; read: boolean } = { kv: true, read: true },
 ) {
   return new LocalDockerVaultBackend({
     docker: {
@@ -18,6 +19,8 @@ function backend(
         if (health instanceof Error) throw health;
         return health;
       },
+      validateKvV2: async () => effective.kv,
+      checkCapabilities: async () => effective.read ? ['read'] : [],
     },
   });
 }
@@ -48,5 +51,14 @@ describe('LocalDockerVaultBackend', () => {
   it('maps transport failure to unavailable', async () => {
     await expect(backend({ state: 'available', vaultContainer: 'running' }, new Error('down')).health())
       .resolves.toEqual({ reachable: false, initialized: false, sealed: true });
+  });
+
+  it('requires effective KV and capability checks even when static flags are true', async () => {
+    await expect(backend({ state: 'available', vaultContainer: 'running' }, { initialized: true, sealed: false }, { kv: false, read: true }).validate({
+      canStart: true, canConfigure: true, canValidateKv: true, canValidatePolicy: true,
+    })).resolves.toMatchObject({ lifecycle: 'unsealed', kvValid: false, policyValid: true });
+    await expect(backend({ state: 'available', vaultContainer: 'running' }, { initialized: true, sealed: false }, { kv: true, read: false }).validate({
+      canStart: true, canConfigure: true, canValidateKv: true, canValidatePolicy: true,
+    })).resolves.toMatchObject({ lifecycle: 'unsealed', kvValid: true, policyValid: false });
   });
 });

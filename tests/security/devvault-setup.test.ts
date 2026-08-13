@@ -86,7 +86,11 @@ describe('Phase 0 setup security acceptance', () => {
     try {
       new RemoteVaultBackend({
         address,
-        client: { health: async () => ({ initialized: true, sealed: false }) },
+        client: {
+          health: async () => ({ initialized: true, sealed: false }),
+          validateKvV2: async () => true,
+          checkCapabilities: async () => ['read'],
+        },
       });
     } catch (caught) {
       error = caught;

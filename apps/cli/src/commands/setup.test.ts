@@ -122,6 +122,21 @@ describe('setup command', () => {
     expect(approved.status).toBe('READY');
   });
 
+  it('performs effective backend validation during --check without starting Vault', async () => {
+    let validations = 0;
+    let starts = 0;
+    const backendWithEvidence = backend();
+    backendWithEvidence.validate = async () => { validations += 1; return { lifecycle: 'configured', kvValid: true, policyValid: true }; };
+    const result = await runSetupCommand(productionDependencies({
+      localBackend: backendWithEvidence,
+      startLocalVault: async () => { starts += 1; },
+    }), { check: true });
+
+    expect(result.status).toBe('READY');
+    expect(validations).toBe(1);
+    expect(starts).toBe(0);
+  });
+
   it('preserves validator BLOCKED and FAILED results on the production path', async () => {
     const blocked = await runSetupCommand(productionDependencies({
       validator: { validate: async () => ({ status: 'BLOCKED', capabilities: {}, blockers: ['profile blocker'], warnings: [], metadata: {} }) },
@@ -163,6 +178,15 @@ describe('setup command', () => {
     expect(capabilityBlocked.status).toBe('BLOCKED');
   });
 
+  it('rejects static capability flags when effective backend validation fails', async () => {
+    const effectiveFailure = backend('configured', { canStart: false, canConfigure: true, canValidateKv: true, canValidatePolicy: true });
+    effectiveFailure.validate = async () => ({ lifecycle: 'unsealed', kvValid: false, policyValid: false });
+    const result = await runSetupCommand(productionDependencies({ localBackend: effectiveFailure }), { yes: true });
+
+    expect(result.status).toBe('BLOCKED');
+    expect(setupExitCodes[result.status]).toBe(4);
+  });
+
   it('preserves blocked and failed setup steps and does not mutate in --check', async () => {
     const blocked = await runSetupCommand({ ...productionDependencies(), steps: [{ id: 'blocked', mutating: false, requiresConsent: false, run: async () => ({ status: 'blocked' as const, metadata: {}, nextAction: 'blocked' }) }] }, { yes: true });
     const failed = await runSetupCommand({ ...productionDependencies(), steps: [{ id: 'failed', mutating: false, requiresConsent: false, run: async () => ({ status: 'failed' as const, metadata: {}, errorCode: 'failure' }) }] }, { yes: true });
@@ -171,7 +195,7 @@ describe('setup command', () => {
 
     expect(blocked.status).toBe('BLOCKED');
     expect(failed.status).toBe('FAILED');
-    expect(checked.status).toBe('DEGRADED');
+    expect(checked.status).toBe('BLOCKED');
     expect(mutations).toBe(0);
   });
 
@@ -187,7 +211,7 @@ describe('setup command', () => {
       }],
     }, { check: true });
 
-    expect(result.status).toBe('DEGRADED');
+    expect(result.status).toBe('BLOCKED');
     expect(result.pendingSteps).toEqual(['mutating-step']);
     expect(mutatingRuns).toBe(0);
   });

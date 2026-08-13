@@ -443,19 +443,41 @@ Tasks execute according to the explicit dependency graph below.
 **Status**: Complete
 **Evidence**: 14 production-command regression tests cover READY gating, no backend, sealed/uninitialized Vault, mandatory capability failure, remote fallback, consent-gated local start, blocked/failed steps, Commander exit codes, read-only check and blocker mutation resistance.
 
+### T20: Effective KV/Policy Readiness Validation
+
+**What**: Validate KV v2 mounts and mandatory Vault capabilities through read-only backend operations during production setup.
+**Why**: The independent verifier found that `kvValid` and `policyValid` were derived only from static capability flags.
+**Where**: `packages/vault-client/src/index.ts`, `packages/platform/src/local-docker-vault-backend.ts`, `packages/platform/src/remote-vault-backend.ts`, and production-path tests.
+**Depends on**: T19
+**Requirement**: SETUP-001, SETUP-003, SETUP-004, SETUP-005, SETUP-009, SETUP-017, SETUP-018
+**Design reference**: `design.md#VaultBackend`, `design.md#SetupValidator`, `design.md#Command Surface`, `design.md#READY Gate`
+**Tests**: adapter integration and production setup regression tests
+**Gate**: full
+**Done when**:
+- [ ] KV v2 readiness uses an effective read-only mount inspection.
+- [ ] Policy/capability readiness uses effective `capabilities-self` validation.
+- [ ] Static capability flags cannot produce READY when effective checks fail.
+- [ ] `--check` performs effective read-only checks without mutations.
+- [ ] Mandatory capability failures do not become DEGRADED.
+**Evidence**: Effective KV/capability adapter tests, production pipeline tests and serial Phase 0 gate output.
+**Commit**: `fix(setup): validate effective kv and policy readiness`
+
+**Status**: Complete
+**Evidence**: Effective KV mount inspection and capabilities-self checks are invoked by local/remote backend validation; 16 production/adapters/client tests cover static-flag rejection, sealed/unavailable states, read-only check and repair revalidation.
+
 ## Requirement → Task Matrix
 
 | Requirement | Tasks |
 | --- | --- |
-| SETUP-001 | T3, T7, T11, T12, T14, T16, T17, T18 |
+| SETUP-001 | T3, T7, T11, T12, T14, T16, T17, T18, T20 |
 | SETUP-002 | T3, T6, T12, T16 |
-| SETUP-003 | T3, T6, T12, T14, T16 |
-| SETUP-004 | T1, T11, T12, T14, T16 |
-| SETUP-005 | T4, T11, T14, T15 |
+| SETUP-003 | T3, T6, T12, T14, T16, T20 |
+| SETUP-004 | T1, T11, T12, T14, T16, T20 |
+| SETUP-005 | T4, T11, T14, T15, T20 |
 | SETUP-006 | T4, T5, T12, T13, T14, T16 |
 | SETUP-007 | T4, T5, T11, T13 |
 | SETUP-008 | T2, T8, T10, T16 |
-| SETUP-009 | T2, T9, T10, T16 |
+| SETUP-009 | T2, T9, T10, T16, T20 |
 | SETUP-010 | T3, T7, T10, T11, T12, T14, T16 |
 | SETUP-011 | T4, T5, T13, T15 |
 | SETUP-012 | T4, T5, T13, T15 |
@@ -463,8 +485,8 @@ Tasks execute according to the explicit dependency graph below.
 | SETUP-014 | T3, T6, T7, T8, T12, T14, T16 |
 | SETUP-015 | T3, T12, T14, T16, T18 |
 | SETUP-016 | T5, T12, T13, T14, T16 |
-| SETUP-017 | T2, T8, T9, T10, T11, T16, T17 |
-| SETUP-018 | T4, T9, T11, T13, T14, T15 |
+| SETUP-017 | T2, T8, T9, T10, T11, T16, T17, T20 |
+| SETUP-018 | T4, T9, T11, T13, T14, T15, T20 |
 
 ## Task → Test Matrix
 
@@ -558,6 +580,7 @@ flowchart TD
     T14 --> T19
     T15 --> T19
     T16 --> T19
+    T19 --> T20[T20 Effective KV/policy validation]
 ```
 
 ## Phase 0 Tasks Gate

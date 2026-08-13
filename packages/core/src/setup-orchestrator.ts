@@ -45,9 +45,10 @@ export class StepSetupOrchestrator implements SetupOrchestratorPort {
     try {
       if (stateCorrupt) return this.failedResult('Setup state is corrupt.');
       for (const step of steps) {
-        if (completed.includes(step.id)) continue;
+        if (completed.includes(step.id) && !(context.mode === 'repair' && step.revalidateOnRepair)) continue;
         if (readOnly && step.mutating) {
           pending.push(step.id);
+          blockers.push(`Setup step requires mutation: ${step.id}`);
           continue;
         }
         if (step.mutating) {
@@ -80,6 +81,7 @@ export class StepSetupOrchestrator implements SetupOrchestratorPort {
           return this.failedResult(result.errorCode ?? `Setup step failed: ${step.id}`);
         } else {
           pending.push(step.id);
+          blockers.push(result.nextAction ?? `Setup step remains pending: ${step.id}`);
         }
       }
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.48] - 2026-08-13
+
+- Added effective read-only KV v2 mount and Vault capability validation to Phase 0 setup readiness.
+- Ensured repair revalidates readiness and mandatory pending checks return `BLOCKED`.
+
 ## [0.1.47] - 2026-08-13
 
 - Strengthened Phase 0 production-path regression and mutation coverage for sealed Vault, mandatory capabilities, no backend and failed steps.

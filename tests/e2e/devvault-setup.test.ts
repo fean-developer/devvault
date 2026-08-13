@@ -104,7 +104,11 @@ describe('Phase 0 setup readiness scenarios', () => {
     const calls: string[] = [];
     const backend = new RemoteVaultBackend({
       address: 'https://vault.example.test',
-      client: { health: async () => { calls.push('health'); return { initialized: true, sealed: false }; } },
+      client: {
+        health: async () => { calls.push('health'); return { initialized: true, sealed: false }; },
+        validateKvV2: async () => { calls.push('kv'); return true; },
+        checkCapabilities: async () => { calls.push('capabilities'); return ['read']; },
+      },
     });
     const detection = await backend.detect();
     const validation = await backend.validate(detection.capabilities);
@@ -126,6 +130,6 @@ describe('Phase 0 setup readiness scenarios', () => {
 
     expect(report.status).toBe('READY');
     expect(backend.kind()).toBe('remote-vault');
-    expect(calls).toEqual(['health', 'health']);
+    expect(calls).toEqual(['health', 'health', 'kv', 'capabilities']);
   });
 });

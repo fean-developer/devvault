@@ -36,7 +36,7 @@ describe('StepSetupOrchestrator', () => {
       profile: 'local-bootstrap', metadata: {},
     }, [{ id: 'mutate', mutating: true, requiresConsent: true, run: async () => { calls.push('run'); return { status: 'completed', metadata: {} }; } }]);
 
-    expect(result.status).toBe('DEGRADED');
+    expect(result.status).toBe('BLOCKED');
     expect(result.pendingSteps).toEqual(['mutate']);
     expect(calls).toEqual([]);
     expect(state.saves).toEqual([]);
@@ -86,5 +86,37 @@ describe('StepSetupOrchestrator', () => {
 
     expect(result.status).toBe('FAILED');
     expect(result.blockers).toContain('STEP_FAILED');
+  });
+
+  it('revalidates marked readiness steps during repair', async () => {
+    const state: SetupStateStore = {
+      acquireLock: async () => ({ release: async () => undefined }),
+      load: async () => ({ status: 'valid', state: {
+        schemaVersion: 1,
+        status: 'READY',
+        profile: 'local-bootstrap',
+        platform: { host: 'linux', isWsl: false, shell: 'bash' },
+        backend: 'local-docker',
+        vaultAddress: null,
+        kvMount: 'secret',
+        completedSteps: ['readiness'],
+        pendingSteps: [],
+        updatedAt: '2026-08-13T00:00:00.000Z',
+      } }),
+      save: async () => ({ status: 'saved', previousStateRetained: true }),
+    };
+    let runs = 0;
+    const result = await new StepSetupOrchestrator(state, { request: async () => 'approved' }).repair({
+      profile: 'local-bootstrap', metadata: {},
+    }, [{
+      id: 'readiness',
+      mutating: false,
+      requiresConsent: false,
+      revalidateOnRepair: true,
+      run: async () => { runs += 1; return { status: 'completed', metadata: {} }; },
+    }]);
+
+    expect(runs).toBe(1);
+    expect(result.status).toBe('READY');
   });
 });

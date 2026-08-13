@@ -144,6 +144,7 @@ function createSetupSteps(
       id: 'backend-readiness',
       mutating: false,
       requiresConsent: false,
+      revalidateOnRepair: true,
       run: async () => {
         if (!selectedBackend) return { status: 'blocked', metadata: {}, nextAction: 'No viable Vault backend was selected.' };
         backendDetection = await selectedBackend.detect();
@@ -168,6 +169,7 @@ function createSetupSteps(
       id: 'profile-validation',
       mutating: false,
       requiresConsent: false,
+      revalidateOnRepair: true,
       run: async (context) => {
         if (!dependencies.validator || !dependencyReport || !backendDetection || !backendValidation) {
           return { status: 'failed', metadata: {}, errorCode: 'SETUP_VALIDATION_NOT_CONFIGURED' };

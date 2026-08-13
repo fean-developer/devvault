@@ -21,6 +21,7 @@ export interface SetupStep {
   id: string;
   mutating: boolean;
   requiresConsent: boolean;
+  revalidateOnRepair?: boolean;
   run(context: SetupContext): Promise<SetupStepResult>;
 }
 
