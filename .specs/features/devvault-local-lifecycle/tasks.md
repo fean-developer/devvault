@@ -198,6 +198,9 @@ T7 -> T8
 **Tests**: integration
 **Gate**: quick
 
+**Status**: Complete
+**Evidence**: `apps/cli/src/composition-root.test.ts` passes and the CLI package builds; lifecycle service, local adapter and ephemeral input are wired through the composition root.
+
 ### T6: Register the `devvault start` command
 
 **What**: Add the thin CLI command adapter and register it in the production command entry point with human-readable and sanitized JSON output.

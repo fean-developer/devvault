@@ -1,13 +1,15 @@
 import { UserpassAuthenticationProvider } from '@devvault/auth';
-import { CapabilityBackendSelector, ProfileSetupValidator } from '@devvault/core';
+import { CapabilityBackendSelector, DefaultDeveloperLifecycleService, ProfileSetupValidator } from '@devvault/core';
 import { fileURLToPath } from 'node:url';
 import { createProjectApplicationService } from './application-adapters.js';
+import { readSecretFromProcess } from './input.js';
 import {
   detectPlatform,
   DockerComposeManager,
   FileSetupStateStore,
   KeytarCredentialStore,
   LocalDockerVaultBackend,
+  LocalVaultLifecycleAdapter,
   PlatformDependencyChecker,
   RemoteVaultBackend,
   defaultSetupStatePath,
@@ -48,6 +50,18 @@ export function createCompositionRoot() {
   });
   const setupComposeFile = process.env.DEVAULT_COMPOSE_FILE
     ?? fileURLToPath(new URL('../../../infra/vault/docker-compose.yml', import.meta.url));
+  const localLifecycle = new LocalVaultLifecycleAdapter({
+    docker,
+    vault: setupVault,
+    composeFile: setupComposeFile,
+  });
+  const lifecycleService = new DefaultDeveloperLifecycleService({
+    backendSelector: setupBackendSelector,
+    localBackend: setupLocalBackend,
+    remoteBackend: setupRemoteBackend,
+    localLifecycle,
+    secretInput: { read: readSecretFromProcess },
+  });
 
   return {
     credentialStore,
@@ -60,6 +74,7 @@ export function createCompositionRoot() {
     setupLocalBackend,
     setupRemoteBackend,
     setupValidator,
+    lifecycleService,
     startLocalVault: () => docker.composeUp(setupComposeFile),
     createVaultClient: async () => {
       let session: string | null = null;
