@@ -9,6 +9,7 @@ import { registerProjectCommand } from './commands/project.js';
 import { registerBootstrapCommand } from './commands/bootstrap.js';
 import { registerAuthCommands } from './commands/auth.js';
 import { createSetupDependencies, registerSetupCommand } from './commands/setup.js';
+import { registerStartCommand } from './commands/start.js';
 
 const program = new Command();
 const composition = createCompositionRoot();
@@ -22,11 +23,12 @@ registerProjectCommand(program, composition);
 registerBootstrapCommand(program, composition);
 registerAuthCommands(program, composition);
 registerSetupCommand(program, createSetupDependencies(composition));
+registerStartCommand(program, composition.lifecycleService);
 
 program
   .name('devvault')
   .description('Developer experience layer for HashiCorp Vault')
-  .version('0.1.0-mvp');
+  .version('0.1.2-mvp');
 
 program.parseAsync().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : 'Command failed.';

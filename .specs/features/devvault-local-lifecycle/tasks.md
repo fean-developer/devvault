@@ -225,6 +225,9 @@ T7 -> T8
 **Tests**: e2e
 **Gate**: full
 
+**Status**: Complete
+**Evidence**: `apps/cli/src/commands/start.test.ts` and `composition-root.test.ts` pass 5 tests; the CLI build succeeds and the public `start` command is registered through `index.ts`.
+
 ### T7: Add production-path lifecycle and security evidence
 
 **What**: Add tests that invoke the real CLI registration/composition path and cover lifecycle scenarios and credential non-disclosure.
