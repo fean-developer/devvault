@@ -9,6 +9,7 @@ export * from './setup-ports.js';
 export * from './setup-state.js';
 export * from './setup-state-store.js';
 export * from './consent.js';
+export * from './backend-selector.js';
 
 export interface CredentialStore {
   get(key: string): Promise<string | null>;

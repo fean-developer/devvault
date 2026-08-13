@@ -253,6 +253,9 @@ Tasks execute according to the explicit dependency graph below.
 **Evidence**: Selection matrix for local, remote, unavailable and restricted fixtures.
 **Commit**: `feat(setup): select setup backend by capability`
 
+**Status**: Complete
+**Evidence**: 4 unit tests pass; local-first, explicit remote, no-backend BLOCKED and remote-without-Docker paths are covered.
+
 ### T11: Implement SetupValidator
 
 **What**: Validate selected profile, backend, Vault lifecycle, KV, state, project/environment and mandatory capabilities.

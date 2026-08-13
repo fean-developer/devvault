@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.34] - 2026-08-13
+
+- Added capability-based local/remote Vault backend selection.
+- Added explicit BLOCKED behavior when no backend is viable.
+
 ## [0.1.33] - 2026-08-13
 
 - Added the read-only RemoteVaultBackend adapter.
