@@ -398,6 +398,9 @@ Tasks execute according to the explicit dependency graph below.
 **Evidence**: Reviewed distribution decision document.
 **Commit**: `docs(setup): record standalone distribution evaluation`
 
+**Status**: Complete
+**Evidence**: `docs/distribution.md` compares Node SEA, pkg, nexe and Bun across platforms, native keyring, signing, updates, reproducibility, Docker and support cost; Node SEA is recommended for a deferred proof of concept.
+
 ### T18: Complete Phase 0 documentation and readiness evidence
 
 **What**: Update setup docs, compatibility limitations, architecture references and produce the Phase 0 readiness report inputs.

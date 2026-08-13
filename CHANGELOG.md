@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.41] - 2026-08-13
+
+- Documented standalone distribution options and deferred a Node SEA proof of concept.
+
 ## [0.1.40] - 2026-08-13
 
 - Added Phase 0 E2E/readiness scenarios for setup repetition, repair, blocked environments, consent and remote read-only checks.
