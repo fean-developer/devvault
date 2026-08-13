@@ -33,10 +33,10 @@ The lifecycle service owns sequencing and developer-facing result translation. E
 2. Implement V1 for the local Docker backend only when local ownership is explicit.
 3. Keep remote lifecycle read-only.
 4. Automatically start an existing local Vault container.
-5. If Vault is `NOT_INITIALIZED`, return `BLOCKED` with an actionable operator flow. Do not generate or persist bootstrap material in V1.
-6. If Vault is `SEALED`, request an unseal key through an ephemeral hidden input port. Keep it in memory only for the request.
+5. If Vault is `NOT_INITIALIZED`, initialize it through the local bootstrap boundary and continue automatically.
+6. If Vault is `SEALED`, retrieve bootstrap material through the local bootstrap boundary and unseal automatically.
 7. Reuse `StepSetupOrchestrator`, existing setup steps, state store, backend selector and validator.
-8. Do not implement automatic bootstrap credential persistence in the existing CredentialStore.
+8. Do not use the existing CredentialStore for bootstrap material; use a dedicated local infrastructure boundary.
 9. Defer `devvault stop` implementation pending a separate lifecycle ownership decision.
 10. Preserve Phase 0 artifacts and invariants unchanged.
 
@@ -108,21 +108,22 @@ interface LocalLifecyclePort {
 - **Reuses**: `DockerManager` and Vault client adapters.
 - **Constraint**: No `initialize()` operation in V1. `NOT_INITIALIZED` is an explicit blocked state.
 
-### `EphemeralSecretInput`
+### `LocalBootstrapMaterialStore`
 
-- **Purpose**: Receive an unseal key without echoing or persisting it.
-- **Location**: `packages/core/src/developer-lifecycle-ports.ts` as a port; CLI input adapter remains under `apps/cli/src`.
+- **Purpose**: Read and write local Vault bootstrap material without crossing application or project boundaries.
+- **Location**: `packages/core/src/developer-lifecycle-ports.ts` as a port; implementation remains in the platform adapter.
 - **Interface**:
 
 ```typescript
-interface EphemeralSecretInput {
-  read(prompt: string): Promise<string>;
+interface LocalBootstrapMaterialStore {
+  load(): Promise<{ rootToken: string; unsealKey: string } | null>;
+  save(material: { rootToken: string; unsealKey: string }): Promise<void>;
 }
 ```
 
 - **Dependencies**: Hidden interactive input implementation.
 - **Reuses**: Existing hidden input behavior from `apps/cli/src/input.ts`.
-- **Constraint**: V1 supports interactive use only. Non-interactive mode without an approved input source returns `BLOCKED`.
+- **Constraint**: Material is stored only in the dedicated local infrastructure boundary and never returned in lifecycle results.
 
 ### `LocalVaultLifecycleAdapter`
 
@@ -131,7 +132,7 @@ interface EphemeralSecretInput {
 - **Interface**: Implements `LocalLifecyclePort`.
 - **Dependencies**: `DockerManager`, `VaultClient` lifecycle contract, Compose file path supplied by composition root.
 - **Reuses**: `DockerComposeManager`, `HttpVaultClient`, existing local backend configuration.
-- **Constraint**: It may start the local backend and unseal it, but it must not initialize an uninitialized persistent Vault in V1.
+- **Constraint**: It may initialize and unseal only the owned local backend. It must not mutate remote Vaults.
 
 ### `LifecycleCommandAdapter`
 

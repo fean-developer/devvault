@@ -90,6 +90,47 @@ describe('DefaultDeveloperLifecycleService', () => {
     });
   });
 
+  it('initializes, stores bootstrap material, unseals and configures an owned local Vault', async () => {
+    const calls: string[] = [];
+    let validationCalls = 0;
+    const backend = createBackend('local-docker', { lifecycle: 'not-initialized', kvValid: false, policyValid: true });
+    const infrastructure = lifecycleInfrastructure();
+    const localBackend = {
+      ...backend,
+      validate: async () => {
+        calls.push('validate');
+        validationCalls += 1;
+        return validationCalls === 1
+          ? { lifecycle: 'not-initialized' as const, kvValid: false, policyValid: false }
+          : validationCalls === 2
+            ? { lifecycle: 'unsealed' as const, kvValid: false, policyValid: true }
+            : { lifecycle: 'configured' as const, kvValid: true, policyValid: true };
+      },
+    };
+    const service = new DefaultDeveloperLifecycleService({
+      ...infrastructure,
+      backendSelector: createSelector(localBackend),
+      localBackend,
+      localLifecycle: {
+        start: async () => undefined,
+        initialize: async () => { calls.push('initialize'); return { rootToken: 'internal-root', unsealKey: 'internal-unseal' }; },
+        unseal: async () => { calls.push('unseal'); },
+        configure: async () => { calls.push('configure'); },
+        health: async () => ({ reachable: true, initialized: true, sealed: false }),
+      },
+      bootstrapStore: {
+        load: async () => null,
+        save: async () => { calls.push('save'); },
+      },
+      projectContext: { load: async () => ({ name: 'build-local-runner', environment: 'development' }) },
+    });
+
+    const result = await service.start({ mode: 'non-interactive' });
+
+    expect(result.status).toBe('READY');
+    expect(calls).toEqual(['validate', 'initialize', 'save', 'unseal', 'validate', 'configure']);
+  });
+
   it('requires consent before starting a stopped local backend', async () => {
     let consentCalls = 0;
     let startCalls = 0;
@@ -198,7 +239,7 @@ describe('DefaultDeveloperLifecycleService', () => {
     expect(startCalls).toBe(0);
   });
 
-  it('unseals a local Vault only with interactive ephemeral input', async () => {
+  it('unseals a local Vault from the internal bootstrap store without developer input', async () => {
     let unsealedKey = '';
     let validationCalls = 0;
     const backend: VaultBackend = {
@@ -217,15 +258,19 @@ describe('DefaultDeveloperLifecycleService', () => {
       localLifecycle: {
         start: async () => undefined,
         health: async () => ({ reachable: true, initialized: true, sealed: false }),
-        unseal: async (key) => { unsealedKey = key; },
+        unseal: async (material) => { unsealedKey = material.unsealKey; },
       },
-      secretInput: { read: async () => 'ephemeral-key' },
+      bootstrapStore: {
+        load: async () => ({ rootToken: 'internal-root', unsealKey: 'internal-unseal' }),
+        save: async () => undefined,
+      },
     });
 
     const result = await service.start({ mode: 'interactive' });
     expect(result.status).toBe('READY');
-    expect(unsealedKey).toBe('ephemeral-key');
-    expect(result).not.toHaveProperty('ephemeral-key');
+    expect(unsealedKey).toBe('internal-unseal');
+    expect(result).not.toHaveProperty('internal-root');
+    expect(result).not.toHaveProperty('internal-unseal');
   });
 
   it('blocks sealed non-interactive execution without calling unseal', async () => {

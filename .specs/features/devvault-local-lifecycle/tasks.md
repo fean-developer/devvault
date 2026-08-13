@@ -47,29 +47,31 @@ T1 -> T3
 ### Phase 2: Infrastructure adapters
 
 ```text
-T3 -> T4
+T1 -> T4
+T3 -> T5
+T4 -> T5
 ```
 
 ### Phase 3: Production wiring
 
 ```text
-T2 -> T5
-T4 -> T5
+T2 -> T6
 T5 -> T6
+T6 -> T7
 ```
 
 ### Phase 4: Evidence and release
 
 ```text
-T6 -> T7
 T7 -> T8
+T8 -> T9
 ```
 
 ## Task Breakdown
 
 ### T1: Define lifecycle contracts and result models
 
-**What**: Add the Core ports and typed models for `start`, lifecycle status, local lifecycle operations and ephemeral unseal input.
+**What**: Add the Core ports and typed models for `start`, lifecycle status, local lifecycle operations and local bootstrap material storage.
 **Where**: `packages/core/src/developer-lifecycle-ports.ts`
 **Depends on**: None
 **Reuses**: `packages/core/src/vault-lifecycle.ts`, `packages/core/src/setup-model.ts`, `packages/core/src/setup-steps.ts`
@@ -84,7 +86,7 @@ T7 -> T8
 
 - [ ] Port types contain no Docker, Vault HTTP, filesystem, keyring or platform imports.
 - [ ] Start/status inputs and sanitized result models reuse existing setup and lifecycle states.
-- [ ] V1 contracts do not expose an initialize or bootstrap-persistence operation.
+- [ ] V1 contracts expose local initialization and bootstrap storage only through a dedicated infrastructure port.
 - [ ] Unit tests verify lifecycle/result type behavior and sensitive values are not part of persisted metadata types.
 
 **Tests**: unit
@@ -95,7 +97,7 @@ T7 -> T8
 
 ### T2: Implement the Core developer lifecycle service
 
-**What**: Implement lifecycle orchestration for local start/status using existing setup/backend/validator boundaries, including sealed manual input and uninitialized blocking.
+**What**: Implement lifecycle orchestration for local start/status using existing setup/backend/validator boundaries, including automatic local initialization and unseal.
 **Where**: `packages/core/src/developer-lifecycle.ts`
 **Depends on**: T1
 **Reuses**: `StepSetupOrchestrator`, `SetupStateStore`, `BackendSelector`, `VaultBackend`, `SetupValidator`, `classifyVaultLifecycle`
@@ -110,8 +112,8 @@ T7 -> T8
 
 - [ ] Ready environments skip unnecessary mutations and return `READY`.
 - [ ] Stopped local backends request start through the local lifecycle port.
-- [ ] `NOT_INITIALIZED` returns `BLOCKED` without initialization or credential persistence.
-- [ ] `SEALED` requests ephemeral input only in interactive mode and blocks non-interactive execution without authorized input.
+- [ ] `NOT_INITIALIZED` initializes only the owned local backend and never exposes bootstrap material.
+- [ ] `SEALED` retrieves local bootstrap material without developer input and revalidates readiness.
 - [ ] Remote lifecycle performs validation only and never receives local mutation operations.
 - [ ] Repeated start, interrupted execution, consent denial and mandatory capability failures map to specified result states.
 - [ ] Unit tests cover every applicable service branch and listed edge case.
@@ -119,16 +121,15 @@ T7 -> T8
 **Tests**: unit
 **Gate**: quick
 
-**Status**: Complete
-**Evidence**: `packages/core/src/developer-lifecycle.test.ts` and `developer-lifecycle-ports.test.ts` pass 9 focused tests; Core build passes; READY, start, NOT_INITIALIZED, SEALED, non-interactive, remote and capability paths are covered.
+**Status**: Superseded by automatic-bootstrap design; implementation work must be redone.
 
-### T3: Add Vault client unseal operation
+### T3: Add Vault client operator operations
 
-**What**: Extend the Vault client contract with a sanitized unseal operation used only by the local lifecycle adapter.
+**What**: Extend the Vault client contract with initialization and unseal operations used only by the local lifecycle adapter.
 **Where**: `packages/vault-client/src/index.ts`
 **Depends on**: T1
 **Reuses**: Existing `HttpVaultClient.request` error mapping and Vault health contract
-**Requirements**: LIFECYCLE-005, LIFECYCLE-006, LIFECYCLE-020
+**Requirements**: LIFECYCLE-005, LIFECYCLE-006, LIFECYCLE-007, LIFECYCLE-020
 
 **Tools**:
 
@@ -137,7 +138,7 @@ T7 -> T8
 
 **Done when**:
 
-- [ ] The client sends the unseal request to the local Vault endpoint without placing the key in a URL or command argument.
+- [ ] The client sends initialization and unseal requests only to the local Vault endpoint without placing material in a URL or command argument.
 - [ ] HTTP success, sealed/error and malformed response paths map to existing safe errors.
 - [ ] The unseal key is not included in error messages or returned metadata.
 - [ ] Vault client tests assert request shape and absence of the key from serialized errors.
@@ -145,14 +146,31 @@ T7 -> T8
 **Tests**: integration
 **Gate**: quick
 
-**Status**: Complete
-**Evidence**: `packages/vault-client/src/index.test.ts` passes 8 tests; the unseal request uses POST `/v1/sys/unseal`, and HTTP error handling does not expose the response body or key in the exception.
+**Status**: Superseded; initialization operation still required.
 
-### T4: Implement the local lifecycle platform adapter
+### T4: Implement the local bootstrap material boundary
 
-**What**: Implement the platform adapter that starts the owned local Compose backend, reads Vault health and delegates ephemeral unseal without persisting it.
+**What**: Implement the dedicated Docker-managed local bootstrap material boundary with restrictive file permissions and no project/state integration.
+**Where**: `packages/platform/src/local-bootstrap-material-store.ts`
+**Depends on**: T1
+**Reuses**: platform path and filesystem adapter patterns
+**Requirements**: LIFECYCLE-005, LIFECYCLE-007, LIFECYCLE-020
+
+**Done when**:
+
+- [ ] Bootstrap material is stored only under the dedicated local infrastructure boundary.
+- [ ] Material never appears in setup state, project files, output or logs.
+- [ ] Missing material is represented as a first-start condition, not a developer prompt.
+- [ ] Tests cover save/load and forbidden project/state paths.
+
+**Tests**: integration
+**Gate**: quick
+
+### T5: Implement the local lifecycle platform adapter
+
+**What**: Implement the platform adapter that starts the owned local Compose backend, initializes/unseals Vault through the dedicated bootstrap boundary and reads health without exposing material.
 **Where**: `packages/platform/src/local-vault-lifecycle.ts`
-**Depends on**: T3
+**Depends on**: T3, T4
 **Reuses**: `DockerManager`, `DockerComposeManager`, `HttpVaultClient`, local backend configuration
 **Requirements**: LIFECYCLE-002, LIFECYCLE-004, LIFECYCLE-005, LIFECYCLE-007, LIFECYCLE-011, LIFECYCLE-017, LIFECYCLE-020
 
@@ -172,14 +190,13 @@ T7 -> T8
 **Tests**: integration
 **Gate**: quick
 
-**Status**: Complete
-**Evidence**: `packages/platform/src/local-vault-lifecycle.test.ts` passes 4 tests and the platform package builds; local start, health mapping, transport failure and ephemeral unseal delegation are covered.
+**Status**: Superseded; adapter must be extended for automatic bootstrap.
 
-### T5: Wire lifecycle services in the composition root
+### T6: Wire lifecycle services in the composition root
 
-**What**: Construct the Core lifecycle service, local lifecycle adapter and ephemeral input adapter through the existing composition root.
+**What**: Construct the Core lifecycle service, local lifecycle adapter and bootstrap material store through the existing composition root.
 **Where**: `apps/cli/src/composition-root.ts`
-**Depends on**: T2, T4
+**Depends on**: T2, T5
 **Reuses**: Existing adapter construction, setup dependencies, input abstraction and Vault client configuration
 **Requirements**: LIFECYCLE-001, LIFECYCLE-005, LIFECYCLE-010, LIFECYCLE-021
 
@@ -198,14 +215,13 @@ T7 -> T8
 **Tests**: integration
 **Gate**: quick
 
-**Status**: Complete
-**Evidence**: `apps/cli/src/composition-root.test.ts` passes and the CLI package builds; lifecycle service, local adapter and ephemeral input are wired through the composition root.
+**Status**: Superseded; composition must wire the local bootstrap boundary.
 
-### T6: Register the `devvault start` command
+### T7: Register the `devvault start` command
 
 **What**: Add the thin CLI command adapter and register it in the production command entry point with human-readable and sanitized JSON output.
 **Where**: `apps/cli/src/commands/start.ts`
-**Depends on**: T5
+**Depends on**: T6
 **Reuses**: Commander registration, setup result sanitization and command error handling
 **Requirements**: LIFECYCLE-001, LIFECYCLE-006, LIFECYCLE-013, LIFECYCLE-014, LIFECYCLE-020, LIFECYCLE-021, LIFECYCLE-022
 
@@ -228,11 +244,11 @@ T7 -> T8
 **Status**: Complete
 **Evidence**: `apps/cli/src/commands/start.test.ts` and `composition-root.test.ts` pass 5 tests; the CLI build succeeds and the public `start` command is registered through `index.ts`.
 
-### T7: Add production-path lifecycle and security evidence
+### T8: Add production-path lifecycle and security evidence
 
 **What**: Add tests that invoke the real CLI registration/composition path and cover lifecycle scenarios and credential non-disclosure.
 **Where**: `tests/e2e/devvault-local-lifecycle.test.ts`
-**Depends on**: T6
+**Depends on**: T7
 **Reuses**: Existing recording adapters, setup fixtures and security test patterns
 **Requirements**: LIFECYCLE-001, LIFECYCLE-003, LIFECYCLE-004, LIFECYCLE-005, LIFECYCLE-006, LIFECYCLE-007, LIFECYCLE-008, LIFECYCLE-009, LIFECYCLE-010, LIFECYCLE-011, LIFECYCLE-012, LIFECYCLE-013, LIFECYCLE-014, LIFECYCLE-016, LIFECYCLE-017, LIFECYCLE-018, LIFECYCLE-020, LIFECYCLE-021, LIFECYCLE-022
 
@@ -255,11 +271,11 @@ T7 -> T8
 **Status**: Complete
 **Evidence**: `tests/e2e/devvault-local-lifecycle.test.ts` and start command tests pass 7 focused cases; the full suite passes 39 files and 158 tests, covering production registration, repeat start, non-interactive blocking and output sanitization.
 
-### T8: Document and version the lifecycle release
+### T9: Document and version the lifecycle release
 
 **What**: Update user-facing lifecycle documentation and bump the monorepo/CLI version with a matching changelog entry after implementation evidence passes.
 **Where**: `docs/usage.md`
-**Depends on**: T7
+**Depends on**: T8
 **Reuses**: Existing usage, setup and release-note conventions
 **Requirements**: LIFECYCLE-001, LIFECYCLE-006, LIFECYCLE-007, LIFECYCLE-010, LIFECYCLE-013, LIFECYCLE-014
 

@@ -9,11 +9,12 @@ services:
       - "127.0.0.1:8200:8200"
     volumes:
       - vault-data:/vault/file
+      - vault-bootstrap:/vault/bootstrap
       - ./config:/vault/config:ro
       - ./policies:/vault/policies:ro
     command: vault server -config=/vault/config/vault.hcl
     healthcheck:
-      test: ["CMD", "vault", "status", "-format=json"]
+      test: ["CMD-SHELL", "VAULT_ADDR=http://127.0.0.1:8200 vault status -format=json; code=$$?; test $$code -eq 0 -o $$code -eq 2"]
       interval: 10s
       timeout: 5s
       retries: 12
@@ -22,3 +23,5 @@ services:
 volumes:
   vault-data:
     name: devvault-vault-data
+  vault-bootstrap:
+    name: devvault-vault-bootstrap

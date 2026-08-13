@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6-mvp] - 2026-08-13
+
+- Completed automatic local Vault bootstrap through `devvault start`.
+- Added internal initialization, unseal, KV v2 and project policy preparation without developer-managed tokens or unseal keys.
+- Added a dedicated Docker bootstrap volume boundary and project-aware readiness validation.
+- Preserved remote Vault as operator-managed and read-only.
+
 ## [0.1.5-mvp] - 2026-08-13
 
 - Added lifecycle recovery and credential-boundary evidence for local start failures, corrupt state and ephemeral unseal handling.

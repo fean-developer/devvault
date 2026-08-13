@@ -1,8 +1,8 @@
 import { UserpassAuthenticationProvider } from '@devvault/auth';
 import { CapabilityBackendSelector, DefaultDeveloperLifecycleService, ProfileSetupValidator } from '@devvault/core';
+import { loadProjectConfig } from '@devvault/config';
 import { fileURLToPath } from 'node:url';
 import { createProjectApplicationService } from './application-adapters.js';
-import { readSecretFromProcess } from './input.js';
 import {
   detectPlatform,
   DockerComposeManager,
@@ -10,6 +10,7 @@ import {
   KeytarCredentialStore,
   LocalDockerVaultBackend,
   LocalVaultLifecycleAdapter,
+  LocalBootstrapMaterialFileStore,
   PlatformDependencyChecker,
   RemoteVaultBackend,
   defaultSetupStatePath,
@@ -25,6 +26,7 @@ export function createCompositionRoot() {
   const setupStateStore = new FileSetupStateStore({ statePath: defaultSetupStatePath() });
   const setupDependencyChecker = new PlatformDependencyChecker();
   const setupConsent = { request: async () => process.env.DEVAULT_SETUP_YES === '1' ? 'approved' as const : 'denied' as const };
+  const lifecycleConsent = { request: async () => 'approved' as const };
   const setupVault = new HttpVaultClient({
     address: process.env.VAULT_ADDR ?? 'http://127.0.0.1:8200',
     token: process.env.VAULT_TOKEN,
@@ -55,14 +57,16 @@ export function createCompositionRoot() {
     vault: setupVault,
     composeFile: setupComposeFile,
   });
+  const bootstrapStore = new LocalBootstrapMaterialFileStore(docker);
   const lifecycleService = new DefaultDeveloperLifecycleService({
     backendSelector: setupBackendSelector,
     localBackend: setupLocalBackend,
     remoteBackend: setupRemoteBackend,
     localLifecycle,
-    secretInput: { read: readSecretFromProcess },
+    bootstrapStore,
+    projectContext: { load: async () => { const config = await loadProjectConfig(process.cwd()); return { name: config.project, environment: config.environment }; } },
     stateStore: setupStateStore,
-    consent: setupConsent,
+    consent: lifecycleConsent,
   });
 
   return {

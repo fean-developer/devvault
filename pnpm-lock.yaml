@@ -86,6 +86,9 @@ importers:
       '@devvault/core':
         specifier: workspace:*
         version: link:../core
+      '@devvault/vault-client':
+        specifier: workspace:*
+        version: link:../vault-client
       keytar:
         specifier: ^7.9.0
         version: 7.9.0

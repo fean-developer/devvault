@@ -90,6 +90,21 @@ describe('HttpVaultClient', () => {
     expect(await request?.json()).toEqual({ key: 'ephemeral-unseal-key' });
   });
 
+  it('initializes Vault with one share and threshold and returns bootstrap material', async () => {
+    let request: Request | undefined;
+    const client = new HttpVaultClient({
+      address: 'http://vault',
+      fetchImpl: async (input, init) => {
+        request = new Request(input, init);
+        return response(200, { root_token: 'root-token', keys: ['unseal-key'] });
+      },
+    });
+
+    await expect(client.initialize()).resolves.toEqual({ rootToken: 'root-token', unsealKey: 'unseal-key' });
+    expect(request?.method).toBe('PUT');
+    expect(await request?.json()).toEqual({ secret_shares: 1, secret_threshold: 1 });
+  });
+
   it('enables KV v2 only when the mount is absent', async () => {
     const requests: Request[] = [];
     const client = new HttpVaultClient({

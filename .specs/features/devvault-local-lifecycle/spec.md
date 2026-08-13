@@ -42,7 +42,7 @@ The current system does not provide Vault operator initialization or unseal oper
 2. Start an owned local backend when it is stopped.
 3. Reuse the existing setup orchestration and readiness contracts.
 4. Detect and report Vault lifecycle states without requiring infrastructure knowledge for the happy path.
-5. Support safe manual unseal for local development in V1 when required.
+5. Initialize and unseal an owned local development Vault automatically without developer-managed tokens or keys.
 6. Configure or validate local KV v2 only through explicit local ownership and consent rules.
 7. Preserve idempotency and non-destructive recovery.
 8. Keep remote Vault operator-managed and read-only from lifecycle automation.
@@ -64,7 +64,7 @@ This feature SHALL NOT include:
 - automatic Docker Desktop installation or modification;
 - standalone packaging;
 - remote Vault initialization, unseal or administrative mutation;
-- automatic persistence of unseal keys or root tokens;
+- exposing bootstrap material to the developer;
 - automatic reset or destruction of Vault data;
 - rewriting Phase 0 specification, design, tasks or validation;
 - changing the canonical Phase 0 invariant matrix in this feature.
@@ -213,11 +213,11 @@ If an operator action is required, the result SHALL be `BLOCKED` with an actiona
 
 ### V1 decision
 
-V1 SHALL use manual, ephemeral unseal input when unseal is required. It SHALL not add automatic bootstrap credential persistence to the existing CredentialStore.
+V1 SHALL manage local bootstrap material internally through a dedicated Docker-managed local bootstrap boundary. The developer SHALL not generate, copy or enter root tokens or unseal keys during the normal `devvault start` flow.
 
-The existing CredentialStore is currently suitable for developer session credentials, but it is not by itself an approved contract for root tokens, initialization responses or unseal keys. Reusing it for bootstrap material would create a new security boundary and requires an ADR and threat-model review.
+The existing CredentialStore remains dedicated to developer session credentials. It SHALL not store local Vault bootstrap material. The local lifecycle adapter owns the dedicated infrastructure boundary described in `ADR-Local-Bootstrap-Automation.md`.
 
-### V2 consideration
+### Future consideration
 
 A future version MAY evaluate OS CredentialStore storage for local bootstrap material through a dedicated contract. That work SHALL require:
 
@@ -272,7 +272,7 @@ IF lifecycle metadata is corrupt or incompatible, THE SYSTEM SHALL return `FAILE
 
 ### CredentialStore unavailable
 
-For V1 manual unseal, an unavailable CredentialStore SHALL not prevent ephemeral unseal input when an approved interactive input boundary exists. For developer session operations, the existing CredentialStore error behavior SHALL remain unchanged. No plaintext fallback SHALL be introduced.
+An unavailable CredentialStore SHALL not prevent local infrastructure bootstrap because bootstrap material is owned by the local infrastructure boundary. For developer session operations, the existing CredentialStore error behavior SHALL remain unchanged. No plaintext project-file fallback SHALL be introduced.
 
 ## Error Model
 
@@ -390,21 +390,21 @@ WHEN the backend reports `UNAVAILABLE`, `NOT_INITIALIZED`, `SEALED`, `UNSEALED`,
 
 **Acceptance:** A recording backend matrix maps every lifecycle state to the expected result and next action.
 
-### LIFECYCLE-005: Manual V1 unseal
+### LIFECYCLE-005: Automatic local unseal
 
-WHEN a local Vault is `SEALED` and an approved interactive input boundary is available, THE SYSTEM SHALL request unseal material without echoing or persisting it and SHALL revalidate readiness after unseal.
+WHEN an owned local Vault is `SEALED`, THE SYSTEM SHALL retrieve bootstrap material only through the local infrastructure boundary, unseal without developer input and revalidate readiness.
 
 **Acceptance:** Tests verify the unseal value is absent from stdout, stderr, logs, argv, exceptions, setup state and project files.
 
 ### LIFECYCLE-006: Non-interactive sealed handling
 
-WHEN a local Vault is `SEALED` and `--non-interactive` is used without authorized ephemeral input, THE SYSTEM SHALL return `BLOCKED` and SHALL not attempt unseal.
+WHEN a local Vault is `SEALED`, THE SYSTEM SHALL perform the owned local unseal flow in non-interactive mode without requiring developer-supplied credentials.
 
 **Acceptance:** A recording adapter observes no unseal call.
 
-### LIFECYCLE-007: Uninitialized handling
+### LIFECYCLE-007: Automatic local initialization
 
-WHEN a local Vault is `NOT_INITIALIZED`, THE SYSTEM SHALL either use an explicitly approved local initialization contract or return `BLOCKED` with an actionable operator instruction; it SHALL not silently persist bootstrap material.
+WHEN an owned local Vault is `NOT_INITIALIZED`, THE SYSTEM SHALL initialize it, store bootstrap material only in the dedicated local infrastructure boundary, unseal it and continue readiness validation.
 
 **Acceptance:** The uninitialized matrix proves no implicit initialization or secret persistence occurs without the approved contract.
 
@@ -616,4 +616,4 @@ No requirement SHALL be considered complete without linked implementation eviden
 
 **Status:** Ready for Design after open questions are resolved.
 
-The feature is architecturally viable as a new lifecycle feature that reuses Phase 0 foundations. It is not a safe one-line CLI facade because local initialization and unseal require new operator capabilities and explicit security decisions. No implementation, adapter, Design document or Tasks document is authorized by this Specification stage.
+The feature is architecturally viable as a new lifecycle feature that reuses Phase 0 foundations. Local initialization and unseal are authorized only through the dedicated local infrastructure boundary and ADR-Local-Bootstrap-Automation.md. Remote lifecycle remains read-only.

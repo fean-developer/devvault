@@ -33,9 +33,27 @@ export interface LifecycleResult {
 export interface LocalLifecyclePort {
   start(): Promise<void>;
   health(): Promise<VaultHealth>;
-  unseal(key: string): Promise<void>;
+  initialize?(): Promise<LocalBootstrapMaterial>;
+  useBootstrapMaterial?(material: LocalBootstrapMaterial): void;
+  unseal(material: LocalBootstrapMaterial): Promise<void>;
+  configure?(project: { name: string; environment: string }): Promise<void>;
 }
 
+export interface ProjectContextProvider {
+  load(): Promise<{ name: string; environment: string }>;
+}
+
+export interface LocalBootstrapMaterial {
+  rootToken: string;
+  unsealKey: string;
+}
+
+export interface LocalBootstrapMaterialStore {
+  load(): Promise<LocalBootstrapMaterial | null>;
+  save(material: LocalBootstrapMaterial): Promise<void>;
+}
+
+/** @deprecated V1 no longer asks developers for bootstrap material. */
 export interface EphemeralSecretInput {
   read(prompt: string): Promise<string>;
 }

@@ -2,6 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { HttpVaultClient } from './index.js';
 
 describe('Vault capability checks', () => {
+  it('reads lifecycle facts from a valid 503 health response', async () => {
+    const client = new HttpVaultClient({
+      address: 'http://vault',
+      fetchImpl: async () => new Response(JSON.stringify({ initialized: false, sealed: true }), { status: 503 }),
+    });
+
+    await expect(client.health()).resolves.toEqual({ initialized: false, sealed: true });
+  });
+
   it('returns the effective capabilities for a path', async () => {
     const client = new HttpVaultClient({
       address: 'http://vault',

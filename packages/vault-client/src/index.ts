@@ -17,6 +17,11 @@ export interface VaultHealth {
   sealed: boolean;
 }
 
+export interface VaultInitializationResult {
+  rootToken: string;
+  unsealKey: string;
+}
+
 export type SecretData = Record<string, unknown>;
 
 export class HttpVaultClient {
@@ -31,9 +36,20 @@ export class HttpVaultClient {
   }
 
   async health(): Promise<VaultHealth> {
-    const response = await this.request('/v1/sys/health?standbyok=true');
-    const body = await this.readJson<{ initialized: boolean; sealed: boolean }>(response);
-    return { initialized: body.initialized, sealed: body.sealed };
+    try {
+      const response = await this.fetchImpl(`${this.address}/v1/sys/health?standbyok=true`);
+      if (response.status === 401) throw new VaultAuthenticationError();
+      if (response.status === 403) throw new VaultPermissionDeniedError();
+      if (response.status !== 200 && response.status !== 501 && response.status !== 503) {
+        throw new VaultUnavailableError(`Vault returned HTTP ${response.status}.`);
+      }
+      const body = await this.readJson<{ initialized: boolean; sealed: boolean }>(response);
+      return { initialized: body.initialized, sealed: body.sealed };
+    } catch (error) {
+      if (error instanceof VaultAuthenticationError || error instanceof VaultPermissionDeniedError) throw error;
+      if (error instanceof VaultUnavailableError) throw error;
+      throw new VaultUnavailableError();
+    }
   }
 
   async unseal(key: string): Promise<void> {
@@ -41,6 +57,22 @@ export class HttpVaultClient {
       method: 'POST',
       body: JSON.stringify({ key }),
     });
+  }
+
+  async initialize(): Promise<VaultInitializationResult> {
+    const response = await this.request('/v1/sys/init', {
+      method: 'PUT',
+      body: JSON.stringify({ secret_shares: 1, secret_threshold: 1 }),
+    });
+    const body = await this.readJson<{ root_token?: string; keys?: string[] }>(response);
+    const rootToken = body.root_token;
+    const unsealKey = body.keys?.[0];
+    if (!rootToken || !unsealKey) throw new VaultUnavailableError('Vault initialization returned incomplete bootstrap material.');
+    return { rootToken, unsealKey };
+  }
+
+  setToken(token: string): void {
+    (this as unknown as { token?: string }).token = token;
   }
 
   async loginUserpass(

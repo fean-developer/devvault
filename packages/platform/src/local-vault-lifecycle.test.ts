@@ -71,7 +71,7 @@ describe('LocalVaultLifecycleAdapter', () => {
       composeFile: 'compose.yml',
     });
 
-    await adapter.unseal('ephemeral-key');
+    await adapter.unseal({ rootToken: 'internal-root', unsealKey: 'ephemeral-key' });
 
     expect(receivedKey).toBe('ephemeral-key');
   });

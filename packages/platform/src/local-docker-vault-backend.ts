@@ -22,7 +22,15 @@ export interface LocalDockerVaultBackendOptions {
 }
 
 export class LocalDockerVaultBackend implements VaultBackend {
-  constructor(private readonly options: LocalDockerVaultBackendOptions) {}
+  private capabilityPath: string;
+
+  constructor(private readonly options: LocalDockerVaultBackendOptions) {
+    this.capabilityPath = options.capabilityPath ?? 'secret/data/projects';
+  }
+
+  setCapabilityPath(path: string): void {
+    this.capabilityPath = path;
+  }
 
   kind(): 'local-docker' {
     return 'local-docker';
@@ -57,14 +65,14 @@ export class LocalDockerVaultBackend implements VaultBackend {
     const health = await this.health();
     let lifecycle: BackendValidation['lifecycle'] = 'unavailable';
     const kvMount = this.options.kvMount ?? 'secret';
-    const capabilityPath = this.options.capabilityPath ?? `secret/data/projects`;
+    const capabilityPath = this.capabilityPath;
     let kvValid = false;
     let policyValid = false;
     if (health.reachable && !health.sealed && health.initialized) {
       try {
         kvValid = await this.options.vault.validateKvV2(kvMount);
         const effectiveCapabilities = await this.options.vault.checkCapabilities(capabilityPath);
-        policyValid = effectiveCapabilities.includes('read');
+        policyValid = effectiveCapabilities.includes('read') || effectiveCapabilities.includes('root');
       } catch {
         kvValid = false;
         policyValid = false;

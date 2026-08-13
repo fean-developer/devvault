@@ -5,7 +5,9 @@ import { validateSetupState } from './setup-state.js';
 import type { VaultBackend } from './vault-backend.js';
 import {
   type DeveloperLifecycleService,
+  type LocalBootstrapMaterialStore,
   type EphemeralSecretInput,
+  type ProjectContextProvider,
   type LifecycleBackendKind,
   type LifecycleResult,
   type LocalLifecyclePort,
@@ -18,10 +20,13 @@ export interface DeveloperLifecycleDependencies {
   localBackend: VaultBackend;
   remoteBackend?: VaultBackend;
   localLifecycle?: LocalLifecyclePort;
+  bootstrapStore?: LocalBootstrapMaterialStore;
+  /** @deprecated retained for compatibility with older test fixtures. */
   secretInput?: EphemeralSecretInput;
   validator?: SetupValidator;
   stateStore: SetupStateStore;
   consent: ConsentService;
+  projectContext?: ProjectContextProvider;
 }
 
 export class DefaultDeveloperLifecycleService implements DeveloperLifecycleService {
@@ -90,28 +95,71 @@ export class DefaultDeveloperLifecycleService implements DeveloperLifecycleServi
       return this.result('BLOCKED', 'unavailable', null, selection.blockers);
     }
 
+    if (selection.backend.kind() === 'local-docker' && this.dependencies.projectContext && 'setCapabilityPath' in selection.backend) {
+      const project = await this.dependencies.projectContext.load();
+      (selection.backend as { setCapabilityPath(path: string): void }).setCapabilityPath(`secret/data/projects/${project.name}/${project.environment}/_doctor`);
+    }
+
+    if (selection.backend.kind() === 'local-docker' && this.dependencies.bootstrapStore && this.dependencies.localLifecycle?.useBootstrapMaterial) {
+      const material = await this.dependencies.bootstrapStore.load();
+      if (material) this.dependencies.localLifecycle.useBootstrapMaterial(material);
+    }
+
     let validation = await this.validate(selection.backend);
     if (validation.lifecycle === 'sealed') {
       if (selection.backend.kind() !== 'local-docker') {
         return this.result('BLOCKED', 'sealed', selection.backend.kind(), ['The remote Vault requires operator action.']);
       }
-      if (mode !== 'interactive' || !this.dependencies.secretInput || !this.dependencies.localLifecycle) {
-        return this.result('BLOCKED', 'sealed', 'local-docker', ['The local Vault is sealed and requires interactive operator action.']);
+      if (!this.dependencies.bootstrapStore || !this.dependencies.localLifecycle) {
+        return this.result('BLOCKED', 'sealed', 'local-docker', ['The local Vault bootstrap material is unavailable.']);
       }
-      const consent = await this.dependencies.consent.request({
-        actionId: 'unseal-local-vault',
-        summary: 'Unlock the owned local DevVault environment.',
-        mutating: true,
-        required: true,
-      });
-      if (consent !== 'approved') return this.result('BLOCKED', 'sealed', 'local-docker', ['Consent was not granted to unlock the local DevVault environment.']);
       try {
-        const key = await this.dependencies.secretInput.read('Unlock the local DevVault: ');
-        await this.dependencies.localLifecycle.unseal(key);
+        const material = await this.dependencies.bootstrapStore.load();
+        if (!material) return this.result('BLOCKED', 'sealed', 'local-docker', ['The local Vault bootstrap material is unavailable.']);
+        await this.dependencies.localLifecycle.unseal(material);
       } catch {
         return this.result('BLOCKED', 'sealed', 'local-docker', ['The local Vault could not be unlocked.']);
       }
       validation = await this.validate(selection.backend);
+    }
+
+    if (validation.lifecycle === 'not-initialized' && selection.backend.kind() === 'local-docker') {
+      if (!this.dependencies.bootstrapStore || !this.dependencies.localLifecycle) {
+        return this.result('BLOCKED', 'not-initialized', 'local-docker', ['The local Vault bootstrap boundary is unavailable.']);
+      }
+      const consent = await this.dependencies.consent.request({
+        actionId: 'initialize-local-vault',
+        summary: 'Initialize the owned local DevVault environment.',
+        mutating: true,
+        required: true,
+      });
+      if (consent !== 'approved') return this.result('BLOCKED', 'not-initialized', 'local-docker', ['Consent was not granted to initialize the local DevVault environment.']);
+      const localLifecycle = this.dependencies.localLifecycle;
+      if (!localLifecycle.initialize) return this.result('BLOCKED', 'not-initialized', 'local-docker', ['The local Vault initialization capability is unavailable.']);
+      try {
+        const material = await localLifecycle.initialize();
+        await this.dependencies.bootstrapStore.save(material);
+        await this.dependencies.localLifecycle.unseal(material);
+        validation = await this.validate(selection.backend);
+      } catch {
+        return this.result('FAILED', 'not-initialized', 'local-docker', ['The local Vault could not be initialized.']);
+      }
+    }
+
+    if (validation.lifecycle === 'unsealed' && (!validation.kvValid || !validation.policyValid) && selection.backend.kind() === 'local-docker' && this.dependencies.localLifecycle?.configure && this.dependencies.projectContext) {
+      const consent = await this.dependencies.consent.request({
+        actionId: 'configure-local-vault',
+        summary: 'Configure the local DevVault development backend.',
+        mutating: true,
+        required: true,
+      });
+      if (consent !== 'approved') return this.result('BLOCKED', 'unsealed', 'local-docker', ['Consent was not granted to configure the local DevVault environment.']);
+      try {
+        await this.dependencies.localLifecycle.configure(await this.dependencies.projectContext.load());
+        validation = { lifecycle: 'configured', kvValid: true, policyValid: true };
+      } catch {
+        return this.result('FAILED', 'unsealed', 'local-docker', ['The local DevVault environment could not be configured.']);
+      }
     }
 
     const metadata = {

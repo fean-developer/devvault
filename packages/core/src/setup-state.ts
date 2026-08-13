@@ -35,7 +35,7 @@ const allowedKeys = new Set([
   'updatedAt',
 ]);
 
-const forbiddenPattern = /(password|token|secret|secretid|authorization|unseal|recovery|rootcredential)/i;
+const forbiddenPattern = /(password|token|secret|secretid|authorization|unseal(?:[ _-]key)?\b|recovery(?:[ _-]key)?\b|rootcredential)/i;
 
 export function validateSetupState(input: unknown): SetupState {
   if (!isRecord(input)) throw new Error('Setup state must be an object.');

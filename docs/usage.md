@@ -18,7 +18,7 @@ devvault start
 
 `start` starts an owned local Vault container when it is stopped and validates lifecycle, KV v2 and required capabilities. Run it again safely when the environment is already ready.
 
-If the local Vault is sealed, `start` requests the unseal key interactively. The key is used only in memory and is never saved by DevVault. If the Vault has never been initialized, `start` returns `BLOCKED` and directs you to the operator initialization flow; V1 does not generate or persist root/unseal material automatically.
+If the local Vault is sealed or has never been initialized, `start` handles the local bootstrap automatically. Root token and unseal material remain inside the dedicated local Docker bootstrap boundary and are never requested from the developer.
 
 For diagnostics:
 
@@ -29,6 +29,17 @@ devvault start --json
 ```
 
 An explicitly configured remote Vault is validated read-only. `start` never initializes, unseals or changes a remote Vault. `devvault stop` is not part of this release.
+
+`start` validates local infrastructure readiness. `doctor` also checks the current human developer identity; `Project policy` can remain unavailable until the developer completes the separate human login flow. The local root bootstrap credential is never used as the normal developer identity.
+
+After infrastructure is ready, application execution still requires a developer identity with the project's least-privilege policy. This is intentional:
+
+```bash
+devvault login --username alice
+devvault run -- npm start
+```
+
+`start` owns local Vault bootstrap. It does not replace human authentication or use the internal root bootstrap credential for application processes.
 
 ## 3. Start Vault
 
