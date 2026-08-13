@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.50] - 2026-08-13
+
+- Stabilized the Phase 0 serial verification gate and added non-interactive/read-only capability evidence.
+
 ## [0.1.49] - 2026-08-13
 
 - Strengthened Phase 0 security evidence for recursive output sanitization, validator exceptions, argv stability and project policy isolation.

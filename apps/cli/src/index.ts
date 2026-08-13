@@ -26,7 +26,7 @@ registerSetupCommand(program, createSetupDependencies(composition));
 program
   .name('devvault')
   .description('Developer experience layer for HashiCorp Vault')
-  .version('0.1.49');
+  .version('0.1.50');
 
 program.parseAsync().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : 'Command failed.';

@@ -230,6 +230,21 @@ describe('setup command', () => {
     expect(approved.status).toBe('READY');
   });
 
+  it('blocks a required mutation in non-interactive mode without --yes', async () => {
+    const result = await runSetupCommand({
+      ...dependencies(),
+      steps: [{
+        id: 'required-mutation',
+        mutating: true,
+        requiresConsent: true,
+        run: async () => ({ status: 'completed' as const, metadata: {} }),
+      }],
+    }, { nonInteractive: true });
+
+    expect(result.status).toBe('BLOCKED');
+    expect(setupExitCodes[result.status]).toBe(4);
+  });
+
   it('returns a sanitizable result shape for JSON consumers without sensitive metadata', async () => {
     const result = await runSetupCommand({
       ...dependencies(),

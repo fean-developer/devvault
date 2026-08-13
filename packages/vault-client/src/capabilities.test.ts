@@ -34,4 +34,20 @@ describe('Vault capability checks', () => {
     await expect(client.validateKvV2('secret')).resolves.toBe(true);
     expect(methods).toEqual(['GET http://vault/v1/sys/mounts']);
   });
+
+  it('uses read-only capability inspection with the configured Vault token', async () => {
+    const requests: Array<{ path: string; method: string; token: string | null }> = [];
+    const client = new HttpVaultClient({
+      address: 'http://vault',
+      token: 'test-token',
+      fetchImpl: async (input, init) => {
+        const request = new Request(String(input), init);
+        requests.push({ path: new URL(request.url).pathname, method: request.method, token: request.headers.get('x-vault-token') });
+        return new Response(JSON.stringify({ capabilities: { 'secret/data/projects/project-a/development': ['read'] } }), { status: 200 });
+      },
+    });
+
+    await expect(client.checkCapabilities('secret/data/projects/project-a/development')).resolves.toEqual(['read']);
+    expect(requests).toEqual([{ path: '/v1/sys/capabilities-self', method: 'POST', token: 'test-token' }]);
+  });
 });

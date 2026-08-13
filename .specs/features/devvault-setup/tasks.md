@@ -486,6 +486,27 @@ Tasks execute according to the explicit dependency graph below.
 **Status**: Complete
 **Evidence**: 25 focused security/policy/production tests pass; recursive public-result sanitization, validator exception suppression, argv stability and Project A/B policy isolation are covered.
 
+### T22: Stabilize Phase 0 verification and close controllable gaps
+
+**What**: Stabilize the test gate, explicitly verify non-interactive consent, and extend read-only capability/security evidence.
+**Why**: The independent verifier observed intermittent suite timeouts and remaining controllable gaps around non-interactive behavior and effective request evidence.
+**Where**: `vitest.config.ts`, setup/security tests and Vault capability tests.
+**Depends on**: T21
+**Requirement**: SETUP-002, SETUP-003, SETUP-005, SETUP-009, SETUP-013, SETUP-018
+**Design reference**: `design.md#Command Surface`, `design.md#Setup State Security`, `design.md#Error Model`
+**Tests**: serial full gate, security acceptance and read-only capability tests
+**Gate**: full
+**Done when**:
+- [ ] Test timeouts are deterministic under the required serial gate.
+- [ ] Non-interactive required mutations return `BLOCKED` without `--yes`.
+- [ ] Read-only capability requests carry no mutation and use configured auth headers.
+- [ ] Environmental limitations remain explicitly NOT TESTED/BLOCKED.
+**Evidence**: serial gate output, security/capability tests and independent review.
+**Commit**: `test(setup): stabilize phase zero verification`
+
+**Status**: Complete
+**Evidence**: Two consecutive serial full gates passed with 131 tests each; non-interactive consent, authenticated read-only capability requests and timeout stabilization are covered. Windows, Docker Desktop and live remote Vault remain environmental limitations.
+
 ## Requirement → Task Matrix
 
 | Requirement | Tasks |
@@ -603,6 +624,7 @@ flowchart TD
     T16 --> T19
     T19 --> T20[T20 Effective KV/policy validation]
     T20 --> T21[T21 Security/isolation evidence]
+    T21 --> T22[T22 Verification stabilization]
 ```
 
 ## Phase 0 Tasks Gate
