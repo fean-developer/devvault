@@ -74,6 +74,22 @@ describe('HttpVaultClient', () => {
     await expect(client.health()).rejects.toThrow('Vault is unavailable.');
   });
 
+  it('sends an unseal key only to the local Vault endpoint and does not expose it on failure', async () => {
+    let request: Request | undefined;
+    const client = new HttpVaultClient({
+      address: 'http://vault',
+      fetchImpl: async (input, init) => {
+        request = new Request(input, init);
+        return response(503, { errors: ['unseal-key-must-not-escape'] });
+      },
+    });
+
+    await expect(client.unseal('ephemeral-unseal-key')).rejects.toThrow('Vault returned HTTP 503.');
+    expect(request?.url).toBe('http://vault/v1/sys/unseal');
+    expect(request?.method).toBe('POST');
+    expect(await request?.json()).toEqual({ key: 'ephemeral-unseal-key' });
+  });
+
   it('enables KV v2 only when the mount is absent', async () => {
     const requests: Request[] = [];
     const client = new HttpVaultClient({

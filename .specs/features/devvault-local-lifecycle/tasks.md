@@ -145,6 +145,9 @@ T7 -> T8
 **Tests**: integration
 **Gate**: quick
 
+**Status**: Complete
+**Evidence**: `packages/vault-client/src/index.test.ts` passes 8 tests; the unseal request uses POST `/v1/sys/unseal`, and HTTP error handling does not expose the response body or key in the exception.
+
 ### T4: Implement the local lifecycle platform adapter
 
 **What**: Implement the platform adapter that starts the owned local Compose backend, reads Vault health and delegates ephemeral unseal without persisting it.

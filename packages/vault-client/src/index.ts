@@ -36,6 +36,13 @@ export class HttpVaultClient {
     return { initialized: body.initialized, sealed: body.sealed };
   }
 
+  async unseal(key: string): Promise<void> {
+    await this.request('/v1/sys/unseal', {
+      method: 'POST',
+      body: JSON.stringify({ key }),
+    });
+  }
+
   async loginUserpass(
     mount: string,
     username: string,
