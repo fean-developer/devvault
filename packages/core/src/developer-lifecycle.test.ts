@@ -152,6 +152,52 @@ describe('DefaultDeveloperLifecycleService', () => {
     expect(unsealCalls).toBe(0);
   });
 
+  it('maps a local start failure to BLOCKED without persisting state', async () => {
+    let saveCalls = 0;
+    const backend = createBackend('local-docker', { lifecycle: 'configured', kvValid: true, policyValid: true }, false);
+    const infrastructure = lifecycleInfrastructure();
+    infrastructure.stateStore = {
+      ...infrastructure.stateStore,
+      save: async () => { saveCalls += 1; return { status: 'saved', previousStateRetained: false }; },
+    };
+    const service = new DefaultDeveloperLifecycleService({
+      ...infrastructure,
+      backendSelector: createSelector(backend),
+      localBackend: backend,
+      localLifecycle: {
+        start: async () => { throw new Error('docker unavailable'); },
+        health: async () => ({ reachable: false, initialized: false, sealed: true }),
+        unseal: async () => undefined,
+      },
+    });
+
+    await expect(service.start({ mode: 'interactive' })).resolves.toMatchObject({ status: 'BLOCKED', lifecycle: 'unavailable' });
+    expect(saveCalls).toBe(0);
+  });
+
+  it('returns FAILED when lifecycle state is corrupt before any mutation', async () => {
+    let startCalls = 0;
+    const backend = createBackend('local-docker', { lifecycle: 'configured', kvValid: true, policyValid: true });
+    const service = new DefaultDeveloperLifecycleService({
+      ...lifecycleInfrastructure(),
+      stateStore: {
+        acquireLock: async () => ({ release: async () => undefined }),
+        load: async () => ({ status: 'corrupt', errorCode: 'SETUP_STATE_CORRUPT' }),
+        save: async () => ({ status: 'saved', previousStateRetained: false }),
+      },
+      backendSelector: createSelector(backend),
+      localBackend: backend,
+      localLifecycle: {
+        start: async () => { startCalls += 1; },
+        health: async () => ({ reachable: true, initialized: true, sealed: false }),
+        unseal: async () => undefined,
+      },
+    });
+
+    await expect(service.start({ mode: 'interactive' })).resolves.toMatchObject({ status: 'FAILED' });
+    expect(startCalls).toBe(0);
+  });
+
   it('unseals a local Vault only with interactive ephemeral input', async () => {
     let unsealedKey = '';
     let validationCalls = 0;

@@ -93,4 +93,25 @@ describe('production lifecycle command path', () => {
     expect(output).not.toContain('hidden-password');
     expect(output).toContain('[redacted]');
   });
+
+  it('keeps credential material out of process arguments and persisted project state', async () => {
+    const lifecycle: DeveloperLifecycleService = {
+      start: async () => ({
+        status: 'BLOCKED',
+        lifecycle: 'sealed',
+        backend: 'local-docker',
+        blockers: ['unseal-key=ephemeral-key'],
+        warnings: [],
+        metadata: {},
+      }),
+      status: async () => readyResult,
+    };
+    const write = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    const program = new Command().exitOverride();
+    registerStartCommand(program, lifecycle);
+    await program.parseAsync(['node', 'devvault', 'start', '--json']);
+
+    expect(process.argv.join(' ')).not.toContain('ephemeral-key');
+    expect(write.mock.calls.flat().join('')).not.toContain('ephemeral-key');
+  });
 });

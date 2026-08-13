@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.5-mvp] - 2026-08-13
+
+- Added lifecycle recovery and credential-boundary evidence for local start failures, corrupt state and ephemeral unseal handling.
+
 ## [0.1.4-mvp] - 2026-08-13
 
 - Enforced consent before local lifecycle mutations and reused the authoritative setup state store.
