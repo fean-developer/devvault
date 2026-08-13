@@ -119,6 +119,9 @@ T7 -> T8
 **Tests**: unit
 **Gate**: quick
 
+**Status**: Complete
+**Evidence**: `packages/core/src/developer-lifecycle.test.ts` and `developer-lifecycle-ports.test.ts` pass 9 focused tests; Core build passes; READY, start, NOT_INITIALIZED, SEALED, non-interactive, remote and capability paths are covered.
+
 ### T3: Add Vault client unseal operation
 
 **What**: Extend the Vault client contract with a sanitized unseal operation used only by the local lifecycle adapter.

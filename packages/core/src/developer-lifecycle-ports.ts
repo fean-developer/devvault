@@ -1,4 +1,5 @@
-import type { SetupMetadata, SetupResultStatus } from './setup-model.js';
+import type { SetupResultStatus } from './setup-model.js';
+import type { SetupMetadata } from './setup-steps.js';
 import type { VaultHealth, VaultLifecycleState } from './vault-lifecycle.js';
 
 export type LifecycleBackendKind = 'local-docker' | 'remote-vault';
