@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "promote_threshold": 2,
+  "window_days": 45,
+  "quarantine_threshold": 2,
+  "next_id": 3,
+  "lessons": [
+    {
+      "id": "L-001",
+      "key": "surviving_mutant::production command entry tests must execute the real cli entrypoint so removing public registration is detected",
+      "text": "Production command-entry tests must execute the real CLI entrypoint so removing public registration is detected.",
+      "signal": "surviving_mutant",
+      "scope": "cli-wiring",
+      "status": "candidate",
+      "features": [
+        "devvault-local-lifecycle"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/cli/src/index.ts:26 | Mutation 1 (cli-wiring)"
+      ],
+      "created": "2026-08-13T20:05:23Z",
+      "last_seen": "2026-08-13T20:05:23Z"
+    },
+    {
+      "id": "L-002",
+      "key": "ac_gap::every lifecycle mutation path must carry an explicit consent port and test zero adapter calls after denial",
+      "text": "Every lifecycle mutation path must carry an explicit consent port and test zero adapter calls after denial.",
+      "signal": "ac_gap",
+      "scope": "lifecycle-security",
+      "status": "candidate",
+      "features": [
+        "devvault-local-lifecycle"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "LIFECYCLE-012 | packages/core/src/developer-lifecycle.ts:23-35 (lifecycle-security)"
+      ],
+      "created": "2026-08-13T20:05:32Z",
+      "last_seen": "2026-08-13T20:05:32Z"
+    }
+  ]
+}
