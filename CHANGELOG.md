@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.28] - 2026-08-12
+
+- Added strict Phase 0 SetupState schema and sensitive metadata validation.
+- Added rejection tests for credential fields, values and credential-bearing URLs.
+
 ## [0.1.27] - 2026-08-12
 
 - Added Core setup ports and typed SetupStep orchestration contracts.

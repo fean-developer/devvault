@@ -6,6 +6,7 @@ export * from './vault-backend.js';
 export * from './vault-lifecycle.js';
 export * from './setup-steps.js';
 export * from './setup-ports.js';
+export * from './setup-state.js';
 
 export interface CredentialStore {
   get(key: string): Promise<string | null>;

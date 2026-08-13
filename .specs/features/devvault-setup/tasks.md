@@ -133,6 +133,9 @@ Tasks execute according to the explicit dependency graph below.
 **Evidence**: Negative tests for every forbidden credential category and serialized state scan.
 **Commit**: `feat(setup): define strict setup state schema`
 
+**Status**: Complete
+**Evidence**: 4 unit/security tests pass; typecheck passes; forbidden-field/value cases are covered.
+
 ### T5: Define atomic state store and lock port
 
 **What**: Define state loading, atomic save, previous-state retention, exclusive lock and corruption recovery contracts without implementing filesystem behavior.
