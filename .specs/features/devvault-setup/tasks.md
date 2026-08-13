@@ -358,6 +358,9 @@ Tasks execute according to the explicit dependency graph below.
 **Evidence**: Security test report and sanitized artifact scan.
 **Commit**: `test(setup): add setup security acceptance tests`
 
+**Status**: Complete
+**Evidence**: 4 Phase 0 security acceptance tests pass; forbidden credential categories, state/JSON/error sanitization, remote URL rejection, temporary-file cleanup and project secret-file absence are covered.
+
 ### T16: Add Phase 0 E2E and readiness suite
 
 **What**: Exercise clean setup, repeated setup, interrupted setup, repair, blocked environment and remote-check profiles.

@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.39] - 2026-08-13
+
+- Added Phase 0 security acceptance coverage for setup state, JSON output, errors, URLs, temporary files and project secret-file boundaries.
+
 ## [0.1.38] - 2026-08-13
 
 - Added the `devvault setup` command with check, repair, JSON, non-interactive and explicit approval options.
