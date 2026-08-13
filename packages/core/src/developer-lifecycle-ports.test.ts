@@ -15,7 +15,7 @@ describe('developer lifecycle ports', () => {
     const localLifecyclePort: LocalLifecyclePort = {
       start: async () => undefined,
       health: async () => ({ initialized: true, sealed: false, reachable: true }),
-      unseal: async (_key) => undefined,
+      unseal: async () => undefined,
     };
     const ephemeralSecretInput: EphemeralSecretInput = {
       read: async () => 'ephemeral-only',

@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.3-mvp] - 2026-08-13
+
+- Added the developer-first `devvault start` lifecycle facade.
+- Added safe local container start, lifecycle/readiness validation and manual ephemeral unseal handling.
+- Kept uninitialized Vault handling explicit and remote Vault lifecycle read-only.
+- Added production-path lifecycle and output-sanitization coverage.
+
+## [0.1.2-mvp] - 2026-08-13
+
+- Fixed the local Vault Docker healthcheck to use the configured HTTP listener.
+
+## [0.1.1-mvp] - 2026-08-13
+
+- Fixed Linux/WSL login with the CommonJS `keytar` module when bundled as ESM.
+- Added coverage for both direct and default-exported keyring APIs.
+
 ## [0.1.0-mvp] - 2026-08-13
 
 **Phase 0 MVP Release — Two-Tier Gate Model**

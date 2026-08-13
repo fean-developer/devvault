@@ -279,6 +279,9 @@ T7 -> T8
 **Tests**: none
 **Gate**: build
 
+**Status**: Complete
+**Evidence**: `corepack pnpm typecheck`, `corepack pnpm lint`, `corepack pnpm build` and `corepack pnpm test` all pass; full suite passes 39 files and 158 tests. Documentation and synchronized `0.1.3-mvp` release metadata are updated.
+
 ## Task Validation Tables
 
 ### Granularity and dependency cross-check

@@ -8,7 +8,29 @@ corepack pnpm install
 corepack pnpm test
 ```
 
-## 2. Start Vault
+## 2. Developer-first local lifecycle
+
+From a project directory containing `devvault.yaml`, use:
+
+```bash
+devvault start
+```
+
+`start` starts an owned local Vault container when it is stopped and validates lifecycle, KV v2 and required capabilities. Run it again safely when the environment is already ready.
+
+If the local Vault is sealed, `start` requests the unseal key interactively. The key is used only in memory and is never saved by DevVault. If the Vault has never been initialized, `start` returns `BLOCKED` and directs you to the operator initialization flow; V1 does not generate or persist root/unseal material automatically.
+
+For diagnostics:
+
+```bash
+devvault status
+devvault doctor
+devvault start --json
+```
+
+An explicitly configured remote Vault is validated read-only. `start` never initializes, unseals or changes a remote Vault. `devvault stop` is not part of this release.
+
+## 3. Start Vault
 
 ```bash
 docker compose -f infra/vault/docker-compose.yml up -d
@@ -41,6 +63,64 @@ VAULT_TOKEN=<administrative-token> devvault bootstrap --username alice
 When the prompt says `Secret value:`, enter a new password for the human `alice` account. It is not an application secret, root token or unseal key. The administrative token is not stored by DevVault. Bootstrap is separate from Vault operator initialization and unseal.
 
 For a new Vault, initialize and unseal it through the Vault operator procedure first. DevVault will refuse to bootstrap an uninitialized or sealed Vault rather than handling unseal material implicitly.
+
+### Clean local reset and credential generation
+
+Use this only when deleting the local Vault data is intentional. It removes all local secrets, users, policies and Vault tokens from the named Docker volume.
+
+```bash
+cd /path/to/devvault
+docker compose -f infra/vault/docker-compose.yml down
+docker volume rm devvault-vault-data
+docker compose -f infra/vault/docker-compose.yml up -d
+```
+
+Wait until Vault is responding, then initialize it. Vault prints one unseal key and one initial root token because this development configuration uses one key share and one threshold:
+
+```bash
+docker exec -it devvault-vault vault operator init -key-shares=1 -key-threshold=1
+```
+
+Store the unseal key and root token in a password manager. Do not put them in `.secrets`, `.env`, Git or project configuration. Unseal the new instance:
+
+```bash
+docker exec -it devvault-vault vault operator unseal
+```
+
+Enter the generated unseal key, then configure KV v2 with the generated root token:
+
+```bash
+read -rsp 'Vault root token: ' VAULT_TOKEN
+echo
+export VAULT_TOKEN
+devvault init
+```
+
+From the application root, create the project policy and human login:
+
+```bash
+cd /path/to/application
+VAULT_TOKEN="$VAULT_TOKEN" devvault init-project --environment development
+VAULT_TOKEN="$VAULT_TOKEN" devvault bootstrap --username alice
+unset VAULT_TOKEN
+```
+
+The `bootstrap` password is the new password for `alice`; it is not the Vault root token or unseal key.
+
+Authenticate and verify access:
+
+```bash
+devvault login --username alice
+devvault doctor
+```
+
+If Linux reports `org.freedesktop.secrets`, start a Secret Service session before login:
+
+```bash
+eval "$(gnome-keyring-daemon --start --components=secrets)"
+```
+
+The expected result is `OK Project policy`, `OK Vault reachable`, `OK Vault initialized` and `OK Vault unsealed`.
 
 ## 3. Authenticate
 
