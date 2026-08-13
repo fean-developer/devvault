@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.31] - 2026-08-13
+
+- Added the platform `DependencyChecker` adapter for Docker, Compose, Vault container and WSL capabilities.
+- Added explicit Docker Desktop policy blocking without installation attempts.
+
 ## [0.1.30] - 2026-08-12
 
 - Added Core consent and authorized installation boundaries.

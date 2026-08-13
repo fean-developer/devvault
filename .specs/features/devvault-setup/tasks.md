@@ -193,6 +193,9 @@ Tasks execute according to the explicit dependency graph below.
 **Evidence**: Injected platform/Docker failure matrix.
 **Commit**: `feat(setup): adapt platform dependency checks`
 
+**Status**: Complete
+**Evidence**: 8 platform/Docker/dependency tests pass; lint and typecheck pass; injected failure matrix covers daemon and Docker Desktop policy blocking.
+
 ### T8: Implement local Docker Vault backend adapter
 
 **What**: Adapt `DockerManager` and Vault HTTP health/KV/capability checks into `LocalDockerVaultBackend`.
