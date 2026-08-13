@@ -9,6 +9,7 @@ export * from './docker-diagnostics.js';
 export * from './setup-dependencies.js';
 export * from './local-docker-vault-backend.js';
 export * from './remote-vault-backend.js';
+export * from './setup-state-store.js';
 
 const execFileAsync = promisify(execFile);
 

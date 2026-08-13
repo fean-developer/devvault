@@ -24,7 +24,7 @@ registerAuthCommands(program, composition);
 program
   .name('devvault')
   .description('Developer experience layer for HashiCorp Vault')
-  .version('0.1.36');
+  .version('0.1.37');
 
 program.parseAsync().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : 'Command failed.';

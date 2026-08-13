@@ -316,6 +316,9 @@ Tasks execute according to the explicit dependency graph below.
 **Evidence**: Filesystem, corruption, lock and forbidden-field test artifacts.
 **Commit**: `feat(setup): persist setup state safely`
 
+**Status**: Complete
+**Evidence**: 11 state-store/orchestrator/schema tests pass; atomic save, missing/corrupt state, exclusive lock and forbidden-field rejection are covered.
+
 ### T14: Implement setup command surface
 
 **What**: Register `setup`, `setup --check`, `setup --json`, `setup --repair`, `setup --non-interactive` and `setup --yes` using the orchestrator.
