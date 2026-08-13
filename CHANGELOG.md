@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.4-mvp] - 2026-08-13
+
+- Enforced consent before local lifecycle mutations and reused the authoritative setup state store.
+- Added production entrypoint coverage and read-only status verification.
+- Kept Docker/Vault bootstrap material ephemeral and uninitialized Vault handling explicit.
+
 ## [0.1.3-mvp] - 2026-08-13
 
 - Added the developer-first `devvault start` lifecycle facade.

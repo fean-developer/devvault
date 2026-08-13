@@ -1,4 +1,6 @@
 import { Command } from 'commander';
+import { execFileSync } from 'node:child_process';
+import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { DeveloperLifecycleService, LifecycleResult, StartInput } from '@devvault/core';
 import { registerStartCommand } from '../../apps/cli/src/commands/start.js';
@@ -18,6 +20,13 @@ afterEach(() => {
 });
 
 describe('production lifecycle command path', () => {
+  it('exposes start through the compiled production entrypoint', () => {
+    const cliPath = join(process.cwd(), 'apps/cli/dist/index.js');
+    const output = execFileSync(process.execPath, [cliPath, '--help'], { encoding: 'utf8' });
+
+    expect(output).toContain('start');
+  });
+
   it('runs the registered start command and returns READY on repeated starts', async () => {
     let calls = 0;
     const lifecycle: DeveloperLifecycleService = {

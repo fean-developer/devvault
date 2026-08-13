@@ -61,6 +61,8 @@ export function createCompositionRoot() {
     remoteBackend: setupRemoteBackend,
     localLifecycle,
     secretInput: { read: readSecretFromProcess },
+    stateStore: setupStateStore,
+    consent: setupConsent,
   });
 
   return {
