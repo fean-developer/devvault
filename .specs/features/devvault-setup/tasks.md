@@ -153,6 +153,9 @@ Tasks execute according to the explicit dependency graph below.
 **Evidence**: Contract tests for interruption, lock conflict and atomic rename failure.
 **Commit**: `feat(setup): define state store and lock contracts`
 
+**Status**: Complete
+**Evidence**: 6 unit tests pass; state store contract covers missing/valid/corrupt result types, lock release, atomic save failure and non-destructive repair semantics.
+
 ### T6: Define consent and installation boundaries
 
 **What**: Define consent requests, decisions, authorized mutation requests and non-interactive behavior.

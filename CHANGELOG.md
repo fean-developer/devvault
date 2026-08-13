@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.29] - 2026-08-12
+
+- Added Core SetupStateStore, lock, atomic-save and repair contracts.
+- Added tests for state load/save outcomes and non-destructive recovery semantics.
+
 ## [0.1.28] - 2026-08-12
 
 - Added strict Phase 0 SetupState schema and sensitive metadata validation.
