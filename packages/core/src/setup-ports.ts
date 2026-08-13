@@ -2,6 +2,7 @@ import type { VaultBackend } from './vault-backend.js';
 import type { ReadinessProfile } from './setup-model.js';
 import type { SetupContext, SetupExecutionResult, SetupMetadata, SetupStep } from './setup-steps.js';
 import type { ConsentRequest, ConsentDecision, InstallationRequest, InstallationResult } from './consent.js';
+import type { SetupResultStatus } from './setup-model.js';
 
 export type { ConsentRequest, ConsentDecision, InstallationRequest, InstallationResult } from './consent.js';
 
@@ -46,6 +47,7 @@ export interface BackendSelector {
 }
 
 export interface ValidationReport {
+  status: SetupResultStatus;
   capabilities: Record<string, boolean>;
   blockers: string[];
   warnings: string[];

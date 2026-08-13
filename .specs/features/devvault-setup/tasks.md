@@ -273,6 +273,9 @@ Tasks execute according to the explicit dependency graph below.
 **Evidence**: Profile/capability truth table and validator assertions.
 **Commit**: `feat(setup): validate readiness profiles`
 
+**Status**: Complete
+**Evidence**: 13 validator/model/state tests pass; profile-scoped READY/DEGRADED/BLOCKED/FAILED mapping and sensitive metadata rejection are covered.
+
 ### T12: Implement SetupOrchestrator and step pipeline
 
 **What**: Coordinate SetupSteps, consent, backend selection, validation and state persistence without provider-specific rules.

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.35] - 2026-08-13
+
+- Added profile-scoped SetupValidator with READY/DEGRADED/BLOCKED/FAILED mapping.
+- Added sanitized capability metadata validation.
+
 ## [0.1.34] - 2026-08-13
 
 - Added capability-based local/remote Vault backend selection.
