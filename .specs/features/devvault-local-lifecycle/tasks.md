@@ -172,6 +172,9 @@ T7 -> T8
 **Tests**: integration
 **Gate**: quick
 
+**Status**: Complete
+**Evidence**: `packages/platform/src/local-vault-lifecycle.test.ts` passes 4 tests and the platform package builds; local start, health mapping, transport failure and ephemeral unseal delegation are covered.
+
 ### T5: Wire lifecycle services in the composition root
 
 **What**: Construct the Core lifecycle service, local lifecycle adapter and ephemeral input adapter through the existing composition root.
