@@ -72,4 +72,19 @@ describe('StepSetupOrchestrator', () => {
     }, { request: async () => 'approved' }).setup({ mode: 'setup', profile: 'local-bootstrap', metadata: {} }, []);
     expect(locked.status).toBe('FAILED');
   });
+
+  it('maps a failed setup step to FAILED instead of continuing as ready', async () => {
+    const state = store();
+    const result = await new StepSetupOrchestrator(state.value, { request: async () => 'approved' }).setup({
+      mode: 'setup', profile: 'local-bootstrap', metadata: {},
+    }, [{
+      id: 'failed-step',
+      mutating: false,
+      requiresConsent: false,
+      run: async () => ({ status: 'failed', metadata: {}, errorCode: 'STEP_FAILED' }),
+    }]);
+
+    expect(result.status).toBe('FAILED');
+    expect(result.blockers).toContain('STEP_FAILED');
+  });
 });

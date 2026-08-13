@@ -138,17 +138,29 @@ describe('setup command', () => {
 
   it('kills blocker-to-completed mutations before final validation', async () => {
     const alwaysReady = { validate: async () => ({ status: 'READY' as const, capabilities: {}, blockers: [], warnings: [], metadata: {} }) };
+    const sealedWithCapabilities = backend('sealed');
+    sealedWithCapabilities.validate = async () => ({ lifecycle: 'sealed', kvValid: true, policyValid: true });
     const dependencyBlocked = await runSetupCommand(productionDependencies({
       validator: alwaysReady,
       dependencyChecker: { check: async () => ({ capabilities: {}, blockers: ['Docker unavailable'], warnings: [], metadata: { platform: 'linux' } }) },
     }), { yes: true });
     const lifecycleBlocked = await runSetupCommand(productionDependencies({
       validator: alwaysReady,
-      localBackend: backend('sealed'),
+      localBackend: sealedWithCapabilities,
+    }), { yes: true });
+    const noBackend = await runSetupCommand(productionDependencies({
+      validator: alwaysReady,
+      backendSelector: { select: async () => ({ blockers: ['No viable Vault backend is available.'], metadata: { selectedBackend: null } }) },
+    }), { yes: true });
+    const capabilityBlocked = await runSetupCommand(productionDependencies({
+      validator: alwaysReady,
+      localBackend: backend('configured', { canStart: false, canConfigure: true, canValidateKv: false, canValidatePolicy: true }),
     }), { yes: true });
 
     expect(dependencyBlocked.status).toBe('BLOCKED');
     expect(lifecycleBlocked.status).toBe('BLOCKED');
+    expect(noBackend.status).toBe('BLOCKED');
+    expect(capabilityBlocked.status).toBe('BLOCKED');
   });
 
   it('preserves blocked and failed setup steps and does not mutate in --check', async () => {

@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.47] - 2026-08-13
+
+- Strengthened Phase 0 production-path regression and mutation coverage for sealed Vault, mandatory capabilities, no backend and failed steps.
+
 ## [0.1.46] - 2026-08-13
 
 - Wired the production setup command to backend selection, Vault readiness, profile validation and consent-gated local start.
