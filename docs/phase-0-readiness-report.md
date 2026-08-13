@@ -80,6 +80,7 @@ Core does not import Docker, filesystem, keyring or platform APIs. Remote Vault 
 - The independent verifier found that the production setup path does not wire backend selection, lifecycle/KV validation or `ProfileSetupValidator`.
 - The discrimination sensor found a surviving mutant in the default setup dependency step.
 - T20 correction adds effective KV v2 mount inspection and effective Vault capability checks; final independent re-verification remains pending.
+- T21 strengthens recursive result sanitization, validator exception handling, argv stability and Project A/B policy isolation evidence; live Vault isolation remains pending.
 - The current setup command surface is the Phase 0 orchestration boundary; full human authentication, CredentialStore expansion, AppRole, OIDC, final policies, dynamic secrets and Vault Agent remain future phases.
 - Standalone packaging is a documented future decision; no binary, installer or auto-update path is implemented.
 

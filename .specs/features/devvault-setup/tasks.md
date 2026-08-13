@@ -465,6 +465,27 @@ Tasks execute according to the explicit dependency graph below.
 **Status**: Complete
 **Evidence**: Effective KV mount inspection and capabilities-self checks are invoked by local/remote backend validation; 16 production/adapters/client tests cover static-flag rejection, sealed/unavailable states, read-only check and repair revalidation.
 
+### T21: Close Phase 0 security and isolation evidence
+
+**What**: Strengthen public-result sanitization, exception/argv boundary tests and project policy isolation evidence.
+**Why**: Independent verification left global output leakage and live project isolation as remaining Phase 0 gaps.
+**Where**: `apps/cli/src/commands/setup.ts`, security tests and policy tests.
+**Depends on**: T20
+**Requirement**: SETUP-005, SETUP-011, SETUP-012, SETUP-018
+**Design reference**: `design.md#Setup State Security`, `design.md#Error Model`, `design.md#Command Surface`
+**Tests**: security acceptance and policy isolation tests
+**Gate**: full
+**Done when**:
+- [ ] Every public result collection is sanitized recursively.
+- [ ] Validator exception details are not exposed.
+- [ ] Synthetic secret values do not enter process arguments.
+- [ ] Project A/B policy strings remain isolated.
+**Evidence**: Security and policy test output plus independent review of remaining live-environment gaps.
+**Commit**: `test(setup): close security and isolation evidence`
+
+**Status**: Complete
+**Evidence**: 25 focused security/policy/production tests pass; recursive public-result sanitization, validator exception suppression, argv stability and Project A/B policy isolation are covered.
+
 ## Requirement → Task Matrix
 
 | Requirement | Tasks |
@@ -581,6 +602,7 @@ flowchart TD
     T15 --> T19
     T16 --> T19
     T19 --> T20[T20 Effective KV/policy validation]
+    T20 --> T21[T21 Security/isolation evidence]
 ```
 
 ## Phase 0 Tasks Gate

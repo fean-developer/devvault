@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.49] - 2026-08-13
+
+- Strengthened Phase 0 security evidence for recursive output sanitization, validator exceptions, argv stability and project policy isolation.
+
 ## [0.1.48] - 2026-08-13
 
 - Added effective read-only KV v2 mount and Vault capability validation to Phase 0 setup readiness.

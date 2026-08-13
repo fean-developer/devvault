@@ -112,4 +112,28 @@ describe('Phase 0 setup security acceptance', () => {
     }
     expect(await readdir(projectDirectory)).toEqual([]);
   });
+
+  it('does not expose thrown validator details or add secret arguments', async () => {
+    const before = [...process.argv];
+    const result = await runSetupCommand({
+      ...commandDependencies(join(await mkdtemp(join(tmpdir(), 'devvault-argv-')), 'state.json')),
+      validator: { validate: async () => { throw new Error('token=exception-secret'); } },
+      backendSelector: { select: async () => ({ backend: {
+        kind: () => 'local-docker' as const,
+        detect: async () => ({ kind: 'local-docker' as const, available: true, capabilities: { canStart: false, canConfigure: true, canValidateKv: true, canValidatePolicy: true } }),
+        health: async () => ({ reachable: true, initialized: true, sealed: false }),
+        validate: async () => ({ lifecycle: 'configured' as const, kvValid: true, policyValid: true }),
+      }, blockers: [], metadata: {} }) },
+      localBackend: {
+        kind: () => 'local-docker' as const,
+        detect: async () => ({ kind: 'local-docker' as const, available: true, capabilities: { canStart: false, canConfigure: true, canValidateKv: true, canValidatePolicy: true } }),
+        health: async () => ({ reachable: true, initialized: true, sealed: false }),
+        validate: async () => ({ lifecycle: 'configured' as const, kvValid: true, policyValid: true }),
+      },
+    }, { check: true, json: true });
+
+    expect(result.status).toBe('FAILED');
+    expect(JSON.stringify(result)).not.toContain('exception-secret');
+    expect(process.argv).toEqual(before);
+  });
 });

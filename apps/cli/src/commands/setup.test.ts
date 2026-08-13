@@ -245,4 +245,18 @@ describe('setup command', () => {
     expect(sanitizeSetupResult(result).metadata).toEqual({ nonInteractive: false, yes: false });
     expect(JSON.stringify(sanitizeSetupResult(result))).not.toContain('must-not-output');
   });
+
+  it('sanitizes sensitive values in every public result collection', () => {
+    const sanitized = sanitizeSetupResult({
+      status: 'FAILED',
+      completedSteps: ['token=completed-secret'],
+      pendingSteps: ['authorization=Bearer pending-secret'],
+      blockers: ['password=blocked-secret'],
+      warnings: ['safe warning token=warning-secret'],
+      metadata: { safe: 'secret=value', privateKey: 'private-key-value' },
+    });
+
+    expect(JSON.stringify(sanitized)).not.toMatch(/completed-secret|pending-secret|blocked-secret|warning-secret|private-key-value/);
+    expect(sanitized.metadata).toEqual({ safe: '[redacted]' });
+  });
 });

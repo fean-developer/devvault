@@ -174,17 +174,22 @@ function createSetupSteps(
         if (!dependencies.validator || !dependencyReport || !backendDetection || !backendValidation) {
           return { status: 'failed', metadata: {}, errorCode: 'SETUP_VALIDATION_NOT_CONFIGURED' };
         }
-        const report = await dependencies.validator.validate({
-          ...context,
-          metadata: {
-            ...dependencyReport.metadata,
-            ...metadata,
-            backend: selectedBackend?.kind() ?? null,
-            vaultLifecycle: backendValidation.lifecycle,
-            kv: backendValidation.kvValid,
-            policy: backendValidation.policyValid,
-          },
-        });
+        let report;
+        try {
+          report = await dependencies.validator.validate({
+            ...context,
+            metadata: {
+              ...dependencyReport.metadata,
+              ...metadata,
+              backend: selectedBackend?.kind() ?? null,
+              vaultLifecycle: backendValidation.lifecycle,
+              kv: backendValidation.kvValid,
+              policy: backendValidation.policyValid,
+            },
+          });
+        } catch {
+          return { status: 'failed', metadata: {}, errorCode: 'SETUP_VALIDATION_FAILED' };
+        }
         if (report.status === 'FAILED') return { status: 'failed', metadata: report.metadata, errorCode: 'SETUP_VALIDATION_FAILED' };
         if (report.status === 'BLOCKED') return { status: 'blocked', metadata: report.metadata, nextAction: report.blockers.join(' ') || 'Profile validation blocked setup.' };
         if (report.status === 'DEGRADED') return { status: 'pending', metadata: report.metadata, nextAction: report.warnings.join(' ') };
@@ -216,12 +221,28 @@ export function writeSetupResult(result: SetupExecutionResult, json: boolean): v
 export function sanitizeSetupResult(result: SetupExecutionResult): SetupExecutionResult {
   return {
     ...result,
-    metadata: Object.fromEntries(
-      Object.entries(result.metadata).filter(([key]) => !/(password|token|secret|key|credential|authorization)/i.test(key)),
-    ),
-    blockers: result.blockers.map((value) => value.replace(/(password|token|secret|key|credential|authorization)[^\s]*/gi, '[redacted]')),
-    warnings: result.warnings.map((value) => value.replace(/(password|token|secret|key|credential|authorization)[^\s]*/gi, '[redacted]')),
+    completedSteps: result.completedSteps.map((value) => sanitizeText(value)),
+    pendingSteps: result.pendingSteps.map((value) => sanitizeText(value)),
+    metadata: sanitizeMetadata(result.metadata),
+    blockers: result.blockers.map((value) => sanitizeText(value)),
+    warnings: result.warnings.map((value) => sanitizeText(value)),
   };
+}
+
+function sanitizeMetadata(metadata: SetupMetadata): SetupMetadata {
+  return Object.fromEntries(
+    Object.entries(metadata)
+      .filter(([key]) => !isSensitiveKey(key))
+      .map(([key, value]) => [key, typeof value === 'string' ? sanitizeText(value) : value]),
+  );
+}
+
+function sanitizeText(value: string): string {
+  return value.replace(/(password|token|secret|secretid|unseal|recovery|rootcredential|authorization|bearer)[^\s]*/gi, '[redacted]');
+}
+
+function isSensitiveKey(key: string): boolean {
+  return /(password|token|secret|secretid|unseal|recovery|rootcredential|authorization|credential|privatekey)/i.test(key);
 }
 
 export function createSetupDependencies(

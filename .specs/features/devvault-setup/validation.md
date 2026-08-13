@@ -143,3 +143,7 @@ T20 evidence:
 - Mandatory pending setup work returns `BLOCKED`, not `DEGRADED`.
 
 Independent re-verification is still required after the T20 commit. Remaining known gaps from the previous review remain open: global argv/proc/log/exception coverage, live least-privilege and Project A/B isolation, native Windows, and Docker Desktop.
+
+## Subsequent Correction Record: T21
+
+T21 strengthens the remaining security boundary evidence without changing the approved architecture: public setup results are recursively sanitized, validator exception details map to a generic `FAILED`, process arguments remain unchanged during setup, and generated Project A/B policies are explicitly isolated. Live Vault least-privilege/isolation validation, native Windows and Docker Desktop remain unverified.
