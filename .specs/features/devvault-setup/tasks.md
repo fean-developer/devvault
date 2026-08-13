@@ -233,6 +233,9 @@ Tasks execute according to the explicit dependency graph below.
 **Evidence**: HTTP recording adapter and sanitized remote response tests.
 **Commit**: `feat(setup): add read-only remote vault backend`
 
+**Status**: Complete
+**Evidence**: 12 backend/Docker tests pass; endpoint credential/query rejection, remote lifecycle mapping and no-mutation call recording are covered.
+
 ### T10: Implement backend selector
 
 **What**: Select local Docker, remote Vault or blocked result using dependency reports and explicit backend configuration.

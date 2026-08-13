@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.33] - 2026-08-13
+
+- Added the read-only RemoteVaultBackend adapter.
+- Added endpoint sanitization and remote lifecycle/failure tests without Docker coupling.
+
 ## [0.1.32] - 2026-08-13
 
 - Added the read-only LocalDockerVaultBackend adapter.
