@@ -215,7 +215,34 @@ Executar diretamente em production sem alterar o contexto:
 devvault run --environment production -- npm start
 ```
 
-## 9. Status e diagnóstico
+## 9. Criar outro usuário
+
+O `start` prepara automaticamente o usuário local padrão `alice`. Para criar outro usuário:
+
+```bash
+devvault user create --username fnascimento
+```
+
+Digite a senha no prompt oculto. Depois troque para esse usuário:
+
+```bash
+devvault logout
+devvault login --username fnascimento
+devvault status --json
+```
+
+O usuário recebe a policy do projeto e do ambiente ativo. O root token interno não é solicitado.
+
+## 10. Logout e troca de usuário
+
+```bash
+devvault logout
+devvault login --username alice
+```
+
+O logout remove a sessão local do keyring mesmo quando o Vault não consegue revogar o token remoto. Nesse caso, exibe um aviso, mas retorna sucesso para não deixar a máquina presa à sessão antiga.
+
+## 11. Status e diagnóstico
 
 Status rápido:
 

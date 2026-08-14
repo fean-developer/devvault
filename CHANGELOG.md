@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.10-mvp] - 2026-08-13
+
+- Fixed logout to clear the local keyring session when remote token revocation is unavailable.
+- Added `devvault user create --username <name>` for additional local developer identities.
+- Improved invalid Userpass login errors.
+
 ## [0.1.9-mvp] - 2026-08-13
 
 - Updated README with the current developer-first and multi-environment workflow.

@@ -1,6 +1,6 @@
 {
   "name": "@devvault/config",
-  "version": "0.1.9-mvp",
+  "version": "0.1.10-mvp",
   "private": true,
   "type": "module",
   "main": "dist/index.js",

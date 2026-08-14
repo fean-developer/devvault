@@ -101,6 +101,14 @@ export function createCompositionRoot() {
         token: process.env.VAULT_TOKEN,
       }));
     },
+    createLocalDeveloperUser: async (username: string, password: string) => {
+      const material = await bootstrapStore.load();
+      if (!material) throw new Error('Local DevVault bootstrap material is unavailable. Run devvault start first.');
+      setupVault.setToken(material.rootToken);
+      await setupVault.ensureUserpass();
+      const config = await loadProjectConfig(process.cwd());
+      await setupVault.createUserpassUser(username, password, [`devvault-${config.project}-${config.environment}-developer`]);
+    },
     createProjectApplication: async () => {
       return createProjectApplicationService(await (async () => {
         let session: string | null = null;

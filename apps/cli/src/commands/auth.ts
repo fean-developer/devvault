@@ -1,4 +1,5 @@
 import { Command } from 'commander';
+import { VaultAuthenticationError } from '@devvault/core';
 import { createInterface } from 'node:readline/promises';
 import type { ReturnTypeOfComposition } from '../composition-root.js';
 import { readSecretFromProcess } from '../input.js';
@@ -9,7 +10,15 @@ export function registerAuthCommands(program: Command, composition: ReturnTypeOf
     .option('-u, --username <username>', 'Vault Userpass username')
     .action(async (options: { username?: string }) => {
       const username = options.username ?? await readUsername();
-      const token = await composition.createDeveloperAuthentication().login(username, await readSecretFromProcess());
+      let token: string;
+      try {
+        token = await composition.createDeveloperAuthentication().login(username, await readSecretFromProcess());
+      } catch (error) {
+        if (error instanceof VaultAuthenticationError || error instanceof Error && error.message === 'Vault is unavailable.') {
+          throw new Error(`Could not authenticate '${username}'. Verify that the user exists and the password is correct.`);
+        }
+        throw error;
+      }
       await composition.credentialStore.set('session', token);
       process.stdout.write(`Logged in as ${username}.\n`);
     });
@@ -19,8 +28,13 @@ export function registerAuthCommands(program: Command, composition: ReturnTypeOf
     .action(async () => {
       const token = await composition.credentialStore.get('session');
       if (token) {
-        await composition.createDeveloperAuthentication().logout(token);
-        await composition.credentialStore.delete('session');
+        try {
+          await composition.createDeveloperAuthentication().logout(token);
+        } catch {
+          process.stderr.write('Warning: Vault session revocation failed; clearing the local session.\n');
+        } finally {
+          await composition.credentialStore.delete('session');
+        }
       }
       process.stdout.write('Logged out.\n');
     });

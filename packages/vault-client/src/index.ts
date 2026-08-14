@@ -80,10 +80,18 @@ export class HttpVaultClient {
     username: string,
     password: string,
   ): Promise<{ token: string; leaseDuration: number }> {
-    const response = await this.request(`/v1/auth/${encodePath(mount)}/login/${encodePath(username)}`, {
-      method: 'POST',
-      body: JSON.stringify({ password }),
-    });
+    let response: Response;
+    try {
+      response = await this.request(`/v1/auth/${encodePath(mount)}/login/${encodePath(username)}`, {
+        method: 'POST',
+        body: JSON.stringify({ password }),
+      });
+    } catch (error) {
+      if (error instanceof VaultUnavailableError && /HTTP 400|HTTP 404/.test(error.message)) {
+        throw new VaultAuthenticationError();
+      }
+      throw error;
+    }
     const body = await this.readJson<{ auth?: { client_token?: string; lease_duration?: number } }>(response);
     const token = body.auth?.client_token;
     if (!token) {
