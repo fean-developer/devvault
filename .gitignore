@@ -12,7 +12,7 @@ yarn-error.log*
 .env.*
 !.env.example
 .npm-dist/
-.specs
+.specs/
 .venv
 AGENTS.md
 # Ignora todo .github exceto workflows
