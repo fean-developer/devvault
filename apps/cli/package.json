@@ -1,8 +1,18 @@
 {
   "name": "@devvault/cli",
-  "version": "0.1.10-mvp",
-  "private": true,
+  "version": "0.1.11-mvp",
   "type": "module",
+  "description": "Developer-first local secret runtime powered by HashiCorp Vault",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist/index.js",
+    "README.md",
+    "RELEASE-NOTES.md",
+    "docs/GUIA-USO-PT-BR.md"
+  ],
   "bin": {
     "devvault": "dist/index.js"
   },
@@ -11,12 +21,14 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "commander": "^14.0.0",
+    "keytar": "^7.9.0",
+    "yaml": "^2.8.1",
+    "zod": "^4.0.0",
     "@devvault/config": "workspace:*",
     "@devvault/core": "workspace:*",
     "@devvault/auth": "workspace:*",
     "@devvault/platform": "workspace:*",
-    "@devvault/vault-client": "workspace:*",
-    "commander": "^14.0.0",
-    "keytar": "^7.9.0"
+    "@devvault/vault-client": "workspace:*"
   }
 }

@@ -5,3 +5,9 @@ coverage/
 .env
 .env.*
 !.env.example
+.npm-dist/
+.specs
+.venv
+.github/*
+!.github/workflows/*
+AGENTS.md

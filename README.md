@@ -21,7 +21,7 @@ Para o passo a passo completo em português, consulte o [Guia de Uso em Portugu�
 
 ## Status
 
-The project is under active MVP development. The current release (v0.1.9-mvp) contains automatic local Vault bootstrap, multi-environment project configuration, deterministic environment resolution, secret/runtime isolation, setup state persistence and lifecycle diagnostics.
+The project is under active MVP development. The current release (v0.1.11-mvp) contains automatic local Vault bootstrap, multi-environment project configuration, deterministic environment resolution, secret/runtime isolation, setup state persistence and lifecycle diagnostics.
 
 **Phase 0 — Core Correctness (Tier 1):** PASS
 **Phase 0 — Infra-Verified (Tier 2):** PENDING (see limitations below)

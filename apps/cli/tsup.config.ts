@@ -6,4 +6,6 @@ export default defineConfig({
   dts: false,
   clean: true,
   banner: { js: '#!/usr/bin/env node' },
+  noExternal: [/^@devvault\//],
+  external: ['yaml', 'zod', 'commander', 'keytar'],
 });

@@ -1,6 +1,7 @@
 {
   "name": "devvault",
-  "version": "0.1.10-mvp",
+  "version": "0.1.11-mvp",
+  "publisher": "fean-developer",
   "private": true,
   "packageManager": "pnpm@10.15.0",
   "engines": {
@@ -11,7 +12,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "mutation:test": "node scripts/phase0-mutation-sensor.mjs"
+    "mutation:test": "node scripts/phase0-mutation-sensor.mjs",
+    "pack:npm": "corepack pnpm build && node scripts/prepare-npm-package.mjs"
   },
   "dependencies": {
     "commander": "^14.0.0",

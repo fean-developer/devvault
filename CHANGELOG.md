@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.11-mvp] - 2026-08-13
+
+- Prepared `@devvault/cli` for npm distribution with a self-contained bundled executable.
+- Added npm package README, release notes and Portuguese usage guide.
+- Added npm clean-install validation for the public CLI artifact.
+
 ## [0.1.10-mvp] - 2026-08-13
 
 - Fixed logout to clear the local keyring session when remote token revocation is unavailable.
