@@ -65,7 +65,8 @@ describe('production lifecycle command path', () => {
 
     await program.parseAsync(['node', 'devvault', 'start', '--non-interactive']);
 
-    expect(received).toEqual({ mode: 'non-interactive' });
+    expect(received).toMatchObject({ mode: 'non-interactive' });
+    expect(received?.progress).toBeTypeOf('function');
     expect(process.exitCode).toBe(4);
   });
 

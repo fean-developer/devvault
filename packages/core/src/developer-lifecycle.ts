@@ -14,6 +14,7 @@ import {
   type LocalLifecyclePort,
   type StartInput,
   type StatusInput,
+  type LifecycleProgressEvent,
 } from './developer-lifecycle-ports.js';
 
 export interface DeveloperLifecycleDependencies {
@@ -35,7 +36,7 @@ export class DefaultDeveloperLifecycleService implements DeveloperLifecycleServi
   constructor(private readonly dependencies: DeveloperLifecycleDependencies) {}
 
   async start(input: StartInput): Promise<LifecycleResult> {
-    return this.execute(input.mode, input.preferredBackend);
+    return this.execute(input.mode, input.preferredBackend, true, input.progress);
   }
 
   async status(input: StatusInput): Promise<LifecycleResult> {
@@ -46,6 +47,7 @@ export class DefaultDeveloperLifecycleService implements DeveloperLifecycleServi
     mode: StartInput['mode'],
     preferredBackend?: LifecycleBackendKind,
     allowStart = true,
+    progress?: (event: LifecycleProgressEvent) => void,
   ): Promise<LifecycleResult> {
     let lock;
     if (allowStart) {
@@ -59,7 +61,7 @@ export class DefaultDeveloperLifecycleService implements DeveloperLifecycleServi
     }
 
     try {
-      return await this.executeLocked(mode, preferredBackend, allowStart);
+      return await this.executeLocked(mode, preferredBackend, allowStart, progress);
     } finally {
       await lock?.release();
     }
@@ -69,7 +71,9 @@ export class DefaultDeveloperLifecycleService implements DeveloperLifecycleServi
     mode: StartInput['mode'],
     preferredBackend: LifecycleBackendKind | undefined,
     allowStart: boolean,
+    progress?: (event: LifecycleProgressEvent) => void,
   ): Promise<LifecycleResult> {
+    progress?.({ phase: 'environment', state: 'start', message: 'Starting local environment' });
     if (allowStart && preferredBackend !== 'remote-vault' && this.dependencies.localLifecycle) {
       const detection = await this.dependencies.localBackend.detect();
       if (!detection.available) {
@@ -87,6 +91,8 @@ export class DefaultDeveloperLifecycleService implements DeveloperLifecycleServi
         }
       }
     }
+    progress?.({ phase: 'environment', state: 'complete', message: 'Local environment started' });
+    progress?.({ phase: 'vault', state: 'start', message: 'Installing and configuring Vault' });
 
     const selection = await this.dependencies.backendSelector.select({
       local: this.dependencies.localBackend,
@@ -189,6 +195,8 @@ export class DefaultDeveloperLifecycleService implements DeveloperLifecycleServi
     if (!validation.kvValid || !validation.policyValid) {
       return { status: 'BLOCKED', lifecycle: validation.lifecycle, backend: selection.backend.kind(), blockers: ['Mandatory local DevVault capabilities are unavailable.'], warnings: [], metadata: validatedMetadata };
     }
+    progress?.({ phase: 'vault', state: 'complete', message: 'Vault ready' });
+    progress?.({ phase: 'secrets', state: 'start', message: 'Configuring secret store' });
     if (validation.lifecycle === 'configured' && selection.backend.kind() === 'local-docker' && this.dependencies.bootstrapStore && this.dependencies.localLifecycle?.ensureDeveloperSession && this.dependencies.projectContext && this.dependencies.sessionStore) {
       const material = await this.dependencies.bootstrapStore.load();
       if (material) {
@@ -218,6 +226,7 @@ export class DefaultDeveloperLifecycleService implements DeveloperLifecycleServi
         };
       }
     }
+    progress?.({ phase: 'secrets', state: 'complete', message: 'Secret storage ready' });
     const result = { status: 'READY' as const, lifecycle: 'ready' as const, backend: selection.backend.kind(), blockers: [], warnings: [], metadata: validatedMetadata };
     return this.persistResult(result);
   }

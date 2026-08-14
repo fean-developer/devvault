@@ -15,6 +15,13 @@ export const lifecycleResultStatuses: readonly LifecycleResultStatus[] = [
 export interface StartInput {
   mode: 'interactive' | 'non-interactive';
   preferredBackend?: LifecycleBackendKind;
+  progress?: (event: LifecycleProgressEvent) => void;
+}
+
+export interface LifecycleProgressEvent {
+  phase: 'environment' | 'vault' | 'secrets';
+  state: 'start' | 'complete';
+  message: string;
 }
 
 export interface StatusInput {

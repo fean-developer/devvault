@@ -12,7 +12,7 @@ export function registerAuthCommands(program: Command, composition: ReturnTypeOf
       const username = options.username ?? await readUsername();
       let token: string;
       try {
-        token = await composition.createDeveloperAuthentication().login(username, await readSecretFromProcess());
+        token = await composition.createDeveloperAuthentication().login(username, await readSecretFromProcess('Digite a senha: '));
       } catch (error) {
         if (error instanceof VaultAuthenticationError || error instanceof Error && error.message === 'Vault is unavailable.') {
           throw new Error(`Could not authenticate '${username}'. Verify that the user exists and the password is correct.`);

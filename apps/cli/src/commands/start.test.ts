@@ -21,7 +21,8 @@ describe('start command', () => {
     };
 
     await expect(runStartCommand(lifecycle)).resolves.toEqual(readyResult);
-    expect(received).toEqual({ mode: 'interactive' });
+    expect(received).toMatchObject({ mode: 'interactive' });
+    expect(received?.progress).toBeTypeOf('function');
   });
 
   it('passes non-interactive and backend options without infrastructure logic', async () => {
@@ -33,7 +34,8 @@ describe('start command', () => {
 
     await runStartCommand(lifecycle, { nonInteractive: true, backend: 'remote-vault' });
 
-    expect(received).toEqual({ mode: 'non-interactive', preferredBackend: 'remote-vault' });
+    expect(received).toMatchObject({ mode: 'non-interactive', preferredBackend: 'remote-vault' });
+    expect(received?.progress).toBeTypeOf('function');
   });
 
   it('registers the public start command', () => {

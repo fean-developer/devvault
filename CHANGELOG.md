@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.12-beta.3] - 2026-08-14
+
+- Added visible progress feedback for `devvault start` stages and actionable failure output.
+- Added the explicit `Digite a senha:` prompt for human login.
+
 ## [0.1.12-beta.2] - 2026-08-14
 
 - Fixed clean-install startup races by waiting for Vault health after Docker Compose starts.

@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { setupExitCodes, type DeveloperLifecycleService, type LifecycleResult, type StartInput } from '@devvault/core';
+import { setupExitCodes, type DeveloperLifecycleService, type LifecycleProgressEvent, type LifecycleResult, type StartInput } from '@devvault/core';
 
 export interface StartCommandOptions {
   json?: boolean;
@@ -27,9 +27,15 @@ export async function runStartCommand(
 ): Promise<LifecycleResult> {
   const input: StartInput = {
     mode: options.nonInteractive === true ? 'non-interactive' : 'interactive',
+    progress: options.json ? undefined : renderProgress,
     ...(options.backend ? { preferredBackend: options.backend } : {}),
   };
   return lifecycle.start(input);
+}
+
+function renderProgress(event: LifecycleProgressEvent): void {
+  if (event.state === 'start') process.stdout.write(`⠼ ${event.message}\n`);
+  else process.stdout.write(`✓ ${event.message}\n`);
 }
 
 export function writeStartResult(result: LifecycleResult, json: boolean): void {
@@ -41,7 +47,7 @@ export function writeStartResult(result: LifecycleResult, json: boolean): void {
 
   process.stdout.write('DevVault\n\n');
   if (safeResult.status === 'READY') {
-    process.stdout.write('DevVault is ready.\n');
+    process.stdout.write('✓ DevVault is ready.\n');
     return;
   }
   process.stdout.write('DevVault could not prepare the local environment.\n');

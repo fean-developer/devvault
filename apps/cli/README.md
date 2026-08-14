@@ -45,6 +45,8 @@ devvault start
 
 `devvault start` prepares the owned local Vault automatically. The developer does not need to create, copy or enter a root token or unseal key.
 
+During startup, the CLI displays progress for the local environment, Vault and secret storage. Failures show the reason and suggest `devvault doctor`.
+
 Store application secrets through hidden prompts:
 
 ```bash

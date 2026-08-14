@@ -37,6 +37,8 @@ devvault start
 
 O `start` inicia o Vault local, inicializa quando necessário, faz unseal, configura KV/policies e prepara a sessão do desenvolvedor. O usuário não precisa gerar root token nem unseal key.
 
+Durante o processo, o terminal mostra o progresso de cada etapa. Se houver falha, o DevVault exibe o motivo e recomenda `devvault doctor`.
+
 ## 5. Configurar secrets
 
 Cadastre secrets usando prompt oculto:
