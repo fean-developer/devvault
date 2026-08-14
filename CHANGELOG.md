@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.9-mvp] - 2026-08-13
+
+- Updated README with the current developer-first and multi-environment workflow.
+- Added the Portuguese step-by-step usage guide with command variations and recovery instructions.
+
 ## [0.1.8-mvp] - 2026-08-13
 
 - Added multi-environment project configuration under `environments/<name>/devvault.yaml`.

@@ -30,7 +30,7 @@ registerEnvironmentCommand(program);
 program
   .name('devvault')
   .description('Developer experience layer for HashiCorp Vault')
-  .version('0.1.8-mvp');
+  .version('0.1.9-mvp');
 
 program.parseAsync().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : 'Command failed.';
