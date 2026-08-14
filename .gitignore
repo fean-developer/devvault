@@ -20,3 +20,14 @@ AGENTS.md
 !.github/workflows
 !.github/workflows/**
 !.github/CODEOWNERS
+
+docs/*
+!docs/architecture.md
+!docs/security.md
+!docs/configuration.md
+!docs/troubleshooting.md
+!docs/threat-model.md
+!docs/platform-compatibility.md
+!docs/setup.md
+!docs/DISTRIBUTION-TEST-PLAN.md
+!docs/GUIA-USO-PT-BR.md
