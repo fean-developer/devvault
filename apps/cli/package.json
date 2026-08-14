@@ -1,6 +1,6 @@
 {
   "name": "@devvault/cli",
-  "version": "0.1.11-mvp",
+  "version": "0.1.12-mvp",
   "type": "module",
   "description": "Developer-first local secret runtime powered by HashiCorp Vault",
   "license": "MIT",

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.12-mvp] - 2026-08-13
+
+- Reworked the npm package README to explain DevVault, its purpose, requirements and supported application types.
+- Expanded the Portuguese package guide with complete installation, environment, secret, user and runtime workflows.
+
 ## [0.1.11-mvp] - 2026-08-13
 
 - Prepared `@devvault/cli` for npm distribution with a self-contained bundled executable.

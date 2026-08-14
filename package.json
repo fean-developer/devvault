@@ -1,6 +1,6 @@
 {
   "name": "devvault",
-  "version": "0.1.11-mvp",
+  "version": "0.1.12-mvp",
   "publisher": "fean-developer",
   "private": true,
   "packageManager": "pnpm@10.15.0",
