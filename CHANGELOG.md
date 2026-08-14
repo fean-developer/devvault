@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.12-beta.2] - 2026-08-14
+
+- Fixed clean-install startup races by waiting for Vault health after Docker Compose starts.
+
 ## [0.1.12-beta.1] - 2026-08-14
 
 - Renamed the public npm package to `@fean-developer/devvault-cli`.

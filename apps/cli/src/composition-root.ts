@@ -2,6 +2,7 @@ import { UserpassAuthenticationProvider } from '@devvault/auth';
 import { CapabilityBackendSelector, DefaultDeveloperLifecycleService, ProfileSetupValidator } from '@devvault/core';
 import { loadProjectConfig } from '@devvault/config';
 import { fileURLToPath } from 'node:url';
+import { existsSync } from 'node:fs';
 import { createProjectApplicationService } from './application-adapters.js';
 import {
   detectPlatform,
@@ -50,8 +51,12 @@ export function createCompositionRoot() {
       metadata: context.metadata,
     }),
   });
-  const setupComposeFile = process.env.DEVAULT_COMPOSE_FILE
-    ?? fileURLToPath(new URL('../../../infra/vault/docker-compose.yml', import.meta.url));
+  const composeCandidates = [
+    process.env.DEVAULT_COMPOSE_FILE,
+    fileURLToPath(new URL('../../../infra/vault/docker-compose.yml', import.meta.url)),
+    fileURLToPath(new URL('../infra/vault/docker-compose.yml', import.meta.url)),
+  ].filter((value): value is string => Boolean(value));
+  const setupComposeFile = composeCandidates.find((value) => existsSync(value)) ?? composeCandidates[0];
   const localLifecycle = new LocalVaultLifecycleAdapter({
     docker,
     vault: setupVault,

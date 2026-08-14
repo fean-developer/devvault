@@ -124,7 +124,7 @@ The generated package is created under `.npm-dist/`. Test it locally before publ
 ```bash
 cd .npm-dist
 npm pack
-npm install -g ./fean-developer-devvault-cli-0.1.12-beta.1.tgz
+npm install -g ./fean-developer-devvault-cli-0.1.12-beta.2.tgz
 devvault --version
 ```
 

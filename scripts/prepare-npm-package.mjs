@@ -11,10 +11,12 @@ const rootPackageJson = JSON.parse(await readFile(join(root, 'package.json'), 'u
 await rm(target, { recursive: true, force: true });
 await mkdir(join(target, 'dist'), { recursive: true });
 await mkdir(join(target, 'docs'), { recursive: true });
+await mkdir(join(target, 'infra', 'vault'), { recursive: true });
 await cp(join(source, 'dist', 'index.js'), join(target, 'dist', 'index.js'));
 await cp(join(source, 'README.md'), join(target, 'README.md'));
 await cp(join(source, 'RELEASE-NOTES.md'), join(target, 'RELEASE-NOTES.md'));
 await cp(join(source, 'docs', 'GUIA-USO-PT-BR.md'), join(target, 'docs', 'GUIA-USO-PT-BR.md'));
+await cp(join(root, 'infra', 'vault'), join(target, 'infra', 'vault'), { recursive: true });
 
 const publishManifest = {
   name: rootPackageJson.name,
@@ -24,7 +26,7 @@ const publishManifest = {
   license: packageJson.license,
   type: packageJson.type,
   bin: packageJson.bin,
-  files: packageJson.files,
+  files: [...packageJson.files, 'infra/vault/**'],
   publishConfig: packageJson.publishConfig,
   engines: { node: '>=20' },
   dependencies: {

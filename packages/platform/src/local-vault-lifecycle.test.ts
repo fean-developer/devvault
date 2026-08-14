@@ -39,6 +39,30 @@ describe('LocalVaultLifecycleAdapter', () => {
     await expect(adapter.health()).resolves.toEqual({ reachable: true, initialized: true, sealed: true });
   });
 
+  it('waits for Vault reachability after Compose starts', async () => {
+    let healthCalls = 0;
+    const adapter = new LocalVaultLifecycleAdapter({
+      docker: {
+        composeUp: async () => undefined,
+        isAvailable: async () => true,
+        diagnose: async () => ({ state: 'available', dockerCli: true, daemon: true, compose: true, vaultContainer: 'running' }),
+      },
+      vault: {
+        health: async () => {
+          healthCalls += 1;
+          if (healthCalls < 2) throw new Error('starting');
+          return { initialized: false, sealed: true };
+        },
+        unseal: async () => undefined,
+      },
+      composeFile: 'compose.yml',
+    });
+
+    await adapter.start();
+
+    expect(healthCalls).toBe(2);
+  });
+
   it('maps Vault transport failure to unavailable health', async () => {
     const adapter = new LocalVaultLifecycleAdapter({
       docker: {

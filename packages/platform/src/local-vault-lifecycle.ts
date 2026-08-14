@@ -26,6 +26,15 @@ export class LocalVaultLifecycleAdapter implements LocalLifecyclePort {
 
   async start(): Promise<void> {
     await this.options.docker.composeUp(this.options.composeFile);
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+      try {
+        await this.options.vault.health();
+        return;
+      } catch {
+        await new Promise((resolve) => setTimeout(resolve, 250));
+      }
+    }
+    throw new Error('Local Vault did not become reachable after startup.');
   }
 
   async health(): Promise<{ reachable: boolean; initialized: boolean; sealed: boolean }> {

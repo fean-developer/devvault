@@ -1,4 +1,4 @@
-# DevVault CLI v0.1.12-beta.1
+# DevVault CLI v0.1.12-beta.2
 
 DevVault CLI is a pre-1.0 MVP for trusted local developers.
 
