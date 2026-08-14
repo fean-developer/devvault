@@ -19,3 +19,4 @@ AGENTS.md
 .github/*
 !.github/workflows
 !.github/workflows/**
+!.github/CODEOWNERS
