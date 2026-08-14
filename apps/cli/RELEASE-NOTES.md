@@ -1,4 +1,4 @@
-# DevVault CLI v0.1.12-mvp
+# DevVault CLI v0.1.12-beta.1
 
 DevVault CLI is a pre-1.0 MVP for trusted local developers.
 
@@ -7,7 +7,7 @@ DevVault CLI is a pre-1.0 MVP for trusted local developers.
 The npm package installs the `devvault` executable. It provides a developer-facing workflow over a local HashiCorp Vault instance:
 
 ```bash
-npm install -g @devvault/cli
+npm install -g @fean-developer/devvault-cli
 devvault start
 ```
 

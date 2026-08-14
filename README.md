@@ -9,7 +9,7 @@ Vault remains the source of truth. DevVault provides the local lifecycle, projec
 Install the published CLI:
 
 ```bash
-npm install -g @devvault/cli
+npm install -g @fean-developer/devvault-cli
 devvault --version
 ```
 
@@ -124,7 +124,7 @@ The generated package is created under `.npm-dist/`. Test it locally before publ
 ```bash
 cd .npm-dist
 npm pack
-npm install -g ./devvault-cli-0.1.12-mvp.tgz
+npm install -g ./fean-developer-devvault-cli-0.1.12-beta.1.tgz
 devvault --version
 ```
 

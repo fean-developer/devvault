@@ -6,6 +6,7 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const source = join(root, 'apps', 'cli');
 const target = join(root, '.npm-dist');
 const packageJson = JSON.parse(await readFile(join(source, 'package.json'), 'utf8'));
+const rootPackageJson = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
 
 await rm(target, { recursive: true, force: true });
 await mkdir(join(target, 'dist'), { recursive: true });
@@ -16,8 +17,9 @@ await cp(join(source, 'RELEASE-NOTES.md'), join(target, 'RELEASE-NOTES.md'));
 await cp(join(source, 'docs', 'GUIA-USO-PT-BR.md'), join(target, 'docs', 'GUIA-USO-PT-BR.md'));
 
 const publishManifest = {
-  name: packageJson.name,
-  version: packageJson.version,
+  name: rootPackageJson.name,
+  version: rootPackageJson.version,
+  publisher: rootPackageJson.publisher,
   description: packageJson.description,
   license: packageJson.license,
   type: packageJson.type,

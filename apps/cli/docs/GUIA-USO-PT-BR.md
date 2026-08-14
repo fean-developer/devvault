@@ -19,7 +19,7 @@ Ele funciona com qualquer aplicação que leia configurações por variáveis de
 ## 3. Instalação pelo npm
 
 ```bash
-npm install -g @devvault/cli
+npm install -g @fean-developer/devvault-cli
 devvault --version
 devvault --help
 ```
@@ -248,7 +248,7 @@ Nunca coloque secrets em YAML, `.env`, argumentos, logs ou Git. Uma máquina ou 
 
 ```bash
 cd ~/meu-projeto
-npm install -g @devvault/cli
+npm install -g @fean-developer/devvault-cli
 devvault init-project --environment development
 devvault environment set development
 devvault start

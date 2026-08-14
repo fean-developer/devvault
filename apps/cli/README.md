@@ -27,7 +27,7 @@ Native Windows, live remote Vault and Docker Desktop-specific behavior require a
 ## Installation
 
 ```bash
-npm install -g @devvault/cli
+npm install -g @fean-developer/devvault-cli
 devvault --version
 devvault --help
 ```

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.12-beta.1] - 2026-08-14
+
+- Renamed the public npm package to `@fean-developer/devvault-cli`.
+- Switched the prerelease version to `0.1.12-beta.1`.
+- Made the root package private while using its metadata to generate the public npm staging package.
+
 ## [0.1.12-mvp] - 2026-08-13
 
 - Reworked the npm package README to explain DevVault, its purpose, requirements and supported application types.

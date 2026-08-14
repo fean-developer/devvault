@@ -29,5 +29,6 @@ docs/*
 !docs/threat-model.md
 !docs/platform-compatibility.md
 !docs/setup.md
+!docs/usage.md
 !docs/DISTRIBUTION-TEST-PLAN.md
 !docs/GUIA-USO-PT-BR.md
