@@ -63,6 +63,12 @@ importers:
       keytar:
         specifier: ^7.9.0
         version: 7.9.0
+      yaml:
+        specifier: ^2.8.1
+        version: 2.9.0
+      zod:
+        specifier: ^4.0.0
+        version: 4.4.3
 
   packages/auth:
     dependencies:
