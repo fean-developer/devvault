@@ -1,6 +1,6 @@
 {
   "name": "@fean-developer/devvault-cli",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "publisher": "fean-developer",
   "private": true,
   "packageManager": "pnpm@10.15.0",

@@ -9,7 +9,6 @@
 </p>
 
 ---
-<<<<<<< HEAD
 <p align="center">
 <a href="https://www.npmjs.com/package/@fean-developer/devvault-cli"><img src="https://img.shields.io/npm/v/@fean-developer/devvault-cli" alt="npm version"></a>
 <a href="https://www.npmjs.com/package/@fean-developer/devvault-cli"><img src="https://img.shields.io/npm/dm/@fean-developer/devvault-cli" alt="npm downloads"></a>
@@ -20,18 +19,6 @@
 </p>
 ---
 
-=======
-
-[![npm version](https://img.shields.io/npm/v/@fean-developer/devvault-cli)](https://www.npmjs.com/package/@fean-developer/devvault-cli)
-[![npm downloads](https://img.shields.io/npm/dm/@fean-developer/devvault-cli)](https://www.npmjs.com/package/@fean-developer/devvault-cli)
-[![install size](https://packagephobia.com/badge?p=@fean-developer/devvault-cli)](https://packagephobia.com/result?p=@fean-developer/devvault-cli)
-[![Linux](https://img.shields.io/badge/Linux-supported-2ea44f?logo=linux&logoColor=white)](#platform-support)
-[![WSL2](https://img.shields.io/badge/WSL2-supported-2ea44f?logo=windows&logoColor=white)](#platform-support)
-[![macOS](https://img.shields.io/badge/macOS-supported-2ea44f?logo=apple&logoColor=white)](#platform-support)
-
----
-
->>>>>>> fa843b816e4e80ee787120f5e512019d4142b533
 DevVault is a command-line developer experience layer for HashiCorp Vault. It lets local applications consume secrets at runtime without committing `.env` files, passwords or tokens to the project repository.
 
 DevVault is a CLI, not an application framework or a replacement for HashiCorp Vault. Vault remains the source of truth for secrets, while DevVault prepares the local environment, resolves project environments and injects mapped secrets into a child process.

@@ -1,4 +1,4 @@
-# DevVault CLI v1.0.1
+# DevVault CLI v1.0.4
 
 DevVault CLI is a stable npm package for the validated local-development workflow.
 
@@ -21,9 +21,11 @@ devvault start
 - OS keyring developer sessions;
 - `status`, `doctor`, `secret`, `run` and user management commands.
 
-## 1.0.1 highlights
+## 1.0.4 highlights
 
 - Public package name: `@fean-developer/devvault-cli`.
+- README image uses a public absolute URL so it renders correctly on npm.
+- README image is also included in the published npm package.
 - Clean npm-package installation and tarball verification before publishing.
 - Startup waits for Vault readiness after Docker Compose starts.
 - Clear lifecycle progress feedback with a TTY spinner that does not pollute JSON or redirected output.

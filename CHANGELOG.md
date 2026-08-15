@@ -1,4 +1,14 @@
 # Changelog
+## [1.0.4] - 2026-08-15
+
+- Corrigida a imagem do README publicado no npm usando uma URL pública absoluta do GitHub.
+- Mantido o asset no pacote npm para instalações offline e outros consumidores do pacote.
+
+## [1.0.3] - 2026-08-15
+
+- Corrigida a preparação do pacote npm para incluir `assets/images/devvault.png`, usada pelo README publicado.
+- Adicionada verificação automática que falha caso a imagem da marca não esteja presente no pacote gerado.
+
 ## [1.0.1] - 2026-08-14
 
 - Publicada a versão estável `@fean-developer/devvault-cli` com metadados de versão sincronizados entre o pacote npm e o binário da CLI.

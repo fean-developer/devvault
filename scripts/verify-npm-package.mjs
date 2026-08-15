@@ -30,6 +30,12 @@ if (manifest.bin?.devvault !== 'dist/index.js') {
 }
 
 await access(join(packageDir, manifest.bin.devvault), constants.R_OK);
+await access(join(packageDir, 'assets', 'images', 'devvault.png'), constants.R_OK);
+
+const readmeContent = await readFile(join(packageDir, 'README.md'), 'utf8');
+if (!readmeContent.includes('https://raw.githubusercontent.com/fean-developer/devvault/main/apps/cli/assets/images/devvault.png')) {
+  fail('README.md must use the public absolute URL for the branding image');
+}
 
 const binContent = await readFile(join(packageDir, manifest.bin.devvault), 'utf8');
 if (!binContent.startsWith('#!/usr/bin/env node')) {

@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="./assets/images/devvault.png">
+    <img src="https://raw.githubusercontent.com/fean-developer/devvault/main/apps/cli/assets/images/devvault.png" alt="DevVault">
 </p>
 
 <h1 align="center">DevVault your developer vault local</h1>

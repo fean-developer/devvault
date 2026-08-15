@@ -21,6 +21,7 @@ await mkdir(join(target, 'infra', 'vault'), { recursive: true });
 await cp(join(source, 'dist', 'index.js'), join(target, 'dist', 'index.js'));
 await cp(join(source, 'README.md'), join(target, 'README.md'));
 await cp(join(source, 'RELEASE-NOTES.md'), join(target, 'RELEASE-NOTES.md'));
+await cp(join(source, 'assets'), join(target, 'assets'), { recursive: true });
 await cp(join(source, 'docs', 'GUIA-USO-PT-BR.md'), join(target, 'docs', 'GUIA-USO-PT-BR.md'));
 await cp(join(root, 'infra', 'vault'), join(target, 'infra', 'vault'), { recursive: true });
 

@@ -1,7 +1,7 @@
-# Release Notes — DevVault v1.0.1
+# Release Notes — DevVault v1.0.4
 
 **Release Date:** 2026-08-14
-**Version:** v1.0.1
+**Version:** v1.0.4
 **Status:** Stable package release for the validated local-development scope
 
 ## What Is This Release
@@ -14,6 +14,8 @@ The release is stable for the validated local-development scope. It does not cla
 
 ## Highlights
 
+- The npm README now uses a public absolute URL for the branding image.
+- The npm package also includes the branding image as a local asset.
 - Public scoped npm package: `@fean-developer/devvault-cli`.
 - Self-contained npm package generation, tarball verification and executable validation before publishing.
 - Version metadata synchronized between the package and the CLI binary.
