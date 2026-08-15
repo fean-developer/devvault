@@ -205,8 +205,11 @@ export class HttpVaultClient {
       method: 'POST',
       body: JSON.stringify({ paths: [path] }),
     });
-    const body = await this.readJson<{ capabilities?: Record<string, string[]> }>(response);
-    return body.capabilities?.[path] ?? [];
+    const body = await this.readJson<{ capabilities?: string[] | Record<string, string[]>; [key: string]: unknown }>(response);
+    if (Array.isArray(body.capabilities)) return body.capabilities;
+    if (body.capabilities && typeof body.capabilities === 'object') return body.capabilities[path] ?? [];
+    const direct = body[path];
+    return Array.isArray(direct) ? direct as string[] : [];
   }
 
   private async request(path: string, init: RequestInit = {}): Promise<Response> {

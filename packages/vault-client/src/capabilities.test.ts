@@ -30,6 +30,16 @@ describe('Vault capability checks', () => {
       .resolves.toEqual(['read']);
   });
 
+  it('accepts Vault capabilities-self responses with a top-level capabilities array', async () => {
+    const client = new HttpVaultClient({
+      address: 'http://vault',
+      fetchImpl: async () => new Response(JSON.stringify({ capabilities: ['create', 'read', 'update'] }), { status: 200 }),
+    });
+
+    await expect(client.checkCapabilities('secret/data/projects/my-api/development/_doctor'))
+      .resolves.toEqual(['create', 'read', 'update']);
+  });
+
   it('validates an existing KV v2 mount without mutating Vault', async () => {
     const methods: string[] = [];
     const client = new HttpVaultClient({

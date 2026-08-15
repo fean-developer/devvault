@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.12-beta.5] - 2026-08-14
+
+- Fixed project policy diagnostics for real Vault `capabilities-self` response shapes.
+
+## [0.1.12-beta.4] - 2026-08-14
+
+- Ensures `devvault start` refreshes the local least-privilege developer session before readiness diagnostics.
+- Fixes stale keyring sessions causing `doctor` to report project policy failures after a clean npm installation.
+
 ## [0.1.12-beta.3] - 2026-08-14
 
 - Added visible progress feedback for `devvault start` stages and actionable failure output.
