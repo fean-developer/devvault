@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.12-beta.6] - 2026-08-14
+
+- Added an animated circular TTY spinner for each `devvault start` lifecycle stage.
+- Preserved clean JSON and redirected output without terminal control sequences.
+
 ## [0.1.12-beta.5] - 2026-08-14
 
 - Fixed project policy diagnostics for real Vault `capabilities-self` response shapes.

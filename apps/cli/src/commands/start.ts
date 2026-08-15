@@ -15,7 +15,10 @@ export function registerStartCommand(program: Command, lifecycle: DeveloperLifec
     .option('--non-interactive', 'Never prompt for unseal input')
     .option('--backend <backend>', 'Select local-docker or remote-vault')
     .action(async (options: StartCommandOptions) => {
-      const result = await runStartCommand(lifecycle, options);
+      const progress = options.json ? undefined : createProgressRenderer();
+      if (!options.json) process.stdout.write('DevVault\n\n');
+      const result = await runStartCommand(lifecycle, { ...options, progress });
+      progress?.stop();
       writeStartResult(result, options.json === true);
       process.exitCode = setupExitCodes[result.status];
     });
@@ -23,19 +26,54 @@ export function registerStartCommand(program: Command, lifecycle: DeveloperLifec
 
 export async function runStartCommand(
   lifecycle: DeveloperLifecycleService,
-  options: StartCommandOptions = {},
+  options: StartCommandOptions & { progress?: (event: LifecycleProgressEvent) => void } = {},
 ): Promise<LifecycleResult> {
   const input: StartInput = {
     mode: options.nonInteractive === true ? 'non-interactive' : 'interactive',
-    progress: options.json ? undefined : renderProgress,
+    progress: options.progress ?? (options.json ? undefined : (() => undefined)),
     ...(options.backend ? { preferredBackend: options.backend } : {}),
   };
   return lifecycle.start(input);
 }
 
-function renderProgress(event: LifecycleProgressEvent): void {
-  if (event.state === 'start') process.stdout.write(`⠼ ${event.message}\n`);
-  else process.stdout.write(`✓ ${event.message}\n`);
+interface ProgressRenderer {
+  (event: LifecycleProgressEvent): void;
+  stop(): void;
+}
+
+function createProgressRenderer(): ProgressRenderer {
+  const frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+  let frame = 0;
+  let timer: NodeJS.Timeout | undefined;
+  let activeMessage = '';
+  const isInteractive = process.stdout.isTTY === true;
+
+  const render = ((event: LifecycleProgressEvent) => {
+    if (event.state === 'complete') {
+      if (timer) clearInterval(timer);
+      timer = undefined;
+      if (isInteractive) process.stdout.write(`\r\x1b[2K✓ ${event.message}\n`);
+      else process.stdout.write(`✓ ${event.message}\n`);
+      activeMessage = '';
+      return;
+    }
+
+    activeMessage = event.message;
+    const draw = () => {
+      if (isInteractive) process.stdout.write(`\r\x1b[2K${frames[frame++ % frames.length]} ${activeMessage}`);
+      else process.stdout.write(`⠼ ${activeMessage}\n`);
+    };
+    if (timer) clearInterval(timer);
+    draw();
+    if (isInteractive) timer = setInterval(draw, 90);
+  }) as ProgressRenderer;
+
+  render.stop = () => {
+    if (timer) clearInterval(timer);
+    timer = undefined;
+    if (isInteractive && activeMessage) process.stdout.write('\r\x1b[2K');
+  };
+  return render;
 }
 
 export function writeStartResult(result: LifecycleResult, json: boolean): void {
@@ -45,7 +83,6 @@ export function writeStartResult(result: LifecycleResult, json: boolean): void {
     return;
   }
 
-  process.stdout.write('DevVault\n\n');
   if (safeResult.status === 'READY') {
     process.stdout.write('✓ DevVault is ready.\n');
     return;
