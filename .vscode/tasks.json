@@ -1,0 +1,25 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "DevVault: gerar pacote npm",
+      "type": "shell",
+      "command": "corepack pnpm package:npm",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "DevVault: publicar pacote beta",
+      "type": "shell",
+      "command": "corepack pnpm package:npm && cd .npm-dist && npm publish --access public --tag beta",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "build",
+      "problemMatcher": []
+    }
+  ]
+}

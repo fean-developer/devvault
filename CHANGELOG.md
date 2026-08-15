@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.12-beta.8] - 2026-08-14
+
+- Added VS Code tasks that use Corepack, so package generation works without a global pnpm installation.
+
 ## [0.1.12-beta.7] - 2026-08-14
 
 - Added the explicit `package:npm` command to generate the publishable package under `.npm-dist/`.
