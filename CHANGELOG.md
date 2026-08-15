@@ -1,4 +1,12 @@
 # Changelog
+## [1.0.1] - 2026-08-14
+
+- Publicada a versão estável `@fean-developer/devvault-cli` com metadados de versão sincronizados entre o pacote npm e o binário da CLI.
+- Adicionada geração e verificação do pacote npm, incluindo instalação limpa do tarball e execução do binário antes da publicação.
+- Adicionada espera explícita pela disponibilidade do Vault após a inicialização pelo Docker Compose, evitando condições de corrida em instalações limpas.
+- Adicionado feedback visual do ciclo de inicialização com progresso e spinner TTY, preservando saída JSON e redirecionada sem sequências de controle.
+- Corrigido o diagnóstico de policies para interpretar as respostas efetivas de `capabilities-self` do Vault.
+
 ## [1.0.0] - 2026-08-14
 
 - Primeira versão estável do DevVault.

@@ -1,6 +1,6 @@
-# DevVault CLI v0.1.12-beta.7
+# DevVault CLI v1.0.1
 
-DevVault CLI is a pre-1.0 MVP for trusted local developers.
+DevVault CLI is a stable npm package for the validated local-development workflow.
 
 ## This package
 
@@ -20,6 +20,14 @@ devvault start
 - runtime secret injection for command-line applications;
 - OS keyring developer sessions;
 - `status`, `doctor`, `secret`, `run` and user management commands.
+
+## 1.0.1 highlights
+
+- Public package name: `@fean-developer/devvault-cli`.
+- Clean npm-package installation and tarball verification before publishing.
+- Startup waits for Vault readiness after Docker Compose starts.
+- Clear lifecycle progress feedback with a TTY spinner that does not pollute JSON or redirected output.
+- Correct project policy diagnostics for effective Vault capability responses.
 
 ## Validated application model
 

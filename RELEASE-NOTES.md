@@ -1,16 +1,25 @@
-# Release Notes — DevVault v0.1.0-mvp
+# Release Notes — DevVault v1.0.1
 
-**Release Date:** 2026-08-13
-**Version:** v0.1.0-mvp (pre-1.0, limited scope)
-**Status:** Tier 1 (Core Correctness) — PASS; Tier 2 (Infra-Verified) — PENDING
+**Release Date:** 2026-08-14
+**Version:** v1.0.1
+**Status:** Stable package release for the validated local-development scope
 
 ## What Is This Release
 
 **DevVault CLI** for local developer setup and readiness workflows. A developer installs this CLI, runs `devvault setup`, and gets a validated, tested, evidence-backed check that their local environment is ready for secret management with HashiCorp Vault.
 
-This release represents **Tier 1 (Core Correctness)** only: the setup logic, validation, security, and error semantics are proven correct through test evidence and mutation-sensor validation in Linux/macOS environments with local/dev-mode Vault.
+This release packages the developer-first local Vault workflow as the public `@fean-developer/devvault-cli` npm package. It includes the `devvault start` lifecycle, project and environment workflows, runtime secret injection, OS keyring sessions, diagnostics and the distribution checks required to validate a clean npm installation.
 
-**This is NOT v1.0.0.** Full Phase 0 completion and Phase 1 (authentication, project management, secret runtime) are future releases.
+The release is stable for the validated local-development scope. It does not claim that every platform or remote Vault topology has been validated.
+
+## Highlights
+
+- Public scoped npm package: `@fean-developer/devvault-cli`.
+- Self-contained npm package generation, tarball verification and executable validation before publishing.
+- Version metadata synchronized between the package and the CLI binary.
+- `devvault start` now waits for Vault readiness before continuing.
+- Animated TTY progress spinner and clearer lifecycle progress feedback, while preserving clean JSON and redirected output.
+- Correct handling of effective Vault capability responses for project policy diagnostics.
 
 ## What Works (Tier 1)
 
@@ -91,7 +100,7 @@ Secret leakage through these surfaces is unlikely but not proven impossible.
 
 - **Platform support:** Linux and macOS only. Windows behavior is unknown (see above).
 - **Vault target:** Local/dev-mode Vault or provisioned staging only. Production remote Vault untested.
-- **Secret storage:** Phase 0 is setup only. Secret storage, retrieval, runtime injection, and project management are Phase 1+ features.
+- **Secret exposure:** Runtime injection uses environment variables; a compromised workstation or child process may inspect them.
 - **Auto-update:** Not implemented. You must manually update by installing a new version.
 - **Managed service:** Not a background agent or daemon. The CLI runs when you invoke it.
 
@@ -119,9 +128,8 @@ Report to: _[project issue tracker]_
 
 ## What's Next
 
-- **Phase 1:** Human authentication (OIDC, AppRole), project management, multi-tenant policies.
+- **Future authentication and operations:** OIDC, AppRole, broader project policy isolation and additional deployment workflows.
 - **Tier 2 verification:** Windows, Docker Desktop, live remote Vault, multi-project isolation (pending infrastructure and approval).
-- **v1.0.0:** Full Phase 0 completion (Tier 1 + Tier 2) and Phase 1 release; at that point, the CLI will be suitable for production distribution.
 
 ## Links
 
