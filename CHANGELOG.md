@@ -1,6 +1,15 @@
 # Changelog
+## [1.0.0] - 2026-08-14
 
-## [0.1.12-beta.9] - 2026-08-14
+- Primeira versão estável do DevVault.
+
+## [0.1.12-alpha.2] - 2026-08-14
+
+- Prevented accidental publishing from the monorepo root by keeping the root package private.
+- Added npm package verification that installs the generated tarball and executes the `devvault` binary before publishing.
+- Aligned the CLI runtime version with the npm package version.
+
+## [0.1.12-alpha.1] - 2026-08-14
 
 - Added `npm run corepack:npm` for compiled npm package generation without a global pnpm installation.
 - Added `npm run pack:npm` to create the publishable `.tgz` artifact.
