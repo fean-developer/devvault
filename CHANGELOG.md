@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.12-beta.9] - 2026-08-14
+
+- Added `npm run corepack:npm` for compiled npm package generation without a global pnpm installation.
+- Added `npm run pack:npm` to create the publishable `.tgz` artifact.
+
 ## [0.1.12-beta.8] - 2026-08-14
 
 - Added VS Code tasks that use Corepack, so package generation works without a global pnpm installation.

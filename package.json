@@ -1,6 +1,6 @@
 {
   "name": "@fean-developer/devvault-cli",
-  "version": "0.1.12-beta.8",
+  "version": "0.1.12-beta.9",
   "publisher": "fean-developer",
   "private": true,
   "packageManager": "pnpm@10.15.0",
@@ -13,8 +13,11 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "mutation:test": "node scripts/phase0-mutation-sensor.mjs",
-    "pack:npm": "corepack pnpm build && node scripts/prepare-npm-package.mjs",
-    "package:npm": "corepack pnpm pack:npm"
+    "prepare:npm": "corepack pnpm build && node scripts/prepare-npm-package.mjs",
+    "corepack:npm": "corepack pnpm prepare:npm",
+    "package:npm": "corepack pnpm prepare:npm",
+    "pack:npm": "corepack pnpm prepare:npm && npm pack .npm-dist --pack-destination .npm-dist",
+    "publish:npm": "corepack pnpm package:npm && npm publish .npm-dist --access public --tag beta"
   },
   "dependencies": {
     "commander": "^14.0.0",
