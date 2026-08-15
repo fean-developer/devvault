@@ -13,6 +13,8 @@ import { registerStartCommand } from './commands/start.js';
 import { registerEnvironmentCommand } from './commands/environment.js';
 import { registerUserCommand } from './commands/user.js';
 
+declare const __DEVVAULT_VERSION__: string;
+
 const program = new Command();
 const composition = createCompositionRoot();
 
@@ -32,7 +34,7 @@ registerUserCommand(program, composition);
 program
   .name('devvault')
   .description('Developer experience layer for HashiCorp Vault')
-  .version('0.1.12-alpha.2');
+  .version(__DEVVAULT_VERSION__);
 
 program.parseAsync().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : 'Command failed.';

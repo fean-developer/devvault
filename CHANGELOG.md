@@ -2,6 +2,7 @@
 ## [1.0.0] - 2026-08-14
 
 - Primeira versão estável do DevVault.
+- Version é obtida do package.json
 
 ## [0.1.12-alpha.2] - 2026-08-14
 

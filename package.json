@@ -18,7 +18,7 @@
     "verify:npm-package": "node scripts/verify-npm-package.mjs",
     "package:npm": "corepack pnpm prepare:npm && node scripts/verify-npm-package.mjs",
     "pack:npm": "corepack pnpm package:npm && npm pack .npm-dist --pack-destination .npm-dist",
-    "publish:npm": "corepack pnpm package:npm && npm publish .npm-dist --access public --tag alpha"
+    "publish:npm": "corepack pnpm package:npm"
   },
   "dependencies": {
     "commander": "^14.0.0",

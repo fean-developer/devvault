@@ -8,6 +8,12 @@ const target = join(root, '.npm-dist');
 const packageJson = JSON.parse(await readFile(join(source, 'package.json'), 'utf8'));
 const rootPackageJson = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
 
+if (packageJson.version !== rootPackageJson.version) {
+  throw new Error(
+    `Package version mismatch: root is ${rootPackageJson.version}, CLI is ${packageJson.version}`,
+  );
+}
+
 await rm(target, { recursive: true, force: true });
 await mkdir(join(target, 'dist'), { recursive: true });
 await mkdir(join(target, 'docs'), { recursive: true });
