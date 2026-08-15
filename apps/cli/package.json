@@ -1,6 +1,6 @@
 {
   "name": "@fean-developer/devvault-cli",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "description": "Developer-first local secret runtime powered by HashiCorp Vault",
   "license": "MIT",
@@ -11,7 +11,8 @@
     "dist/index.js",
     "README.md",
     "RELEASE-NOTES.md",
-    "docs/GUIA-USO-PT-BR.md"
+    "docs/GUIA-USO-PT-BR.md",
+    "assets/**/*"
   ],
   "bin": {
     "devvault": "dist/index.js"
