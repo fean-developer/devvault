@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.12-beta.7] - 2026-08-14
+
+- Added the explicit `package:npm` command to generate the publishable package under `.npm-dist/`.
+
 ## [0.1.12-beta.6] - 2026-08-14
 
 - Added an animated circular TTY spinner for each `devvault start` lifecycle stage.
