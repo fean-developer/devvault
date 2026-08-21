@@ -32,3 +32,5 @@ docs/*
 !docs/usage.md
 !docs/DISTRIBUTION-TEST-PLAN.md
 !docs/GUIA-USO-PT-BR.md
+!docs/artefatos/
+!docs/artefatos/**

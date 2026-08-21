@@ -160,8 +160,8 @@ devvault login --username <name>
 
 ## Documentation
 
-- [Guia completo em português](docs/GUIA-USO-PT-BR.md)
-- [Release notes](RELEASE-NOTES.md)
+- [Guia completo em português](https://github.com/fean-developer/devvault/blob/main/apps/cli/docs/GUIA-USO-PT-BR.md)
+- [Release notes](https://github.com/fean-developer/devvault/blob/main/apps/cli/RELEASE-NOTES.md)
 
 ## Security and MVP limitations
 

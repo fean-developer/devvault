@@ -1,4 +1,10 @@
 # Changelog
+## [1.0.5] - 2026-08-21
+
+- Corrigida a geração do manifesto npm para incluir os metadados públicos de GitHub: `repository`, `homepage` e `bugs`.
+- Corrigidos os links de documentação no README publicado no npm para usar URLs absolutas do GitHub e evitar 404 em pacotes com escopo.
+- Reforçada a verificação do pacote npm para falhar quando metadados de GitHub ou links públicos de documentação estiverem ausentes.
+
 ## [1.0.4] - 2026-08-15
 
 - Corrigida a imagem do README publicado no npm usando uma URL pública absoluta do GitHub.

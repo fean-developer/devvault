@@ -1,7 +1,7 @@
-# Release Notes — DevVault v1.0.4
+# Release Notes — DevVault v1.0.5
 
-**Release Date:** 2026-08-14
-**Version:** v1.0.4
+**Release Date:** 2026-08-21
+**Version:** v1.0.5
 **Status:** Stable package release for the validated local-development scope
 
 ## What Is This Release
@@ -14,6 +14,9 @@ The release is stable for the validated local-development scope. It does not cla
 
 ## Highlights
 
+- The generated npm manifest now includes GitHub `repository`, `homepage` and `bugs` metadata.
+- npm README documentation links now use public GitHub URLs, avoiding 404s caused by scoped-package relative links on npmjs.com.
+- Package verification now fails if GitHub metadata or public documentation links are missing from `.npm-dist`.
 - The npm README now uses a public absolute URL for the branding image.
 - The npm package also includes the branding image as a local asset.
 - Public scoped npm package: `@fean-developer/devvault-cli`.

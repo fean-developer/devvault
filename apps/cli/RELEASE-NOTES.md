@@ -1,4 +1,4 @@
-# DevVault CLI v1.0.4
+# DevVault CLI v1.0.5
 
 DevVault CLI is a stable npm package for the validated local-development workflow.
 
@@ -21,9 +21,11 @@ devvault start
 - OS keyring developer sessions;
 - `status`, `doctor`, `secret`, `run` and user management commands.
 
-## 1.0.4 highlights
+## 1.0.5 highlights
 
 - Public package name: `@fean-developer/devvault-cli`.
+- Generated npm package metadata now includes the public GitHub repository, homepage and issues URLs.
+- npm README documentation links now point to GitHub, avoiding scoped-package relative URL 404s on npmjs.com.
 - README image uses a public absolute URL so it renders correctly on npm.
 - README image is also included in the published npm package.
 - Clean npm-package installation and tarball verification before publishing.
@@ -45,4 +47,4 @@ DevVault supports applications that consume environment variables, including Nod
 - local secrets remain exposed to a compromised workstation or Docker daemon;
 - DevVault does not create `.env` files.
 
-Read `README.md` and `docs/GUIA-USO-PT-BR.md` in the package for the complete workflow.
+Read `README.md` and the [Portuguese guide](https://github.com/fean-developer/devvault/blob/main/apps/cli/docs/GUIA-USO-PT-BR.md) for the complete workflow.

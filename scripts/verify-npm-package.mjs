@@ -25,6 +25,22 @@ if (!manifest.name || !manifest.version) {
   fail('.npm-dist/package.json must include name and version');
 }
 
+if (manifest.repository?.type !== 'git') {
+  fail('.npm-dist/package.json must include repository.type=git');
+}
+
+if (manifest.repository?.url !== 'git+https://github.com/fean-developer/devvault.git') {
+  fail('.npm-dist/package.json must include the public GitHub repository URL');
+}
+
+if (manifest.homepage !== 'https://github.com/fean-developer/devvault#readme') {
+  fail('.npm-dist/package.json must include the public GitHub homepage');
+}
+
+if (manifest.bugs?.url !== 'https://github.com/fean-developer/devvault/issues') {
+  fail('.npm-dist/package.json must include the public GitHub issues URL');
+}
+
 if (manifest.bin?.devvault !== 'dist/index.js') {
   fail('.npm-dist/package.json must expose bin.devvault as dist/index.js');
 }
@@ -35,6 +51,14 @@ await access(join(packageDir, 'assets', 'images', 'devvault.png'), constants.R_O
 const readmeContent = await readFile(join(packageDir, 'README.md'), 'utf8');
 if (!readmeContent.includes('https://raw.githubusercontent.com/fean-developer/devvault/main/apps/cli/assets/images/devvault.png')) {
   fail('README.md must use the public absolute URL for the branding image');
+}
+
+if (!readmeContent.includes('https://github.com/fean-developer/devvault/blob/main/apps/cli/docs/GUIA-USO-PT-BR.md')) {
+  fail('README.md must link to the Portuguese guide using a public absolute GitHub URL');
+}
+
+if (!readmeContent.includes('https://github.com/fean-developer/devvault/blob/main/apps/cli/RELEASE-NOTES.md')) {
+  fail('README.md must link to release notes using a public absolute GitHub URL');
 }
 
 const binContent = await readFile(join(packageDir, manifest.bin.devvault), 'utf8');
