@@ -1,12 +1,23 @@
 {
   "name": "@fean-developer/devvault-cli",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "publisher": "fean-developer",
   "private": true,
   "packageManager": "pnpm@10.15.0",
   "engines": {
     "node": ">=20"
   },
+  "keywords": [
+    "vault",
+    "cli",
+    "devvault",
+    "devops",
+    "docker",
+    "docker-compose",
+    ".env",
+    "variables",
+    "secrets"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/fean-developer/devvault.git"

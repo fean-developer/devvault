@@ -126,6 +126,7 @@ DevVault can run any local command that reads configuration from environment var
 | PHP / Laravel | `devvault run -- php artisan serve` |
 | Shell scripts | `devvault run -- ./deploy-local.sh` |
 | Database and migration CLIs | `devvault run -- npx prisma migrate dev` |
+| Docker compose | `devvault run -- docker compose up -d` |
 
 The application must already know which environment variable names to read. Configure mappings in the environment YAML:
 
@@ -135,6 +136,40 @@ runtime:
     DATABASE_URL: database.url
     DATABASE_PASSWORD: database.password
 ```
+
+- Configure docker compose
+> Never do that, this is insecure
+
+```yaml
+ backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: myContainerName
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.docker # don't do that
+    environment:
+      ...
+```
+
+> Use this
+
+```yaml
+ backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: myContainerName
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}           # Your secret database.url 
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD} # Your secret database.password
+
+```
+
 
 ## Common commands
 

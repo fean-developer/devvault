@@ -1,4 +1,11 @@
 # Changelog
+## [1.0.6] - 2026-08-24
+
+- Update README and release notes. 
+- Add Docker compose instructions. 
+- Include keywords in package.json.
+
+
 ## [1.0.5] - 2026-08-21
 
 - Corrigida a geração do manifesto npm para incluir os metadados públicos de GitHub: `repository`, `homepage` e `bugs`.

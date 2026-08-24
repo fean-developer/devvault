@@ -1,3 +1,13 @@
+# Release Notes — DevVault v1.0.6
+
+**Release Date:** 2026-08-24
+**Version:** v1.0.6
+**Status:** Stable package release for the validated local-development scope
+
+## What Is This Release
+ 
+Update README and release notes, add Docker compose instructions, and include keywords in package.json
+
 # DevVault CLI v1.0.5
 
 DevVault CLI is a stable npm package for the validated local-development workflow.
