@@ -35,6 +35,8 @@ const publishManifest = {
   repository: rootPackageJson.repository ?? packageJson.repository,
   homepage: rootPackageJson.homepage ?? packageJson.homepage,
   bugs: rootPackageJson.bugs ?? packageJson.bugs,
+  discussion: rootPackageJson.discussion ?? packageJson.discussion,
+  keywords: packageJson.keywords,
   bin: packageJson.bin,
   files: [...packageJson.files, 'infra/vault/**'],
   publishConfig: packageJson.publishConfig,
