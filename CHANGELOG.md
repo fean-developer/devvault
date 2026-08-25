@@ -1,4 +1,8 @@
 # Changelog
+## [1.0.7] - 2026-08-24
+
+- Keywords included in package.json for the CLI
+
 ## [1.0.6] - 2026-08-24
 
 - Update README and release notes. 

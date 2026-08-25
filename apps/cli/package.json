@@ -1,12 +1,23 @@
 {
   "name": "@fean-developer/devvault-cli",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "type": "module",
   "description": "Developer-first local secret runtime powered by HashiCorp Vault",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
+    "keywords": [
+    "vault",
+    "cli",
+    "devvault",
+    "devops",
+    "docker",
+    "docker-compose",
+    ".env",
+    "variables",
+    "secrets"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/fean-developer/devvault.git"
@@ -14,6 +25,9 @@
   "homepage": "https://github.com/fean-developer/devvault#readme",
   "bugs": {
     "url": "https://github.com/fean-developer/devvault/issues"
+  },
+    "discussion": {
+    "url": "https://github.com/fean-developer/devvault/discussions"
   },
   "files": [
     "dist/index.js",

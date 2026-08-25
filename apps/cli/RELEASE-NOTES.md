@@ -1,6 +1,16 @@
 # Release Notes — DevVault v1.0.6
 
 **Release Date:** 2026-08-24
+**Version:** v1.0.7
+**Status:** Stable package release for the validated local-development scope
+
+## What Is This Release
+ 
+Keywords included in package.json for the CLI
+
+# Release Notes — DevVault v1.0.6
+
+**Release Date:** 2026-08-24
 **Version:** v1.0.6
 **Status:** Stable package release for the validated local-development scope
 

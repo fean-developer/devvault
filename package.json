@@ -1,6 +1,6 @@
 {
   "name": "@fean-developer/devvault-cli",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "publisher": "fean-developer",
   "private": true,
   "packageManager": "pnpm@10.15.0",
@@ -25,6 +25,9 @@
   "homepage": "https://github.com/fean-developer/devvault#readme",
   "bugs": {
     "url": "https://github.com/fean-developer/devvault/issues"
+  },
+  "discussion": {
+    "url": "https://github.com/fean-developer/devvault/discussions"
   },
   "scripts": {
     "build": "corepack pnpm --recursive build",
