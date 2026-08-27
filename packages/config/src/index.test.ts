@@ -190,8 +190,27 @@ describe('projectConfigSchema', () => {
     }
     await setActiveEnvironment(root, 'development');
 
-    await expect(resolveProjectConfig(root, 'production')).resolves.toMatchObject({ environment: 'production' });
+    const resolved = await resolveProjectConfig(root, 'production');
+    expect(resolved.environment).toBe('production');
+    expect(resolved.config.vault.path).toBe('projects/my-api/production');
     await expect(readFile(join(root, '.devvault/context.json'), 'utf8')).resolves.toContain('development');
+  });
+
+  it('keeps the new model explicit when legacy and multi-environment files coexist', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'devvault-coexistence-'));
+    await writeFile(join(root, 'devvault.yaml'), [
+      'version: 1', 'project: legacy-api', 'environment: development', 'vault:', '  mount: secret', '  path: projects/legacy-api/development', 'runtime:', '  mappings: {}',
+    ].join('\n'));
+    await mkdir(join(root, 'environments', 'production'), { recursive: true });
+    await writeFile(join(root, 'environments', 'production', 'devvault.yaml'), [
+      'version: 1', 'project: modern-api', 'environment: production', 'vault:', '  mount: secret', '  path: projects/modern-api/production', 'runtime:', '  mappings: {}',
+    ].join('\n'));
+    await setActiveEnvironment(root, 'production');
+
+    await expect(resolveProjectConfig(root)).resolves.toMatchObject({
+      environment: 'production',
+      config: { project: 'modern-api' },
+    });
   });
 
   it('fails without explicit or active environment in the new model', async () => {

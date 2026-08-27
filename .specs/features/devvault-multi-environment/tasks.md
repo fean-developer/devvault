@@ -410,9 +410,9 @@ Requirements: ENV-001, ENV-002, ENV-003, ENV-004, ENV-007, ENV-008, ENV-009, ENV
 Design References: `Testing Design`, `Backward Compatibility`, `Security Enforcement`, `First-Time Flow`, `Selected but Not Configured`, `Explicit Override`
 Invariants: INV-001, INV-002, INV-003, INV-004, INV-005, INV-006, INV-012, INV-013, INV-014, INV-015, INV-018, INV-019, INV-020, INV-021, INV-022, INV-024, INV-025, INV-026, INV-SETUP-001, INV-SETUP-004, INV-SETUP-009, INV-SETUP-012
 Files Changed: `tests/e2e/devvault-environment-context.test.ts`, `apps/cli/src/commands/environment.ts`, `apps/cli/src/application-adapters.ts`, `apps/cli/src/application-adapters.test.ts`, `apps/cli/src/commands/secret.test.ts`, `apps/cli/src/commands/status.ts`, `apps/cli/src/commands/status.test.ts`, `apps/cli/src/diagnostics.test.ts`, `packages/config/src/index.test.ts`, `package.json`, `apps/cli/package.json`, `CHANGELOG.md`
-Tests: 46 files, 210 tests passed in final verification gate
+Tests: 46 files, 212 tests passed in final verification gate
 Gate: build - PASS; lint PASS; typecheck PASS; build PASS
-Evidence: compiled production CLI E2E covers first-time flow, environment switching, secret list against a local TCP Vault stub, explicit non-persistent override and selected-only zero-request blocking. Additional focused assertions cover the application guard, protected operations, legacy resolution, status output and credential-free diagnostics. Version `1.0.10` and changelog entry included.
+Evidence: compiled production CLI E2E covers first-time flow, environment switching, secret list against a local TCP Vault stub, explicit non-persistent override and selected-only zero-request blocking. Additional focused assertions cover the application guard, protected operations, legacy resolution, status output and credential-free diagnostics. Final gate: 46 test files and 212 tests passed; lint, typecheck and build passed. Version `1.0.11` and changelog entry included.
 Commit: `d320ae8` - `test(e2e): verify environment context workflows and isolation`; follow-up verification fix pending
 Next Task: Environment Verification Gate
 

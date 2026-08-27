@@ -27,6 +27,17 @@ describe('secret command protected environment behavior', () => {
     write.mockRestore();
   });
 
+  it('allows protected get without mutation confirmation', async () => {
+    const write = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    const program = new Command().exitOverride();
+    registerSecretCommand(program, composition({ protected: true }));
+
+    await program.parseAsync(['node', 'devvault', 'secret', 'get', 'database.password']);
+
+    expect(write.mock.calls.flat().join('')).toBe('Secret exists. Use --show to display it.\n');
+    write.mockRestore();
+  });
+
   it('requires explicit confirmation for protected deletion', async () => {
     const calls: string[] = [];
     const program = new Command().exitOverride();

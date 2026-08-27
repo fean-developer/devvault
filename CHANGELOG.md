@@ -1,4 +1,8 @@
 # Changelog
+## [1.0.11] - 2026-08-26
+
+- Added stronger environment-context guard, protected-operation, legacy coexistence and diagnostic verification coverage.
+
 ## [1.0.10] - 2026-08-26
 
 - Strengthened environment guard, protected-environment, legacy-configuration and diagnostic coverage.

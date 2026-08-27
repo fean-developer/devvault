@@ -38,7 +38,12 @@ describe('project application environment guard', () => {
     ['SELECTED', { projectRoot: '/project', environment: 'staging', state: 'SELECTED' as const }],
     ['INVALID', { projectRoot: '/project', environment: 'staging', state: 'INVALID' as const }],
   ])('rejects %s context at the application boundary', (_state, context) => {
-    expect(() => requireConfiguredEnvironment(context)).toThrow();
+    const expectedCode = context.state === 'SELECTED'
+      ? 'ENVIRONMENT_NOT_CONFIGURED'
+      : context.state === 'NOT_SELECTED'
+        ? 'ENVIRONMENT_NOT_SELECTED'
+        : 'ENVIRONMENT_INVALID';
+    expect(() => requireConfiguredEnvironment(context)).toThrowError(expect.objectContaining({ code: expectedCode }));
   });
 
   it('returns only configured ProjectConfig from the application boundary', async () => {
@@ -50,23 +55,28 @@ describe('project application environment guard', () => {
   });
 
   it.each([
-    ['not selected', async () => mkdtemp(join(tmpdir(), 'devvault-not-selected-'))],
-    ['selected', async () => {
+    ['not selected', 'ENVIRONMENT_NOT_SELECTED', async () => {
+      const root = await configuredProject();
+      return root;
+    }],
+    ['selected', 'ENVIRONMENT_NOT_CONFIGURED', async () => {
       const root = await mkdtemp(join(tmpdir(), 'devvault-selected-'));
       await mkdir(join(root, '.devvault'), { recursive: true });
       await writeFile(join(root, '.devvault/context.json'), '{"environment":"staging"}\n');
       return root;
     }],
-    ['invalid', async () => {
+    ['invalid', 'ENVIRONMENT_INVALID', async () => {
       const root = await configuredProject();
+      await setActiveEnvironment(root, 'development');
       await writeFile(join(root, 'environments', 'development', 'devvault.yaml'), 'version: 1\nproject: wrong\n');
       return root;
     }],
-  ])('blocks %s context before ProjectApplicationService operations or Vault', async (_state, rootFactory) => {
+  ])('blocks %s context before ProjectApplicationService operations or Vault', async (_state, expectedCode, rootFactory) => {
     const calls: string[] = [];
     const application = createProjectApplicationService(client(calls));
 
-    await expect(application.load(await rootFactory())).rejects.toThrow();
+    const root = await rootFactory();
+    await expect(application.load(root)).rejects.toThrowError(expect.objectContaining({ code: expectedCode }));
     expect(calls).toEqual([]);
   });
 
