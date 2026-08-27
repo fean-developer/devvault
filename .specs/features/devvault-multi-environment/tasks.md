@@ -571,6 +571,29 @@ Finding: ENV-034 mutation removing the `CONFIGURED` guard survived.
 Remediation: T-ENV-REM-01 added a direct state-discriminating assertion.
 Status: PASS
 Evidence: relevant tests, lint, typecheck and build passed. Mutation sensor killed the CONFIGURED guard mutation in scratch; real tree remained unchanged after sensor.
+
+## Remediation Task: Protected Secret Set
+
+### T-ENV-REM-02: Prove protected set consent boundary
+
+**What**: Add a production-path testable handler and assertions proving protected `secret set` checks consent before reading or writing a secret.
+**Why**: Previous Verification: FAIL. Finding: protected `secret set` coverage was insufficiently proven.
+**Where**: `apps/cli/src/commands/secret.ts`, `apps/cli/src/commands/secret.test.ts`
+**Depends on**: T10
+**Requirements**: ENV-016, ENV-017, ENV-018, ENV-029
+**Design References**: `Protected Environments`, `Security Enforcement`
+**Invariants**: INV-001, INV-004, INV-005, INV-012, INV-018
+**Tests**: `corepack pnpm exec vitest run apps/cli/src/commands/secret.test.ts`
+**Gate**: security
+**Done When**:
+
+- [x] Protected set with denied consent performs zero writes.
+- [x] Protected set with explicit `--yes` may write.
+- [x] Unprotected set does not request protected confirmation.
+- [x] Protected get/list remain readable without mutation confirmation.
+- [x] Protected guard mutation is killed by the focused sensor.
+**Evidence**: `secret.test.ts` covers denied/approved/unprotected set and protected read paths; focused gates passed. Mutation removing the protected consent guard failed with exit code 1 in `does not write a protected secret when consent is denied`, proving the guard is discriminated.
+**Commit**: `d4ec53f` - `test(environment): prove protected secret set consent boundary`
 - new feature directory
 
 ## Tasks Gate

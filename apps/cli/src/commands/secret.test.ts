@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { describe, expect, it, vi } from 'vitest';
-import { registerSecretCommand } from './secret.js';
+import { registerSecretCommand, runSecretSet } from './secret.js';
 import type { ReturnTypeOfComposition } from '../composition-root.js';
 
 function composition(config: { protected?: boolean }, calls: string[] = []): ReturnTypeOfComposition {
@@ -15,7 +15,51 @@ function composition(config: { protected?: boolean }, calls: string[] = []): Ret
   return { createProjectApplication: async () => application } as unknown as ReturnTypeOfComposition;
 }
 
+function setComposition(config: { protected?: boolean }, calls: string[] = []): ReturnTypeOfComposition {
+  const application = {
+    load: async () => ({ version: 1 as const, project: 'my-api', ...config, environment: 'production', vault: { mount: 'secret', path: 'projects/my-api/production' }, runtime: { mappings: {} } }),
+    setSecret: async () => { calls.push('set'); },
+    getSecret: async () => undefined,
+    listSecrets: async () => [],
+    deleteSecret: async () => false,
+    run: async () => 0,
+  };
+  return { createProjectApplication: async () => application } as unknown as ReturnTypeOfComposition;
+}
+
 describe('secret command protected environment behavior', () => {
+  it('does not write a protected secret when consent is denied', async () => {
+    const calls: string[] = [];
+
+    await expect(runSecretSet(setComposition({ protected: true }, calls), 'database.password', {}, {
+      confirm: async () => false,
+      readSecret: async () => 'must-not-be-read',
+    })).rejects.toThrow('Protected environment mutation was not authorized.');
+    expect(calls).toEqual([]);
+  });
+
+  it('writes a protected secret only with explicit yes authorization', async () => {
+    const calls: string[] = [];
+
+    await runSecretSet(setComposition({ protected: true }, calls), 'database.password', { yes: true }, {
+      confirm: async () => { throw new Error('confirmation must not be used with --yes'); },
+      readSecret: async () => 'value',
+    });
+
+    expect(calls).toEqual(['set']);
+  });
+
+  it('does not require protected confirmation for an unprotected secret', async () => {
+    const calls: string[] = [];
+
+    await runSecretSet(setComposition({}, calls), 'database.password', {}, {
+      confirm: async () => { throw new Error('confirmation must not be requested'); },
+      readSecret: async () => 'value',
+    });
+
+    expect(calls).toEqual(['set']);
+  });
+
   it('allows protected read operations without mutation confirmation', async () => {
     const write = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
     const program = new Command().exitOverride();

@@ -1,4 +1,8 @@
 # Changelog
+## [1.0.12] - 2026-08-27
+
+- Added protected `secret set` consent coverage, including denied writes and explicit `--yes` authorization.
+
 ## [1.0.11] - 2026-08-26
 
 - Added stronger environment-context guard, protected-operation, legacy coexistence and diagnostic verification coverage.

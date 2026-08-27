@@ -2,6 +2,22 @@ import { Command } from 'commander';
 import type { ReturnTypeOfComposition } from '../composition-root.js';
 import { confirmMutation, readSecretFromProcess } from '../input.js';
 
+export async function runSecretSet(
+  composition: ReturnTypeOfComposition,
+  key: string,
+  options: { environment?: string; yes?: boolean },
+  dependencies: { confirm: (prompt: string) => Promise<boolean>; readSecret: (prompt: string) => Promise<string> } = {
+    confirm: confirmMutation,
+    readSecret: readSecretFromProcess,
+  },
+): Promise<void> {
+  const application = await composition.createProjectApplication();
+  const config = await application.load(process.cwd(), options.environment);
+  if (config.protected && !options.yes && !await dependencies.confirm(`Current environment: ${config.environment}. This operation will modify a protected environment. Continue?`)) throw new Error('Protected environment mutation was not authorized.');
+  await application.setSecret(config, key, await dependencies.readSecret(`Secret value for ${key}: `));
+  process.stdout.write(`Secret stored: ${key}\n`);
+}
+
 export function registerSecretCommand(program: Command, composition: ReturnTypeOfComposition): void {
   program
     .command('secret')
@@ -10,13 +26,7 @@ export function registerSecretCommand(program: Command, composition: ReturnTypeO
       .argument('<key>', 'Secret key, for example database.password')
       .option('--environment <name>', 'Environment override')
       .option('--yes', 'Confirm protected-environment mutation')
-      .action(async (key: string, options: { environment?: string; yes?: boolean }) => {
-        const application = await composition.createProjectApplication();
-        const config = await application.load(process.cwd(), options.environment);
-        if (config.protected && !options.yes && !await confirmMutation(`Current environment: ${config.environment}. This operation will modify a protected environment. Continue?`)) throw new Error('Protected environment mutation was not authorized.');
-        await application.setSecret(config, key, await readSecretFromProcess(`Secret value for ${key}: `));
-        process.stdout.write(`Secret stored: ${key}\n`);
-      }))
+      .action((key: string, options: { environment?: string; yes?: boolean }) => runSecretSet(composition, key, options)))
     .addCommand(new Command('get')
       .argument('<key>', 'Secret key')
       .option('--environment <name>', 'Environment override')
