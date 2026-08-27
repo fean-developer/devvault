@@ -288,13 +288,27 @@ Next Task: T7
 **Gate**: security
 **Done When**:
 
-- [ ] `environment set development` followed by `init-project` creates only development.
-- [ ] Explicit production override creates only production and does not persist selection.
-- [ ] Existing target fails safely without `--force`.
-- [ ] `--force` leaves every other environment byte-identical.
-- [ ] Security gate passes.
-**Evidence**: File snapshots, context snapshot, CLI test output and legacy regression output.
+- [x] `environment set development` followed by `init-project` creates only development.
+- [x] Explicit production override creates only production and does not persist selection.
+- [x] Existing target fails safely without `--force`.
+- [x] `--force` leaves every other environment byte-identical.
+- [x] Security gate passes.
+**Evidence**: `apps/cli/src/commands/project.test.ts` covers active target, explicit non-persistent override, same-target refusal and force isolation. Security gate: 13 test files and 74 tests passed.
 **Commit**: `feat(cli): resolve init-project from active environment`
+
+## TASK RESULT
+
+Task: T7
+Status: PASS
+Requirements: ENV-001, ENV-002, ENV-003, ENV-004, ENV-008, ENV-009, ENV-023, ENV-024, ENV-035, ENV-036, ENV-037
+Design References: `Command Integration: init-project`, `Backward Compatibility`
+Invariants: INV-001, INV-002, INV-003, INV-006, INV-012, INV-013, INV-018, INV-025, INV-026, INV-SETUP-012
+Files Changed: `apps/cli/src/commands/project.ts`, `apps/cli/src/commands/project.test.ts`
+Tests: 13 files, 74 tests passed in Security gate
+Gate: security - PASS
+Evidence: init-project resolves active/explicit target, keeps overrides non-persistent, fails safely on existing target and preserves other environment files under force.
+Commit: `feat(cli): resolve init-project from active environment` (pending)
+Next Task: T8
 
 ### T8: Integrate configured-environment guard into secret and run
 
