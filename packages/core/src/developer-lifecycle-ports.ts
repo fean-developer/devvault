@@ -48,7 +48,7 @@ export interface LocalLifecyclePort {
 }
 
 export interface ProjectContextProvider {
-  load(): Promise<{ name: string; environment: string }>;
+  load(): Promise<{ name: string; environment: string } | null>;
 }
 
 export interface DeveloperSessionStore {

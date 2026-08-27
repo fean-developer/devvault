@@ -105,7 +105,7 @@ export class DefaultDeveloperLifecycleService implements DeveloperLifecycleServi
 
     if (selection.backend.kind() === 'local-docker' && this.dependencies.projectContext && 'setCapabilityPath' in selection.backend) {
       const project = await this.dependencies.projectContext.load();
-      (selection.backend as { setCapabilityPath(path: string): void }).setCapabilityPath(`secret/data/projects/${project.name}/${project.environment}/_doctor`);
+      if (project) (selection.backend as { setCapabilityPath(path: string): void }).setCapabilityPath(`secret/data/projects/${project.name}/${project.environment}/_doctor`);
     }
 
     if (selection.backend.kind() === 'local-docker' && this.dependencies.bootstrapStore && this.dependencies.localLifecycle?.useBootstrapMaterial) {
@@ -156,7 +156,8 @@ export class DefaultDeveloperLifecycleService implements DeveloperLifecycleServi
 
     if (validation.lifecycle !== 'sealed' && validation.lifecycle !== 'not-initialized' && selection.backend.kind() === 'local-docker' && this.dependencies.localLifecycle?.configure && this.dependencies.projectContext) {
       try {
-        await this.dependencies.localLifecycle.configure(await this.dependencies.projectContext.load());
+        const project = await this.dependencies.projectContext.load();
+        if (project) await this.dependencies.localLifecycle.configure(project);
         validation = { lifecycle: 'configured', kvValid: true, policyValid: true };
       } catch {
         return this.result('FAILED', validation.lifecycle, 'local-docker', ['The local DevVault environment could not be configured.']);
@@ -172,7 +173,9 @@ export class DefaultDeveloperLifecycleService implements DeveloperLifecycleServi
       });
       if (consent !== 'approved') return this.result('BLOCKED', 'unsealed', 'local-docker', ['Consent was not granted to configure the local DevVault environment.']);
       try {
-        await this.dependencies.localLifecycle.configure(await this.dependencies.projectContext.load());
+        const project = await this.dependencies.projectContext.load();
+        if (!project) return this.result('BLOCKED', 'unsealed', 'local-docker', ['Project context is required to configure the local DevVault environment.']);
+        await this.dependencies.localLifecycle.configure(project);
         validation = { lifecycle: 'configured', kvValid: true, policyValid: true };
       } catch {
         return this.result('FAILED', 'unsealed', 'local-docker', ['The local DevVault environment could not be configured.']);
@@ -201,9 +204,12 @@ export class DefaultDeveloperLifecycleService implements DeveloperLifecycleServi
       const material = await this.dependencies.bootstrapStore.load();
       if (material) {
         try {
-          const session = await this.dependencies.localLifecycle.ensureDeveloperSession(material, await this.dependencies.projectContext.load());
-          await this.dependencies.bootstrapStore.save(session.material);
-          await this.dependencies.sessionStore.set('session', session.token);
+          const project = await this.dependencies.projectContext.load();
+          if (project) {
+            const session = await this.dependencies.localLifecycle.ensureDeveloperSession(material, project);
+            await this.dependencies.bootstrapStore.save(session.material);
+            await this.dependencies.sessionStore.set('session', session.token);
+          }
         } catch {
           return this.result('FAILED', 'configured', 'local-docker', ['The local developer session could not be prepared.']);
         }

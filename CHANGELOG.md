@@ -1,4 +1,8 @@
 # Changelog
+## [1.0.14] - 2026-08-27
+
+- Decoupled global `start` lifecycle from unavailable project-aware context while preserving configured project operations.
+
 ## [1.0.13] - 2026-08-27
 
 - Completed status and doctor JSON diagnostics for environment state, configuration and remediation metadata.

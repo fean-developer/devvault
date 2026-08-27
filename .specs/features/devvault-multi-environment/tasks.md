@@ -661,6 +661,39 @@ Remediation: T-ENV-REM-04 adds complete status/doctor DTOs, real CLI transition 
 Status: PASS
 Evidence: focused diagnostics tests and E2E passed; environment-state and sensitive-field mutations were KILLED; scratch was removed and the real tree remained intact.
 
+## Remediation Task: Project-Aware Start
+
+### T-ENV-REM-05: Decouple global start from project context
+
+**What**: Make project-aware lifecycle context optional so global `start` can proceed without project configuration while configured contexts continue through the shared Environment resolver.
+**Why**: Previous Verification: FAIL. Finding: project-aware `start` context behavior was not compliant/proven for global lifecycle independence.
+**Where**: `packages/core/src/developer-lifecycle-ports.ts`, `packages/core/src/developer-lifecycle.ts`, `apps/cli/src/composition-root.ts`, `packages/core/src/developer-lifecycle.test.ts`, `apps/cli/src/composition-root.test.ts`
+**Depends on**: T10
+**Requirements**: ENV-022
+**Design References**: `Project Root Resolution`, `Command Integration: start`, `Architecture Summary`
+**Invariants**: INV-006, INV-007, INV-012, INV-013, INV-014, INV-018, INV-020, INV-021, INV-026
+**Tests**: `corepack pnpm exec vitest run packages/core/src/developer-lifecycle.test.ts apps/cli/src/composition-root.test.ts tests/e2e/devvault-local-lifecycle.test.ts`
+**Gate**: full
+**Done When**:
+
+- [x] Global lifecycle reaches READY without usable project context.
+- [x] SELECTED/INVALID context does not trigger project-aware configuration or session operations.
+- [x] CONFIGURED context reaches project-aware operations with the resolved project/environment.
+- [x] Composition provider uses the shared Environment resolver.
+- [x] Existing lifecycle behavior remains green.
+- [x] Required mutations are killed by the focused sensor.
+**Evidence**: Core test records zero project-aware calls for null context; composition test proves selected/invalid return null and configured returns project/environment through an injected shared resolver. Integrated gate passed 41/41 tests, lint, typecheck and build. Sensor A (mandatory project context) and B (selected-as-configured) were killed; Sensor D pending after committed execution.
+**Commit**: `fix(environment): decouple global start from project context` (pending)
+
+## Project-Aware Start Remediation Result
+
+Previous Verification: FAIL
+Finding: project-aware start bypassed the shared environment resolver and could couple global lifecycle to project configuration.
+Classification: IMPLEMENTATION DEFECT
+Remediation: T-ENV-REM-05 makes project context optional for global lifecycle and sources usable context through the shared resolver.
+Status: IN PROGRESS
+Evidence: focused lifecycle/composition/E2E tests passed 41/41; lint, typecheck and build passed. Mutation A and B were KILLED; Mutation D is pending committed execution.
+
 ## Tasks Gate
 
 The task plan covers all 40 requirements, includes test/evidence/gate fields for every task, contains no forward-phase dependency and keeps security tests executable.

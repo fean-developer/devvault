@@ -54,6 +54,53 @@ describe('DefaultDeveloperLifecycleService', () => {
     await expect(service.start({ mode: 'interactive' })).resolves.toMatchObject({ status: 'READY', backend: 'local-docker' });
   });
 
+  it('keeps global lifecycle independent when project-aware context is unavailable', async () => {
+    const calls: string[] = [];
+    const backend = createBackend('local-docker', { lifecycle: 'configured', kvValid: true, policyValid: true });
+    const service = new DefaultDeveloperLifecycleService({
+      ...lifecycleInfrastructure(),
+      backendSelector: createSelector(backend),
+      localBackend: backend,
+      projectContext: { load: async () => null },
+      localLifecycle: {
+        start: async () => undefined,
+        health: async () => ({ reachable: true, initialized: true, sealed: false }),
+        unseal: async () => undefined,
+        configure: async () => { calls.push('configure'); },
+        ensureDeveloperSession: async () => { calls.push('session'); return { token: 'token', material: { rootToken: 'root', unsealKey: 'key' } }; },
+      },
+      bootstrapStore: { load: async () => ({ rootToken: 'root', unsealKey: 'key' }), save: async () => { calls.push('save'); } },
+      sessionStore: { set: async () => { calls.push('session-store'); } },
+    });
+
+    await expect(service.start({ mode: 'interactive' })).resolves.toMatchObject({ status: 'READY', lifecycle: 'ready' });
+    expect(calls).toEqual([]);
+  });
+
+  it('passes configured project context to project-aware lifecycle operations', async () => {
+    const calls: string[] = [];
+    const backend = createBackend('local-docker', { lifecycle: 'configured', kvValid: true, policyValid: true });
+    const project = { name: 'my-api', environment: 'production' };
+    const service = new DefaultDeveloperLifecycleService({
+      ...lifecycleInfrastructure(),
+      backendSelector: createSelector(backend),
+      localBackend: backend,
+      projectContext: { load: async () => project },
+      localLifecycle: {
+        start: async () => undefined,
+        health: async () => ({ reachable: true, initialized: true, sealed: false }),
+        unseal: async () => undefined,
+        configure: async (value) => { calls.push(`configure:${value.name}/${value.environment}`); },
+        ensureDeveloperSession: async (_material, value) => { calls.push(`session:${value.name}/${value.environment}`); return { token: 'token', material: { rootToken: 'root', unsealKey: 'key' } }; },
+      },
+      bootstrapStore: { load: async () => ({ rootToken: 'root', unsealKey: 'key' }), save: async () => { calls.push('save'); } },
+      sessionStore: { set: async () => { calls.push('session-store'); } },
+    });
+
+    await expect(service.start({ mode: 'interactive' })).resolves.toMatchObject({ status: 'READY' });
+    expect(calls).toEqual(['configure:my-api/production', 'session:my-api/production', 'save', 'session-store']);
+  });
+
   it('starts an unavailable local backend before validating it', async () => {
     let started = false;
     const backend: VaultBackend = {

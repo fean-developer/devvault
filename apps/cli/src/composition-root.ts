@@ -1,6 +1,6 @@
 import { UserpassAuthenticationProvider } from '@devvault/auth';
 import { CapabilityBackendSelector, DefaultDeveloperLifecycleService, ProfileSetupValidator } from '@devvault/core';
-import { loadProjectConfig } from '@devvault/config';
+import { loadProjectConfig, resolveEnvironmentContext } from '@devvault/config';
 import { fileURLToPath } from 'node:url';
 import { existsSync } from 'node:fs';
 import { createProjectApplicationService } from './application-adapters.js';
@@ -19,6 +19,18 @@ import {
 import { HttpVaultClient } from '@devvault/vault-client';
 
 export type ReturnTypeOfComposition = ReturnType<typeof createCompositionRoot>;
+
+export async function loadProjectContext(
+  directory = process.cwd(),
+  resolver: typeof resolveEnvironmentContext = resolveEnvironmentContext,
+): Promise<{ name: string; environment: string } | null> {
+  try {
+    const context = await resolver(directory, undefined, { mode: 'diagnostic', allowCandidateRoot: true });
+    return context.config ? { name: context.config.project, environment: context.config.environment } : null;
+  } catch {
+    return null;
+  }
+}
 
 export function createCompositionRoot() {
   const credentialStore = new KeytarCredentialStore();
@@ -69,7 +81,7 @@ export function createCompositionRoot() {
     remoteBackend: setupRemoteBackend,
     localLifecycle,
     bootstrapStore,
-    projectContext: { load: async () => { const config = await loadProjectConfig(process.cwd()); return { name: config.project, environment: config.environment }; } },
+    projectContext: { load: async () => loadProjectContext() },
     sessionStore: credentialStore,
     stateStore: setupStateStore,
     consent: lifecycleConsent,
