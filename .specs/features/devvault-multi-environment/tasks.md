@@ -596,6 +596,39 @@ Evidence: relevant tests, lint, typecheck and build passed. Mutation sensor kill
 **Commit**: `d4ec53f` - `test(environment): prove protected secret set consent boundary`
 - new feature directory
 
+## Remediation Task: Runtime Isolation
+
+### T-ENV-REM-03: Prove runtime isolation between environments
+
+**What**: Add a real compiled-CLI E2E scenario that runs a child process against development, production and an explicit production override, asserting markers, mappings, Vault paths, context persistence and parent-process isolation.
+**Why**: Previous Verification: FAIL. Finding: runtime isolation evidence between environments was incomplete.
+**Where**: `tests/e2e/devvault-environment-context.test.ts`
+**Depends on**: T10
+**Requirements**: ENV-014, ENV-015, ENV-028
+**Design References**: `Secret and runtime commands`, `Testing Design`, `Explicit Override`
+**Invariants**: INV-012, INV-013, INV-015, INV-018, INV-025, INV-026
+**Tests**: `corepack pnpm exec vitest run tests/e2e/devvault-environment-context.test.ts`
+**Gate**: full
+**Done When**:
+
+- [x] Development child process receives only development markers and mappings.
+- [x] Production child process receives only production markers and mappings.
+- [x] Environment switching yields deterministic runtime values without contamination.
+- [x] Explicit runtime override uses production and leaves active development context unchanged.
+- [x] Requested Vault paths are asserted for each runtime execution.
+- [x] Runtime markers are absent from project config/context and parent process environment.
+- [x] Wrong-environment, persisted-override and wrong-path mutations are killed.
+**Evidence**: `tests/e2e/devvault-environment-context.test.ts` executes the compiled CLI and child processes with synthetic markers, records requested paths and asserts negative cross-environment properties. Baseline E2E passed 3/3. Mutation A (forced development) failed on production markers, Mutation E (persisted override) failed on active context, and Mutation G (wrong Vault path) failed on production markers; all exit code 1 and verdict KILLED.
+**Commit**: `f399809` - `test(environment): prove runtime isolation between environments`
+
+## Runtime Isolation Remediation Result
+
+Previous Verification: FAIL
+Finding: runtime isolation evidence incomplete.
+Remediation: T-ENV-REM-03 adds real CLI child-process, mapping, path and non-persistence assertions.
+Status: PASS
+Evidence: focused runtime/config/E2E tests, lint, typecheck and build passed. Baseline E2E passed 3/3. Wrong-environment runtime mutation, persisted override mutation and wrong Vault path mutation were all KILLED in isolated scratch worktrees; real tree remained unchanged.
+
 ## Tasks Gate
 
 The task plan covers all 40 requirements, includes test/evidence/gate fields for every task, contains no forward-phase dependency and keeps security tests executable.
