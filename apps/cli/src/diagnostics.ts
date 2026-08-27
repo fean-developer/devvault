@@ -1,5 +1,5 @@
 import type { ProjectConfig } from '@devvault/config';
-import { loadProjectConfig } from '@devvault/config';
+import { loadProjectConfig, resolveEnvironmentContext, type EnvironmentContextState, type ResolvedEnvironmentContext } from '@devvault/config';
 import type { VaultHealth } from '@devvault/vault-client';
 import { classifyVaultLifecycle, type VaultLifecycleState } from '@devvault/core';
 import type { DockerDiagnostics, PlatformInfo } from '@devvault/platform';
@@ -18,6 +18,7 @@ export interface DiagnosticCheck {
 export interface DoctorReport {
   checks: DiagnosticCheck[];
   project?: { name: string; environment: string; protected: boolean };
+  environmentState?: EnvironmentContextState;
   lifecycle?: VaultLifecycleState;
   platform?: PlatformInfo;
   docker?: DockerDiagnostics;
@@ -36,6 +37,7 @@ export async function createDoctorReport(
   configLoader: (directory: string, environment?: string) => Promise<ProjectConfig> = loadConfigForDiagnostics,
   context?: { platform?: PlatformInfo; docker?: DockerDiagnostics },
   environment?: string,
+  contextLoader: (directory: string, environment?: string) => Promise<ResolvedEnvironmentContext> = (directory, selected) => resolveEnvironmentContext(directory, selected, { mode: 'diagnostic', allowCandidateRoot: true }),
 ): Promise<DoctorReport> {
   const checks: DiagnosticCheck[] = [
     { name: 'Node.js', ok: true, detail: process.version },
@@ -43,8 +45,20 @@ export async function createDoctorReport(
   let project: DoctorReport['project'];
   let health: VaultHealth | undefined;
   let authorized = false;
+  let environmentState: EnvironmentContextState | undefined;
 
   try {
+    const resolved = await contextLoader(directory, environment);
+    environmentState = resolved.state;
+    if (resolved.config) project = { name: resolved.config.project, environment: resolved.config.environment, protected: resolved.config.protected === true };
+    if (resolved.state === 'SELECTED' && resolved.environment) {
+      checks.push({ name: 'Environment configuration', ok: false, detail: `Environment '${resolved.environment}' is selected but not configured. Run: devvault init-project` });
+    }
+  } catch {
+    environmentState = 'INVALID';
+  }
+
+  if (!project) try {
     const config = await configLoader(directory, environment);
     project = { name: config.project, environment: config.environment, protected: config.protected === true };
     checks.push({ name: 'Project configuration', ok: true });
@@ -99,6 +113,7 @@ export async function createDoctorReport(
   return {
     checks,
     lifecycle: lifecycle.state,
+    ...(environmentState ? { environmentState } : {}),
     ...(project ? { project } : {}),
     ...(context?.platform ? { platform: context.platform } : {}),
     ...(context?.docker ? { docker: context.docker } : {}),
@@ -113,6 +128,7 @@ export function formatDoctorReport(report: DoctorReport): string {
   if (report.project) {
     lines.push('', `Project: ${report.project.name}`, `Environment: ${report.project.environment}`, `Protected: ${report.project.protected ? 'yes' : 'no'}`);
   }
+  if (report.environmentState) lines.push(`Environment state: ${report.environmentState}`);
   return `${lines.join('\n')}\n`;
 }
 

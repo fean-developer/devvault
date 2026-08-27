@@ -63,4 +63,21 @@ describe('doctor diagnostics', () => {
     expect(report.platform?.host).toBe('linux');
     expect(report.docker?.vaultContainer).toBe('running');
   });
+
+  it('reports selected but unconfigured environment while continuing Vault diagnostics', async () => {
+    const report = await createDoctorReport('/project', {
+      health: async () => ({ initialized: true, sealed: false }),
+    }, async () => { throw new Error('Environment is not configured.'); }, undefined, undefined, async () => ({
+      projectRoot: '/project',
+      environment: 'staging',
+      state: 'SELECTED',
+    }));
+
+    expect(report.environmentState).toBe('SELECTED');
+    expect(report.checks).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: 'Environment configuration', ok: false }),
+      expect.objectContaining({ name: 'Vault reachable', ok: true }),
+    ]));
+    expect(report.lifecycle).toBe('unsealed');
+  });
 });

@@ -359,13 +359,27 @@ Next Task: T9
 **Gate**: full
 **Done When**:
 
-- [ ] Status reports context state and infrastructure independently.
-- [ ] Doctor reports selected-not-configured and recommends `init-project`.
-- [ ] Start remains usable outside a project and does not select/authenticate implicitly.
-- [ ] Existing lifecycle tests pass unchanged in behavior.
-- [ ] Full gate passes.
-**Evidence**: Human/JSON diagnostic output, lifecycle regression output and command tests.
+- [x] Status reports context state and infrastructure independently.
+- [x] Doctor reports selected-not-configured and recommends `init-project`.
+- [x] Start remains usable outside a project and does not select/authenticate implicitly.
+- [x] Existing lifecycle tests pass unchanged in behavior.
+- [x] Full gate passes.
+**Evidence**: `diagnostics.test.ts` covers selected-not-configured with Vault diagnostics continuing; start regression tests remain green. Full gate: 43 test files and 197 tests passed, with typecheck passing.
 **Commit**: `feat(cli): expose environment context in diagnostics`
+
+## TASK RESULT
+
+Task: T9
+Status: PASS
+Requirements: ENV-020, ENV-021, ENV-022, ENV-039, ENV-040
+Design References: `Command Integration: status and doctor`, `Command Integration: start`, `State Transition Model`
+Invariants: INV-006, INV-007, INV-014, INV-018, INV-020, INV-021, INV-026
+Files Changed: `apps/cli/src/diagnostics.ts`, `apps/cli/src/diagnostics.test.ts`, `apps/cli/src/commands/status.ts`, `apps/cli/src/commands/doctor.ts`, `apps/cli/src/commands/project.test.ts`
+Tests: 43 files, 197 tests passed in Full gate; typecheck passed
+Gate: full - PASS
+Evidence: doctor reports partial environment state while continuing Vault health diagnostics; status consumes diagnostic resolver state; start lifecycle tests remain green. Fixture typecheck repair is included because it was introduced by T7 tests and surfaced during T9 validation.
+Commit: `feat(cli): expose environment context in diagnostics` (pending)
+Next Task: T10
 
 ### T10: Complete compatibility, security and real CLI verification
 

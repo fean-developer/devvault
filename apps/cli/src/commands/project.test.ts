@@ -6,7 +6,7 @@ import { runInitProject } from './project.js';
 import type { ReturnTypeOfComposition } from '../composition-root.js';
 
 function composition(): ReturnTypeOfComposition {
-  return { createVaultClient: async () => { throw new Error('Vault must not be used by this test.'); } } as ReturnTypeOfComposition;
+  return { createVaultClient: async () => { throw new Error('Vault must not be used by this test.'); } } as unknown as ReturnTypeOfComposition;
 }
 
 describe('init-project command', () => {
