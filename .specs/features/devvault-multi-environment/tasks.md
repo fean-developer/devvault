@@ -223,7 +223,7 @@ Next Task: T5
 - [x] Configured context continues through the existing `ProjectApplicationService` contract.
 - [x] Secret and run use the same configuration boundary without command-local guards.
 - [x] Quick gate passes.
-**Evidence**: `apps/cli/src/application-adapters.test.ts` proves zero Vault calls for `NOT_SELECTED`, `SELECTED` and invalid contexts, and configured context reaches the existing application contract. Direct state assertions discriminate removal of the configured guard. Quick gate: 10 test files and 61 tests passed.
+**Evidence**: `apps/cli/src/application-adapters.test.ts` proves zero Vault calls for `NOT_SELECTED`, `SELECTED` and invalid contexts, and explicitly rejects `SELECTED` even when a config payload is present. This assertion discriminates removal of the configured-state guard. Quick gate count is recorded in the remediation result.
 **Commit**: `feat(core): guard operations on configured environments`
 
 ## TASK RESULT
@@ -541,6 +541,36 @@ The following are explicitly excluded from every task:
 - Authorization integration
 - AppRole, OIDC and CI/CD
 - Vault lifecycle redesign
+
+## Remediation Task: ENV-034 CONFIGURED Guard
+
+### T-ENV-REM-01: Kill selected-state guard mutation
+
+**What**: Add a boundary-level assertion that rejects `SELECTED` even when a configuration payload is present, proving that only `CONFIGURED` may produce a usable `ProjectConfig`.
+**Why**: The previous independent verification found that removing the explicit `CONFIGURED` check survived because tests used `SELECTED` contexts without a config payload.
+**Where**: `apps/cli/src/application-adapters.test.ts`
+**Depends on**: T5, T10
+**Requirements**: ENV-034
+**Design References**: `Environment Resolver Model`, `Security Enforcement`
+**Invariants**: INV-020, INV-026
+**Tests**: `corepack pnpm exec vitest run apps/cli/src/application-adapters.test.ts`
+**Gate**: quick
+**Done When**:
+
+- [x] `SELECTED` with a config payload returns `ENVIRONMENT_NOT_CONFIGURED`.
+- [x] Existing `NOT_SELECTED`, `SELECTED`, `INVALID` and `CONFIGURED` cases remain covered.
+- [x] Mutation removing the explicit `CONFIGURED` requirement fails the test.
+- [x] Relevant tests, lint, typecheck and build pass.
+**Evidence**: `apps/cli/src/application-adapters.test.ts` asserts `ENVIRONMENT_NOT_CONFIGURED` for `state: SELECTED` with a valid config payload. Isolated mutation removing `context.state !== 'CONFIGURED'` failed the assertion `rejects selected state even when a config payload is present`; exit code 1, verdict KILLED.
+**Commit**: `877eae5` - `test(environment): strengthen configured guard discrimination`
+
+## Remediation Result
+
+Previous Verification: FAIL
+Finding: ENV-034 mutation removing the `CONFIGURED` guard survived.
+Remediation: T-ENV-REM-01 added a direct state-discriminating assertion.
+Status: PASS
+Evidence: relevant tests, lint, typecheck and build passed. Mutation sensor killed the CONFIGURED guard mutation in scratch; real tree remained unchanged after sensor.
 - new feature directory
 
 ## Tasks Gate

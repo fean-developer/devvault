@@ -46,6 +46,23 @@ describe('project application environment guard', () => {
     expect(() => requireConfiguredEnvironment(context)).toThrowError(expect.objectContaining({ code: expectedCode }));
   });
 
+  it('rejects selected state even when a config payload is present', () => {
+    const config = {
+      version: 1 as const,
+      project: 'my-api',
+      environment: 'staging',
+      vault: { mount: 'secret', path: 'projects/my-api/staging' },
+      runtime: { mappings: {} },
+    };
+
+    expect(() => requireConfiguredEnvironment({
+      projectRoot: '/project',
+      environment: 'staging',
+      state: 'SELECTED',
+      config,
+    })).toThrowError(expect.objectContaining({ code: 'ENVIRONMENT_NOT_CONFIGURED' }));
+  });
+
   it('returns only configured ProjectConfig from the application boundary', async () => {
     const root = await configuredProject();
     await setActiveEnvironment(root, 'development');
