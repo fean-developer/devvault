@@ -97,7 +97,7 @@ Files Changed: `packages/config/src/index.ts`, `packages/config/src/index.test.t
 Tests: 9 files, 51 tests passed in Quick gate
 Gate: quick - PASS
 Evidence: candidate root, established ancestor and ambiguous-root rejection are covered in `packages/config/src/index.test.ts`; no command-level filesystem discovery was introduced.
-Commit: `feat(config): support pre-initialization project context roots` (pending)
+Commit: `7f9d5e4` - `feat(config): support pre-initialization project context roots`
 Next Task: T2
 
 ### T2: Harden active context persistence
@@ -132,7 +132,7 @@ Files Changed: `packages/config/src/index.ts`, `packages/config/src/index.test.t
 Tests: 10 files, 59 tests passed in Security gate
 Gate: security - PASS
 Evidence: strict context schema, corruption rejection, atomic temporary-file cleanup and idempotent `.gitignore` assertions pass; existing setup test output reports an expected environment blocker but the test suite is green.
-Commit: `feat(config): harden active environment context persistence` (pending)
+Commit: `7ba6146` - `feat(config): harden active environment context persistence`
 Next Task: T3
 
 ### T3: Add environment state classification
@@ -166,7 +166,7 @@ Files Changed: `packages/config/src/index.ts`, `packages/config/src/index.test.t
 Tests: 9 files, 55 tests passed in Quick gate
 Gate: quick - PASS
 Evidence: state classifier tests assert `NOT_SELECTED`, `SELECTED`, `CONFIGURED` and `INVALID`; the function has no lifecycle dependency.
-Commit: `feat(config): classify environment context states` (pending)
+Commit: `6c6dfb2` - `feat(config): classify environment context states`
 Next Task: T4
 
 ### T4: Centralize environment resolution and precedence
@@ -201,7 +201,7 @@ Files Changed: `packages/config/src/index.ts`, `packages/config/src/index.test.t
 Tests: 9 files, 57 tests passed in Quick gate
 Gate: quick - PASS
 Evidence: resolver precedence, non-persistent override, selected-only diagnostic/required resolution, invalid config mapping and zero Vault dependency are covered.
-Commit: `feat(config): centralize environment resolution precedence` (pending)
+Commit: `a63240b` - `feat(config): centralize environment resolution precedence`
 Next Task: T5
 
 ### T5: Define configuration-required resolution guard
@@ -237,7 +237,7 @@ Files Changed: `apps/cli/src/application-adapters.ts`, `apps/cli/src/application
 Tests: 10 files, 61 tests passed in Quick gate
 Gate: quick - PASS
 Evidence: adapter boundary uses the central config resolver; negative contexts fail before application/Vault invocation, and configured context preserves `ProjectConfigLoader -> ProjectConfig`.
-Commit: `feat(core): guard operations on configured environments` (pending)
+Commit: `2a3e690` - `feat(core): guard operations on configured environments`
 Next Task: T6
 
 ### T6: Refine environment context commands
@@ -272,7 +272,7 @@ Files Changed: `apps/cli/src/commands/environment.ts`, `apps/cli/src/commands/en
 Tests: 11 files, 65 tests passed in Quick gate
 Gate: quick - PASS
 Evidence: environment commands use the central config resolver, support pre-init selection, report context states and do not invoke Vault/lifecycle/authentication.
-Commit: `feat(cli): expose persistent environment context states` (pending)
+Commit: `809c43b` - `feat(cli): expose persistent environment context states`
 Next Task: T7
 
 ### T7: Make init-project resolve active or explicit target
@@ -307,7 +307,7 @@ Files Changed: `apps/cli/src/commands/project.ts`, `apps/cli/src/commands/projec
 Tests: 13 files, 74 tests passed in Security gate
 Gate: security - PASS
 Evidence: init-project resolves active/explicit target, keeps overrides non-persistent, fails safely on existing target and preserves other environment files under force.
-Commit: `feat(cli): resolve init-project from active environment` (pending)
+Commit: `684e2c9` - `feat(cli): resolve init-project from active environment`
 Next Task: T8
 
 ### T8: Integrate configured-environment guard into secret and run
@@ -343,7 +343,7 @@ Files Changed: `apps/cli/src/application-adapters.test.ts`
 Tests: 13 files, 75 tests passed in Security gate
 Gate: security - PASS
 Evidence: secret/runtime use the shared application loader; active and explicit environments resolve consistently, selected-only contexts are blocked before Vault and override context remains unchanged.
-Commit: `feat(cli): guard secret and runtime commands by environment context` (pending)
+Commit: `938796e` - `feat(cli): guard secret and runtime commands by environment context`
 Next Task: T9
 
 ### T9: Integrate context-aware status, doctor and start boundaries
@@ -378,7 +378,7 @@ Files Changed: `apps/cli/src/diagnostics.ts`, `apps/cli/src/diagnostics.test.ts`
 Tests: 43 files, 197 tests passed in Full gate; typecheck passed
 Gate: full - PASS
 Evidence: doctor reports partial environment state while continuing Vault health diagnostics; status consumes diagnostic resolver state; start lifecycle tests remain green. Fixture typecheck repair is included because it was introduced by T7 tests and surfaced during T9 validation.
-Commit: `feat(cli): expose environment context in diagnostics` (pending)
+Commit: `e96b664` - `feat(cli): expose environment context in diagnostics`
 Next Task: T10
 
 ### T10: Complete compatibility, security and real CLI verification
@@ -394,13 +394,27 @@ Next Task: T10
 **Gate**: build
 **Done When**:
 
-- [ ] Required first-time flow runs through the real CLI entrypoint.
-- [ ] Development and production coexist and switching is deterministic.
-- [ ] Explicit override leaves active context unchanged.
-- [ ] All negative and security scenarios have executable assertions.
-- [ ] Full test, lint, typecheck and build gate passes.
-**Evidence**: E2E/security reports, real CLI output, test count, lint/typecheck/build output and artifact references.
+- [x] Required first-time flow runs through the real CLI entrypoint.
+- [x] Development and production coexist and switching is deterministic.
+- [x] Explicit override leaves active context unchanged.
+- [x] All negative and security scenarios have executable assertions.
+- [x] Full test, lint, typecheck and build gate passes.
+**Evidence**: `tests/e2e/devvault-environment-context.test.ts` executes the compiled CLI through selection, init-project, current/list, secret list, switching and override; selected-only flow asserts zero Vault requests. Final gate: 44 test files and 199 tests passed, lint/typecheck/build passed.
 **Commit**: `test(e2e): verify environment context workflows and isolation`
+
+## TASK RESULT
+
+Task: T10
+Status: PASS
+Requirements: ENV-001, ENV-002, ENV-003, ENV-004, ENV-007, ENV-008, ENV-009, ENV-014, ENV-015, ENV-017, ENV-018, ENV-020, ENV-021, ENV-022, ENV-023, ENV-024, ENV-025, ENV-026, ENV-027, ENV-028, ENV-029, ENV-030, ENV-031, ENV-032, ENV-033, ENV-034, ENV-035, ENV-036, ENV-037, ENV-038, ENV-039, ENV-040
+Design References: `Testing Design`, `Backward Compatibility`, `Security Enforcement`, `First-Time Flow`, `Selected but Not Configured`, `Explicit Override`
+Invariants: INV-001, INV-002, INV-003, INV-004, INV-005, INV-006, INV-012, INV-013, INV-014, INV-015, INV-018, INV-019, INV-020, INV-021, INV-022, INV-024, INV-025, INV-026, INV-SETUP-001, INV-SETUP-004, INV-SETUP-009, INV-SETUP-012
+Files Changed: `tests/e2e/devvault-environment-context.test.ts`, `apps/cli/src/commands/environment.ts`, `package.json`, `apps/cli/package.json`, `CHANGELOG.md`
+Tests: 44 files, 199 tests passed in final Build gate
+Gate: build - PASS; lint PASS; typecheck PASS; build PASS
+Evidence: compiled production CLI E2E covers first-time flow, environment switching, secret list against a local TCP Vault stub, explicit non-persistent override and selected-only zero-request blocking. Version `1.0.9` and changelog entry included.
+Commit: `d320ae8` - `test(e2e): verify environment context workflows and isolation`
+Next Task: Environment Verification Gate
 
 ## Phase Execution Map
 

@@ -1,4 +1,9 @@
 # Changelog
+## [1.0.9] - 2026-08-26
+
+- Added persistent active environment context before project initialization.
+- Added environment-state-aware CLI resolution, diagnostics and explicit override handling.
+
 ## [1.0.7] - 2026-08-24
 
 - Keywords included in package.json for the CLI

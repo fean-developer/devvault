@@ -31,15 +31,15 @@ export function registerEnvironmentCommand(program: Command): void {
 
   environment
     .command('set <name>')
-    .action(runEnvironmentSet);
+    .action((name: string) => runEnvironmentSet(name, process.cwd()));
 
   environment
     .command('current')
-    .action(runEnvironmentCurrent);
+    .action(() => runEnvironmentCurrent(process.cwd()));
 
   environment
     .command('list')
-    .action(runEnvironmentList);
+    .action(() => runEnvironmentList(process.cwd()));
 
   program.addCommand(environment);
 }
