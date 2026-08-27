@@ -323,14 +323,28 @@ Next Task: T8
 **Gate**: security
 **Done When**:
 
-- [ ] All secret operations resolve the active environment automatically.
-- [ ] `run` uses the active environment without repeated flags.
-- [ ] Explicit override does not persist.
-- [ ] Selected-only operations fail before Vault access.
-- [ ] Existing protected read/mutation rules remain intact.
-- [ ] Security gate passes.
-**Evidence**: Operation path assertions, zero-call tests, context snapshots and security output.
+- [x] All secret operations resolve the active environment automatically.
+- [x] `run` uses the active environment without repeated flags.
+- [x] Explicit override does not persist.
+- [x] Selected-only operations fail before Vault access.
+- [x] Existing protected read/mutation rules remain intact.
+- [x] Security gate passes.
+**Evidence**: `apps/cli/src/application-adapters.test.ts` validates shared active/explicit resolution and context preservation; existing secret/runtime tests remain green. Security gate: 13 test files and 75 tests passed.
 **Commit**: `feat(cli): guard secret and runtime commands by environment context`
+
+## TASK RESULT
+
+Task: T8
+Status: PASS
+Requirements: ENV-008, ENV-009, ENV-014, ENV-015, ENV-018, ENV-028, ENV-029, ENV-034
+Design References: `Secret and runtime commands`, `Security Enforcement`
+Invariants: INV-004, INV-005, INV-012, INV-013, INV-015, INV-018, INV-022, INV-024, INV-025, INV-026
+Files Changed: `apps/cli/src/application-adapters.test.ts`
+Tests: 13 files, 75 tests passed in Security gate
+Gate: security - PASS
+Evidence: secret/runtime use the shared application loader; active and explicit environments resolve consistently, selected-only contexts are blocked before Vault and override context remains unchanged.
+Commit: `feat(cli): guard secret and runtime commands by environment context` (pending)
+Next Task: T9
 
 ### T9: Integrate context-aware status, doctor and start boundaries
 

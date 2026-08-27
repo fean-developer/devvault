@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -65,5 +65,16 @@ describe('project application environment guard', () => {
       environment: 'development',
     });
     expect(calls).toEqual([]);
+  });
+
+  it('resolves the same active context for secret and runtime application paths', async () => {
+    const root = await configuredProject();
+    await setActiveEnvironment(root, 'development');
+    const application = createProjectApplicationService(client([]));
+
+    await expect(application.load(root)).resolves.toMatchObject({ environment: 'development' });
+    await expect(application.load(root, 'development')).resolves.toMatchObject({ environment: 'development' });
+    await expect(application.load(root, 'production')).rejects.toMatchObject({ code: 'ENVIRONMENT_NOT_CONFIGURED' });
+    await expect(readFile(join(root, '.devvault/context.json'), 'utf8')).resolves.toContain('development');
   });
 });
