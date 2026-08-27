@@ -182,13 +182,27 @@ Next Task: T4
 **Gate**: quick
 **Done When**:
 
-- [ ] Explicit override has precedence and remains request-scoped.
-- [ ] Active context is used only when no override exists.
-- [ ] Selected-but-unconfigured is distinguishable from not selected.
-- [ ] Configuration/path validation occurs before any Vault operation.
-- [ ] Quick gate passes.
-**Evidence**: Resolver tests, unchanged `context.json` assertions and error-code assertions.
+- [x] Explicit override has precedence and remains request-scoped.
+- [x] Active context is used only when no override exists.
+- [x] Selected-but-unconfigured is distinguishable from not selected.
+- [x] Configuration/path validation occurs before any Vault operation.
+- [x] Quick gate passes.
+**Evidence**: `packages/config/src/index.test.ts` covers explicit/active resolution, selected-only diagnostic/required outcomes and coded errors. Quick gate: 9 test files and 57 tests passed.
 **Commit**: `feat(config): centralize environment resolution precedence`
+
+## TASK RESULT
+
+Task: T4
+Status: PASS
+Requirements: ENV-008, ENV-009, ENV-010, ENV-011, ENV-012, ENV-013, ENV-026, ENV-027, ENV-030, ENV-034
+Design References: `Environment Resolver Model`, `Error Model`
+Invariants: INV-006, INV-007, INV-012, INV-013, INV-018, INV-019, INV-020, INV-022, INV-025, INV-026
+Files Changed: `packages/config/src/index.ts`, `packages/config/src/index.test.ts`
+Tests: 9 files, 57 tests passed in Quick gate
+Gate: quick - PASS
+Evidence: resolver precedence, non-persistent override, selected-only diagnostic/required resolution, invalid config mapping and zero Vault dependency are covered.
+Commit: `feat(config): centralize environment resolution precedence` (pending)
+Next Task: T5
 
 ### T5: Define configuration-required resolution guard
 

@@ -42,6 +42,28 @@ export interface ProjectEnvironmentContext {
 
 export type EnvironmentContextState = 'NOT_SELECTED' | 'SELECTED' | 'CONFIGURED' | 'INVALID';
 
+export interface ResolvedEnvironmentContext {
+  projectRoot: string;
+  environment?: string;
+  state: EnvironmentContextState;
+  configPath?: string;
+  config?: ProjectConfig;
+}
+
+export type EnvironmentResolutionMode = 'required' | 'diagnostic';
+
+export type EnvironmentResolutionErrorCode =
+  | 'ENVIRONMENT_NOT_SELECTED'
+  | 'ENVIRONMENT_NOT_CONFIGURED'
+  | 'ENVIRONMENT_INVALID';
+
+export class EnvironmentResolutionError extends Error {
+  constructor(message: string, readonly code: EnvironmentResolutionErrorCode) {
+    super(message);
+    this.name = 'EnvironmentResolutionError';
+  }
+}
+
 const environmentNameSchema = z.string().regex(/^[a-z0-9][a-z0-9-]*$/);
 const activeContextSchema = z.strictObject({ environment: environmentNameSchema });
 
@@ -138,23 +160,66 @@ export async function setActiveEnvironment(projectRoot: string, environment: str
   if (!contents.split(/\r?\n/).includes('.devvault/')) await writeFile(gitignore, `${contents}${contents && !contents.endsWith('\n') ? '\n' : ''}.devvault/\n`);
 }
 
-export async function resolveProjectConfig(startDirectory: string, explicitEnvironment?: string): Promise<ProjectEnvironmentContext> {
-  const projectRoot = await findProjectRoot(startDirectory);
+export async function resolveEnvironmentContext(
+  startDirectory: string,
+  explicitEnvironment?: string,
+  options: { mode?: EnvironmentResolutionMode; allowCandidateRoot?: boolean } = {},
+): Promise<ResolvedEnvironmentContext> {
+  const mode = options.mode ?? 'required';
+  const projectRoot = await findProjectRoot(startDirectory, options.allowCandidateRoot === true);
   const environments = await listProjectEnvironments(projectRoot);
   const legacyPath = join(projectRoot, 'devvault.yaml');
   const environment = explicitEnvironment ?? await readActiveEnvironment(projectRoot);
-  if (environments.length > 0) {
-    if (!environment) throw new Error(`No environment selected. Available environments: ${environments.join(', ')}. Select one with: devvault environment set <name>`);
-    const name = environmentNameSchema.parse(environment);
-    const configPath = join(projectRoot, 'environments', name, 'devvault.yaml');
-    try { await access(configPath); } catch { throw new Error(`Environment '${name}' does not exist. Available environments: ${environments.join(', ')}`); }
-    const config = parseProjectConfig(parseYaml(await readFile(configPath, 'utf8')));
-    if (config.environment !== name) throw new Error(`Environment configuration mismatch: expected ${name}.`);
-    return { projectRoot, environment: name, configPath, config };
+  let hasLegacyConfig = true;
+  try { await access(legacyPath); } catch { hasLegacyConfig = false; }
+  if (environments.length === 0 && !hasLegacyConfig) {
+    if (!environment) {
+      if (mode === 'diagnostic') return { projectRoot, state: 'NOT_SELECTED' };
+      throw new EnvironmentResolutionError('No environment selected.', 'ENVIRONMENT_NOT_SELECTED');
+    }
+    let name: string;
+    try { name = environmentNameSchema.parse(environment); } catch { throw new EnvironmentResolutionError('Environment name is invalid.', 'ENVIRONMENT_INVALID'); }
+    const result = { projectRoot, environment: name, state: 'SELECTED' as const };
+    if (mode === 'diagnostic') return result;
+    throw new EnvironmentResolutionError(`Environment '${name}' is selected but not configured. Run: devvault init-project`, 'ENVIRONMENT_NOT_CONFIGURED');
   }
-  if (explicitEnvironment) throw new Error('The legacy project configuration cannot resolve an explicit alternate environment.');
-  const config = parseProjectConfig(parseYaml(await readFile(legacyPath, 'utf8')));
-  return { projectRoot, environment: config.environment, configPath: legacyPath, config };
+  if (environments.length > 0) {
+    if (!environment) {
+      if (mode === 'diagnostic') return { projectRoot, state: 'NOT_SELECTED' };
+      throw new EnvironmentResolutionError(`No environment selected. Available environments: ${environments.join(', ')}. Select one with: devvault environment set <name>`, 'ENVIRONMENT_NOT_SELECTED');
+    }
+    let name: string;
+    try { name = environmentNameSchema.parse(environment); } catch { throw new EnvironmentResolutionError('Environment name is invalid.', 'ENVIRONMENT_INVALID'); }
+    const configPath = join(projectRoot, 'environments', name, 'devvault.yaml');
+    try { await access(configPath); } catch {
+      const result = { projectRoot, environment: name, state: 'SELECTED' as const, configPath };
+      if (mode === 'diagnostic') return result;
+      throw new EnvironmentResolutionError(`Environment '${name}' is selected but not configured. Run: devvault init-project`, 'ENVIRONMENT_NOT_CONFIGURED');
+    }
+    try {
+      const config = parseProjectConfig(parseYaml(await readFile(configPath, 'utf8')));
+      if (config.environment !== name) throw new Error(`Environment configuration mismatch: expected ${name}.`);
+      return { projectRoot, environment: name, state: 'CONFIGURED', configPath, config };
+    } catch (error) {
+      if (error instanceof EnvironmentResolutionError) throw error;
+      throw new EnvironmentResolutionError(error instanceof Error ? error.message : 'Environment configuration is invalid.', 'ENVIRONMENT_INVALID');
+    }
+  }
+  if (explicitEnvironment) throw new EnvironmentResolutionError('The legacy project configuration cannot resolve an explicit alternate environment.', 'ENVIRONMENT_INVALID');
+  try {
+    const config = parseProjectConfig(parseYaml(await readFile(legacyPath, 'utf8')));
+    return { projectRoot, environment: config.environment, state: 'CONFIGURED', configPath: legacyPath, config };
+  } catch (error) {
+    throw new EnvironmentResolutionError(error instanceof Error ? error.message : 'Project configuration is invalid.', 'ENVIRONMENT_INVALID');
+  }
+}
+
+export async function resolveProjectConfig(startDirectory: string, explicitEnvironment?: string): Promise<ProjectEnvironmentContext> {
+  const context = await resolveEnvironmentContext(startDirectory, explicitEnvironment);
+  if (!context.config || !context.environment || !context.configPath) {
+    throw new EnvironmentResolutionError('Environment configuration is required.', 'ENVIRONMENT_NOT_CONFIGURED');
+  }
+  return { projectRoot: context.projectRoot, environment: context.environment, configPath: context.configPath, config: context.config };
 }
 
 export async function loadProjectConfig(startDirectory: string, explicitEnvironment?: string): Promise<ProjectConfig> {

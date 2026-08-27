@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { classifyEnvironmentContext, findProjectConfig, findProjectRoot, loadProjectConfig, parseProjectConfig, resolveProjectConfig, setActiveEnvironment } from './index.js';
+import { classifyEnvironmentContext, findProjectConfig, findProjectRoot, loadProjectConfig, parseProjectConfig, resolveEnvironmentContext, resolveProjectConfig, setActiveEnvironment } from './index.js';
 
 describe('projectConfigSchema', () => {
   it('classifies environment context independently from Vault lifecycle', () => {
@@ -161,6 +161,23 @@ describe('projectConfigSchema', () => {
 
     const contents = await readFile(join(root, '.gitignore'), 'utf8');
     expect(contents.split(/\r?\n/).filter((line) => line === '.devvault/')).toHaveLength(1);
+  });
+
+  it('returns selected context without configuration in diagnostic mode', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'devvault-selected-'));
+    await setActiveEnvironment(root, 'staging');
+
+    await expect(resolveEnvironmentContext(root, undefined, { mode: 'diagnostic' })).resolves.toMatchObject({
+      environment: 'staging',
+      state: 'SELECTED',
+    });
+  });
+
+  it('fails selected-only context before configuration-required access', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'devvault-selected-required-'));
+    await setActiveEnvironment(root, 'staging');
+
+    await expect(resolveProjectConfig(root)).rejects.toMatchObject({ code: 'ENVIRONMENT_NOT_CONFIGURED' });
   });
 
   it('resolves explicit environment before active context without changing context', async () => {
