@@ -2,9 +2,24 @@ import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { findProjectConfig, findProjectRoot, loadProjectConfig, parseProjectConfig, resolveProjectConfig, setActiveEnvironment } from './index.js';
+import { classifyEnvironmentContext, findProjectConfig, findProjectRoot, loadProjectConfig, parseProjectConfig, resolveProjectConfig, setActiveEnvironment } from './index.js';
 
 describe('projectConfigSchema', () => {
+  it('classifies environment context independently from Vault lifecycle', () => {
+    const config = parseProjectConfig({
+      version: 1,
+      project: 'my-api',
+      environment: 'development',
+      vault: { mount: 'secret', path: 'projects/my-api/development' },
+      runtime: { mappings: {} },
+    });
+
+    expect(classifyEnvironmentContext({})).toBe('NOT_SELECTED');
+    expect(classifyEnvironmentContext({ selectedEnvironment: 'development' })).toBe('SELECTED');
+    expect(classifyEnvironmentContext({ selectedEnvironment: 'development', config })).toBe('CONFIGURED');
+    expect(classifyEnvironmentContext({ selectedEnvironment: 'development', invalid: true })).toBe('INVALID');
+  });
+
   it('accepts non-sensitive project configuration', () => {
     expect(
       parseProjectConfig({

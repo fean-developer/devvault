@@ -40,11 +40,23 @@ export interface ProjectEnvironmentContext {
   config: ProjectConfig;
 }
 
+export type EnvironmentContextState = 'NOT_SELECTED' | 'SELECTED' | 'CONFIGURED' | 'INVALID';
+
 const environmentNameSchema = z.string().regex(/^[a-z0-9][a-z0-9-]*$/);
 const activeContextSchema = z.strictObject({ environment: environmentNameSchema });
 
 export function parseProjectConfig(input: unknown): ProjectConfig {
   return projectConfigSchema.parse(input);
+}
+
+export function classifyEnvironmentContext(input: {
+  selectedEnvironment?: string;
+  config?: ProjectConfig;
+  invalid?: boolean;
+}): EnvironmentContextState {
+  if (input.invalid) return 'INVALID';
+  if (!input.selectedEnvironment) return 'NOT_SELECTED';
+  return input.config ? 'CONFIGURED' : 'SELECTED';
 }
 
 export async function findProjectRoot(startDirectory: string, allowCandidateRoot = false): Promise<string> {
