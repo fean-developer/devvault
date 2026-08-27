@@ -1,36 +1,45 @@
 import { Command } from 'commander';
-import { findProjectRoot, listProjectEnvironments, resolveProjectConfig, setActiveEnvironment } from '@devvault/config';
+import { findProjectRoot, listProjectEnvironments, resolveEnvironmentContext, setActiveEnvironment } from '@devvault/config';
+
+export async function runEnvironmentSet(name: string, directory = process.cwd()): Promise<void> {
+  const root = await findProjectRoot(directory, true);
+  await setActiveEnvironment(root, name);
+  const context = await resolveEnvironmentContext(root, undefined, { mode: 'diagnostic' });
+  process.stdout.write(`Active environment: ${name}\nState: ${context.state}\n`);
+}
+
+export async function runEnvironmentCurrent(directory = process.cwd()): Promise<void> {
+  const root = await findProjectRoot(directory, true);
+  const context = await resolveEnvironmentContext(root, undefined, { mode: 'diagnostic' });
+  if (context.state === 'NOT_SELECTED') throw new Error('No environment selected.');
+  process.stdout.write(`Environment: ${context.environment}\nState: ${context.state}\n`);
+}
+
+export async function runEnvironmentList(directory = process.cwd()): Promise<void> {
+  const root = await findProjectRoot(directory, true);
+  const environments = await listProjectEnvironments(root);
+  const context = await resolveEnvironmentContext(root, undefined, { mode: 'diagnostic' });
+  const lines = environments.map((name) => `${name}${name === context.environment ? ` ${context.state} ACTIVE` : ' CONFIGURED'}`);
+  if (context.state === 'SELECTED' && context.environment && !environments.includes(context.environment)) {
+    lines.push(`${context.environment} SELECTED NOT_CONFIGURED ACTIVE`);
+  }
+  process.stdout.write(`${lines.join('\n')}${lines.length ? '\n' : ''}`);
+}
 
 export function registerEnvironmentCommand(program: Command): void {
   const environment = new Command('environment').description('Manage the active project environment');
 
   environment
     .command('set <name>')
-    .action(async (name: string) => {
-      const root = await findProjectRoot(process.cwd());
-      const environments = await listProjectEnvironments(root);
-      if (!environments.includes(name)) throw new Error(`Environment '${name}' does not exist. Available environments: ${environments.join(', ') || '(none)'}`);
-      await setActiveEnvironment(root, name);
-      process.stdout.write(`Active environment: ${name}\n`);
-    });
+    .action(runEnvironmentSet);
 
   environment
     .command('current')
-    .action(async () => {
-      const root = await findProjectRoot(process.cwd());
-      const environments = await listProjectEnvironments(root);
-      const context = await resolveProjectConfig(root);
-      if (!environments.length) throw new Error('No multi-environment configuration exists.');
-      process.stdout.write(`${context.environment}\n`);
-    });
+    .action(runEnvironmentCurrent);
 
   environment
     .command('list')
-    .action(async () => {
-      const root = await findProjectRoot(process.cwd());
-      const environments = await listProjectEnvironments(root);
-      process.stdout.write(`${environments.join('\n')}${environments.length ? '\n' : ''}`);
-    });
+    .action(runEnvironmentList);
 
   program.addCommand(environment);
 }

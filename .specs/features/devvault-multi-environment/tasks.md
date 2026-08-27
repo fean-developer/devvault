@@ -253,13 +253,27 @@ Next Task: T6
 **Gate**: quick
 **Done When**:
 
-- [ ] `environment set <name>` works before config creation.
-- [ ] `current` reports `NOT_SELECTED`, `SELECTED` or `CONFIGURED`.
-- [ ] `list` marks selected-but-unconfigured context.
-- [ ] No environment command starts infrastructure or authenticates.
-- [ ] Quick gate passes.
-**Evidence**: Command tests and captured output from the real command boundary.
+- [x] `environment set <name>` works before config creation.
+- [x] `current` reports `NOT_SELECTED`, `SELECTED` or `CONFIGURED`.
+- [x] `list` marks selected-but-unconfigured context.
+- [x] No environment command starts infrastructure or authenticates.
+- [x] Quick gate passes.
+**Evidence**: `apps/cli/src/commands/environment.test.ts` covers pre-init selection, state output, ancestor containment and selected-only listing. Quick gate: 11 test files and 65 tests passed.
 **Commit**: `feat(cli): expose persistent environment context states`
+
+## TASK RESULT
+
+Task: T6
+Status: PASS
+Requirements: ENV-005, ENV-006, ENV-007, ENV-031, ENV-032, ENV-033, ENV-038, ENV-040
+Design References: `Command Integration`, `State Transition Model`
+Invariants: INV-006, INV-008, INV-018, INV-019, INV-026
+Files Changed: `apps/cli/src/commands/environment.ts`, `apps/cli/src/commands/environment.test.ts`
+Tests: 11 files, 65 tests passed in Quick gate
+Gate: quick - PASS
+Evidence: environment commands use the central config resolver, support pre-init selection, report context states and do not invoke Vault/lifecycle/authentication.
+Commit: `feat(cli): expose persistent environment context states` (pending)
+Next Task: T7
 
 ### T7: Make init-project resolve active or explicit target
 
