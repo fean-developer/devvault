@@ -113,13 +113,27 @@ Next Task: T2
 **Gate**: security
 **Done When**:
 
-- [ ] Context persists only approved environment metadata.
-- [ ] Unknown and credential-like fields are rejected.
-- [ ] Writes are atomic and contained by the selected project root.
-- [ ] Corrupt context fails without guessing.
-- [ ] Security gate passes.
-**Evidence**: Context file assertions, filesystem tests, and security test output with no token/secret content.
+- [x] Context persists only approved environment metadata.
+- [x] Unknown and credential-like fields are rejected.
+- [x] Writes are atomic and contained by the selected project root.
+- [x] Corrupt context fails without guessing.
+- [x] Security gate passes.
+**Evidence**: `packages/config/src/index.test.ts` covers strict metadata, corrupted context, atomic temporary-file cleanup and idempotent `.gitignore`. Security gate: 10 test files and 59 tests passed.
 **Commit**: `feat(config): harden active environment context persistence`
+
+## TASK RESULT
+
+Task: T2
+Status: PASS
+Requirements: ENV-005, ENV-019, ENV-025, ENV-030, ENV-038
+Design References: `Context Persistence Design`
+Invariants: INV-001, INV-002, INV-003, INV-004, INV-005, INV-011, INV-018, INV-019, INV-026
+Files Changed: `packages/config/src/index.ts`, `packages/config/src/index.test.ts`
+Tests: 10 files, 59 tests passed in Security gate
+Gate: security - PASS
+Evidence: strict context schema, corruption rejection, atomic temporary-file cleanup and idempotent `.gitignore` assertions pass; existing setup test output reports an expected environment blocker but the test suite is green.
+Commit: `feat(config): harden active environment context persistence` (pending)
+Next Task: T3
 
 ### T3: Add environment state classification
 

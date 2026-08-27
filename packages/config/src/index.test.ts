@@ -117,6 +117,37 @@ describe('projectConfigSchema', () => {
     await expect(findProjectRoot(nested, true)).rejects.toThrow('Project root is ambiguous');
   });
 
+  it('rejects corrupted active context instead of selecting a guessed environment', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'devvault-context-corrupt-'));
+    await mkdir(join(root, 'environments', 'development'), { recursive: true });
+    await writeFile(join(root, 'environments', 'development', 'devvault.yaml'), [
+      'version: 1', 'project: my-api', 'environment: development', 'vault:', '  mount: secret', '  path: projects/my-api/development', 'runtime:', '  mappings: {}',
+    ].join('\n'));
+    await mkdir(join(root, '.devvault'), { recursive: true });
+    await writeFile(join(root, '.devvault/context.json'), '{"environment":"development","token":"must-not-be-accepted"}\n');
+
+    await expect(resolveProjectConfig(root)).rejects.toThrow('Active environment context is invalid.');
+  });
+
+  it('writes only the strict context schema and leaves no temporary context file', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'devvault-context-write-'));
+
+    await setActiveEnvironment(root, 'development');
+
+    await expect(readFile(join(root, '.devvault/context.json'), 'utf8')).resolves.toBe('{\n  "environment": "development"\n}\n');
+    await expect(readFile(join(root, '.devvault/context.json.tmp'), 'utf8')).rejects.toThrow();
+  });
+
+  it('adds the context directory to gitignore idempotently', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'devvault-gitignore-'));
+
+    await setActiveEnvironment(root, 'development');
+    await setActiveEnvironment(root, 'production');
+
+    const contents = await readFile(join(root, '.gitignore'), 'utf8');
+    expect(contents.split(/\r?\n/).filter((line) => line === '.devvault/')).toHaveLength(1);
+  });
+
   it('resolves explicit environment before active context without changing context', async () => {
     const root = await mkdtemp(join(tmpdir(), 'devvault-environments-'));
     for (const environment of ['development', 'production']) {

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { access, mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
+import { access, mkdir, readFile, readdir, rename, unlink, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { parse as parseYaml } from 'yaml';
 
@@ -41,6 +41,7 @@ export interface ProjectEnvironmentContext {
 }
 
 const environmentNameSchema = z.string().regex(/^[a-z0-9][a-z0-9-]*$/);
+const activeContextSchema = z.strictObject({ environment: environmentNameSchema });
 
 export function parseProjectConfig(input: unknown): ProjectConfig {
   return projectConfigSchema.parse(input);
@@ -95,11 +96,16 @@ export async function listProjectEnvironments(projectRoot: string): Promise<stri
 }
 
 async function readActiveEnvironment(projectRoot: string): Promise<string | null> {
+  let contents: string;
   try {
-    const context = JSON.parse(await readFile(join(projectRoot, '.devvault/context.json'), 'utf8')) as { environment?: unknown };
-    return environmentNameSchema.parse(context.environment);
+    contents = await readFile(join(projectRoot, '.devvault/context.json'), 'utf8');
   } catch {
     return null;
+  }
+  try {
+    return activeContextSchema.parse(JSON.parse(contents)).environment;
+  } catch {
+    throw new Error('Active environment context is invalid.');
   }
 }
 
@@ -108,8 +114,12 @@ export async function setActiveEnvironment(projectRoot: string, environment: str
   const directory = join(projectRoot, '.devvault');
   await mkdir(directory, { recursive: true });
   const temporary = join(directory, 'context.json.tmp');
-  await writeFile(temporary, `${JSON.stringify({ environment: name }, null, 2)}\n`, { mode: 0o600 });
-  await rename(temporary, join(directory, 'context.json'));
+  try {
+    await writeFile(temporary, `${JSON.stringify({ environment: name }, null, 2)}\n`, { mode: 0o600 });
+    await rename(temporary, join(directory, 'context.json'));
+  } finally {
+    try { await unlink(temporary); } catch { }
+  }
   const gitignore = join(projectRoot, '.gitignore');
   let contents = '';
   try { contents = await readFile(gitignore, 'utf8'); } catch { /* create below */ }
