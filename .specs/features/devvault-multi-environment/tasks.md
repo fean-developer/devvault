@@ -206,23 +206,39 @@ Next Task: T5
 
 ### T5: Define configuration-required resolution guard
 
-**What**: Add the application/configuration guard that converts unresolved or selected-only context into domain errors before secret/runtime Vault access, while allowing diagnostic partial results.
+**What**: Add the configuration-boundary guard that prevents unresolved or selected-only context from reaching `ProjectApplicationService` or Vault, while preserving `ProjectConfigLoader.load() -> ProjectConfig` for configured flows.
 **Why**: Enforces `CONFIGURED` as the prerequisite for `secret` and `run` without forcing `status`, `doctor` or context commands to require configuration.
-**Where**: `packages/core/src/application.ts`
+**Where**: `apps/cli/src/application-adapters.ts`
 **Depends on**: T4
 **Requirements**: ENV-011, ENV-012, ENV-013, ENV-014, ENV-015, ENV-026, ENV-027, ENV-034, ENV-039, ENV-040
 **Design References**: Design sections `Environment Resolver Model`, `Command Integration`, `Error Model`, `Security Enforcement`
 **Invariants**: INV-006, INV-007, INV-012, INV-013, INV-014, INV-015, INV-018, INV-020, INV-026
-**Tests**: Unit/integration tests in `packages/core/src/application.test.ts` proving selected-only context blocks secret/runtime operations before Vault and diagnostic mode remains available.
+**Tests**: Unit/integration tests in `apps/cli/src/application-adapters.test.ts` and existing application tests proving selected-only, not-selected and invalid context block before `ProjectApplicationService` and Vault; configured context continues normally.
 **Gate**: quick
 **Done When**:
 
-- [ ] Secret/runtime callers cannot receive an unconfigured `ProjectConfig`.
-- [ ] Selected-only context maps to `ENVIRONMENT_NOT_CONFIGURED`.
-- [ ] Diagnostic consumers can receive partial context without secret access.
-- [ ] Quick gate passes.
-**Evidence**: Application boundary tests with zero Vault calls and domain error assertions.
+- [x] Secret/runtime callers cannot invoke `ProjectApplicationService` or Vault with an unconfigured context.
+- [x] Selected-only context maps to `ENVIRONMENT_NOT_CONFIGURED`.
+- [x] Not-selected and invalid contexts map to their domain errors before application invocation.
+- [x] Configured context continues through the existing `ProjectApplicationService` contract.
+- [x] Secret and run use the same configuration boundary without command-local guards.
+- [x] Quick gate passes.
+**Evidence**: `apps/cli/src/application-adapters.test.ts` proves zero Vault calls for `NOT_SELECTED`, `SELECTED` and invalid contexts, and configured context reaches the existing application contract. Quick gate: 10 test files and 61 tests passed.
 **Commit**: `feat(core): guard operations on configured environments`
+
+## TASK RESULT
+
+Task: T5
+Status: PASS
+Requirements: ENV-011, ENV-012, ENV-013, ENV-014, ENV-015, ENV-026, ENV-027, ENV-034, ENV-039, ENV-040
+Design References: `Environment Resolver Model`, `Command Integration`, `Error Model`, `Security Enforcement`
+Invariants: INV-006, INV-007, INV-012, INV-013, INV-014, INV-015, INV-018, INV-020, INV-026
+Files Changed: `apps/cli/src/application-adapters.ts`, `apps/cli/src/application-adapters.test.ts`
+Tests: 10 files, 61 tests passed in Quick gate
+Gate: quick - PASS
+Evidence: adapter boundary uses the central config resolver; negative contexts fail before application/Vault invocation, and configured context preserves `ProjectConfigLoader -> ProjectConfig`.
+Commit: `feat(core): guard operations on configured environments` (pending)
+Next Task: T6
 
 ### T6: Refine environment context commands
 
