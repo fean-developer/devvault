@@ -46,21 +46,34 @@ export function parseProjectConfig(input: unknown): ProjectConfig {
   return projectConfigSchema.parse(input);
 }
 
-export async function findProjectRoot(startDirectory: string): Promise<string> {
+export async function findProjectRoot(startDirectory: string, allowCandidateRoot = false): Promise<string> {
   let directory = startDirectory;
+  let currentHasMarker = false;
 
   while (true) {
     const candidates = [join(directory, 'environments'), join(directory, 'devvault.yaml'), join(directory, '.devvault')];
+    let hasMarker = false;
     try {
       await Promise.any(candidates.map((candidate) => access(candidate)));
-      return directory;
+      hasMarker = true;
     } catch {
-      const parent = dirname(directory);
-      if (parent === directory) {
-        throw new Error('Could not find devvault.yaml from the current directory.');
-      }
-      directory = parent;
+      hasMarker = false;
     }
+    if (hasMarker) {
+      if (allowCandidateRoot && directory === startDirectory) {
+        currentHasMarker = true;
+      } else if (allowCandidateRoot && currentHasMarker) {
+        throw new Error('Project root is ambiguous between the current directory and an ancestor.');
+      } else {
+        return directory;
+      }
+    }
+    const parent = dirname(directory);
+    if (parent === directory) {
+      if (allowCandidateRoot) return startDirectory;
+      throw new Error('Could not find devvault.yaml from the current directory.');
+    }
+    directory = parent;
   }
 }
 

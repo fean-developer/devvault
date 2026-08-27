@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { findProjectConfig, loadProjectConfig, parseProjectConfig, resolveProjectConfig, setActiveEnvironment } from './index.js';
+import { findProjectConfig, findProjectRoot, loadProjectConfig, parseProjectConfig, resolveProjectConfig, setActiveEnvironment } from './index.js';
 
 describe('projectConfigSchema', () => {
   it('accepts non-sensitive project configuration', () => {
@@ -90,6 +90,31 @@ describe('projectConfigSchema', () => {
     const directory = await mkdtemp(join(tmpdir(), 'devvault-empty-'));
 
     await expect(findProjectConfig(directory)).rejects.toThrow('Could not find devvault.yaml');
+  });
+
+  it('uses the current directory as a candidate root only when explicitly allowed', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'devvault-candidate-'));
+
+    await expect(findProjectRoot(directory)).rejects.toThrow('Could not find devvault.yaml');
+    await expect(findProjectRoot(directory, true)).resolves.toBe(directory);
+  });
+
+  it('prefers an established DevVault ancestor over a nested candidate root', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'devvault-ancestor-'));
+    const nested = join(root, 'src', 'api');
+    await mkdir(join(root, 'environments'), { recursive: true });
+    await mkdir(nested, { recursive: true });
+
+    await expect(findProjectRoot(nested, true)).resolves.toBe(root);
+  });
+
+  it('rejects an ambiguous nested project root before persistence', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'devvault-ambiguous-'));
+    const nested = join(root, 'nested');
+    await mkdir(join(root, 'environments'), { recursive: true });
+    await mkdir(join(nested, 'environments'), { recursive: true });
+
+    await expect(findProjectRoot(nested, true)).rejects.toThrow('Project root is ambiguous');
   });
 
   it('resolves explicit environment before active context without changing context', async () => {
