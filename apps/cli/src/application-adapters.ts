@@ -1,4 +1,4 @@
-import { loadProjectConfig, resolveEnvironmentContext } from '@devvault/config';
+import { EnvironmentResolutionError, resolveEnvironmentContext, type ResolvedEnvironmentContext } from '@devvault/config';
 import { deleteSecret, getSecret, listSecretKeys, setSecret } from './secrets.js';
 import { launchProcess, resolveRuntimeEnvironment } from './runtime.js';
 import { ProjectApplicationService } from '@devvault/core';
@@ -10,10 +10,7 @@ export function createProjectApplicationService(client: HttpVaultClient): Projec
     {
       load: async (directory: string, environment?: string) => {
         const context = await resolveEnvironmentContext(directory, environment);
-        if (context.state !== 'CONFIGURED' || !context.config) {
-          throw new Error('Environment configuration is required.');
-        }
-        return context.config;
+        return requireConfiguredEnvironment(context);
       },
     },
     {
@@ -29,4 +26,16 @@ export function createProjectApplicationService(client: HttpVaultClient): Projec
       },
     },
   );
+}
+
+export function requireConfiguredEnvironment(context: ResolvedEnvironmentContext): NonNullable<ResolvedEnvironmentContext['config']> {
+  if (context.state !== 'CONFIGURED' || !context.config) {
+    const code = context.state === 'SELECTED'
+      ? 'ENVIRONMENT_NOT_CONFIGURED'
+      : context.state === 'NOT_SELECTED'
+        ? 'ENVIRONMENT_NOT_SELECTED'
+        : 'ENVIRONMENT_INVALID';
+    throw new EnvironmentResolutionError('Environment configuration is required.', code);
+  }
+  return context.config;
 }

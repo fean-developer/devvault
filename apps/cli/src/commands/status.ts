@@ -35,7 +35,7 @@ export function registerStatusCommand(program: Command, composition: ReturnTypeO
     });
 }
 
-function formatStatus(status: {
+export function formatStatus(status: {
   project?: string;
   environment?: string;
   environmentState?: string;

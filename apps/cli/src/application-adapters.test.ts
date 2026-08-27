@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { createProjectApplicationService } from './application-adapters.js';
+import { createProjectApplicationService, requireConfiguredEnvironment } from './application-adapters.js';
 import { HttpVaultClient } from '@devvault/vault-client';
 import { setActiveEnvironment } from '@devvault/config';
 
@@ -33,6 +33,22 @@ async function configuredProject(): Promise<string> {
 }
 
 describe('project application environment guard', () => {
+  it.each([
+    ['NOT_SELECTED', { projectRoot: '/project', state: 'NOT_SELECTED' as const }],
+    ['SELECTED', { projectRoot: '/project', environment: 'staging', state: 'SELECTED' as const }],
+    ['INVALID', { projectRoot: '/project', environment: 'staging', state: 'INVALID' as const }],
+  ])('rejects %s context at the application boundary', (_state, context) => {
+    expect(() => requireConfiguredEnvironment(context)).toThrow();
+  });
+
+  it('returns only configured ProjectConfig from the application boundary', async () => {
+    const root = await configuredProject();
+    await setActiveEnvironment(root, 'development');
+    const context = await (await import('@devvault/config')).resolveEnvironmentContext(root);
+
+    expect(requireConfiguredEnvironment(context)).toMatchObject({ project: 'my-api', environment: 'development' });
+  });
+
   it.each([
     ['not selected', async () => mkdtemp(join(tmpdir(), 'devvault-not-selected-'))],
     ['selected', async () => {

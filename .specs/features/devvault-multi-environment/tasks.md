@@ -223,7 +223,7 @@ Next Task: T5
 - [x] Configured context continues through the existing `ProjectApplicationService` contract.
 - [x] Secret and run use the same configuration boundary without command-local guards.
 - [x] Quick gate passes.
-**Evidence**: `apps/cli/src/application-adapters.test.ts` proves zero Vault calls for `NOT_SELECTED`, `SELECTED` and invalid contexts, and configured context reaches the existing application contract. Quick gate: 10 test files and 61 tests passed.
+**Evidence**: `apps/cli/src/application-adapters.test.ts` proves zero Vault calls for `NOT_SELECTED`, `SELECTED` and invalid contexts, and configured context reaches the existing application contract. Direct state assertions discriminate removal of the configured guard. Quick gate: 10 test files and 61 tests passed.
 **Commit**: `feat(core): guard operations on configured environments`
 
 ## TASK RESULT
@@ -399,7 +399,7 @@ Next Task: T10
 - [x] Explicit override leaves active context unchanged.
 - [x] All negative and security scenarios have executable assertions.
 - [x] Full test, lint, typecheck and build gate passes.
-**Evidence**: `tests/e2e/devvault-environment-context.test.ts` executes the compiled CLI through selection, init-project, current/list, secret list, switching and override; selected-only flow asserts zero Vault requests. Final gate: 44 test files and 199 tests passed, lint/typecheck/build passed.
+**Evidence**: `tests/e2e/devvault-environment-context.test.ts` executes the compiled CLI through selection, init-project, current/list, secret list, switching and override; selected-only flow asserts zero Vault requests. Additional protected, legacy and status/doctor evidence is in `apps/cli/src/commands/secret.test.ts`, `packages/config/src/index.test.ts`, `apps/cli/src/commands/status.test.ts` and `apps/cli/src/diagnostics.test.ts`. Final gate: 44 test files and 199 tests passed, lint/typecheck/build passed.
 **Commit**: `test(e2e): verify environment context workflows and isolation`
 
 ## TASK RESULT
@@ -409,11 +409,11 @@ Status: PASS
 Requirements: ENV-001, ENV-002, ENV-003, ENV-004, ENV-007, ENV-008, ENV-009, ENV-014, ENV-015, ENV-017, ENV-018, ENV-020, ENV-021, ENV-022, ENV-023, ENV-024, ENV-025, ENV-026, ENV-027, ENV-028, ENV-029, ENV-030, ENV-031, ENV-032, ENV-033, ENV-034, ENV-035, ENV-036, ENV-037, ENV-038, ENV-039, ENV-040
 Design References: `Testing Design`, `Backward Compatibility`, `Security Enforcement`, `First-Time Flow`, `Selected but Not Configured`, `Explicit Override`
 Invariants: INV-001, INV-002, INV-003, INV-004, INV-005, INV-006, INV-012, INV-013, INV-014, INV-015, INV-018, INV-019, INV-020, INV-021, INV-022, INV-024, INV-025, INV-026, INV-SETUP-001, INV-SETUP-004, INV-SETUP-009, INV-SETUP-012
-Files Changed: `tests/e2e/devvault-environment-context.test.ts`, `apps/cli/src/commands/environment.ts`, `package.json`, `apps/cli/package.json`, `CHANGELOG.md`
-Tests: 44 files, 199 tests passed in final Build gate
+Files Changed: `tests/e2e/devvault-environment-context.test.ts`, `apps/cli/src/commands/environment.ts`, `apps/cli/src/application-adapters.ts`, `apps/cli/src/application-adapters.test.ts`, `apps/cli/src/commands/secret.test.ts`, `apps/cli/src/commands/status.ts`, `apps/cli/src/commands/status.test.ts`, `apps/cli/src/diagnostics.test.ts`, `packages/config/src/index.test.ts`, `package.json`, `apps/cli/package.json`, `CHANGELOG.md`
+Tests: 46 files, 210 tests passed in final verification gate
 Gate: build - PASS; lint PASS; typecheck PASS; build PASS
-Evidence: compiled production CLI E2E covers first-time flow, environment switching, secret list against a local TCP Vault stub, explicit non-persistent override and selected-only zero-request blocking. Version `1.0.9` and changelog entry included.
-Commit: `d320ae8` - `test(e2e): verify environment context workflows and isolation`
+Evidence: compiled production CLI E2E covers first-time flow, environment switching, secret list against a local TCP Vault stub, explicit non-persistent override and selected-only zero-request blocking. Additional focused assertions cover the application guard, protected operations, legacy resolution, status output and credential-free diagnostics. Version `1.0.10` and changelog entry included.
+Commit: `d320ae8` - `test(e2e): verify environment context workflows and isolation`; follow-up verification fix pending
 Next Task: Environment Verification Gate
 
 ## Phase Execution Map

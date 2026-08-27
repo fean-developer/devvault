@@ -203,4 +203,25 @@ describe('projectConfigSchema', () => {
 
     await expect(resolveProjectConfig(root)).rejects.toThrow('No environment selected.');
   });
+
+  it('loads legacy configuration without merging it with a new model', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'devvault-legacy-'));
+    await writeFile(join(root, 'devvault.yaml'), [
+      'version: 1', 'project: legacy-api', 'environment: development', 'vault:', '  mount: secret', '  path: projects/legacy-api/development', 'runtime:', '  mappings: {}',
+    ].join('\n'));
+
+    await expect(resolveProjectConfig(root)).resolves.toMatchObject({
+      environment: 'development',
+      config: { project: 'legacy-api' },
+    });
+  });
+
+  it('rejects explicit alternate environments for legacy configuration', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'devvault-legacy-explicit-'));
+    await writeFile(join(root, 'devvault.yaml'), [
+      'version: 1', 'project: legacy-api', 'environment: development', 'vault:', '  mount: secret', '  path: projects/legacy-api/development', 'runtime:', '  mappings: {}',
+    ].join('\n'));
+
+    await expect(resolveProjectConfig(root, 'production')).rejects.toMatchObject({ code: 'ENVIRONMENT_INVALID' });
+  });
 });

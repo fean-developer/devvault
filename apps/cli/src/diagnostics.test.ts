@@ -80,4 +80,18 @@ describe('doctor diagnostics', () => {
     ]));
     expect(report.lifecycle).toBe('unsealed');
   });
+
+  it('keeps diagnostic JSON free of credentials while exposing environment state', async () => {
+    const report = await createDoctorReport('/project', {
+      health: async () => ({ initialized: true, sealed: false }),
+    }, async () => { throw new Error('not configured'); }, undefined, undefined, async () => ({
+      projectRoot: '/project',
+      environment: 'staging',
+      state: 'SELECTED',
+    }));
+    const output = JSON.stringify(report);
+
+    expect(output).toContain('"environmentState":"SELECTED"');
+    expect(output).not.toMatch(/token|password|secret-value/i);
+  });
 });
