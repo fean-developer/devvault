@@ -7,7 +7,9 @@ describe('status environment context output', () => {
       project: 'my-project',
       environment: 'staging',
       environmentState: 'SELECTED',
-      vault: { address: 'http://127.0.0.1:8200', reachable: true, initialized: true, sealed: false },
+      configured: false,
+      configuration: 'NOT_FOUND',
+      vault: { address: 'http://127.0.0.1:8200', reachable: true, initialized: true, sealed: false, lifecycle: 'READY' },
     });
 
     expect(output).toContain('Project: my-project');

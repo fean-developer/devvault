@@ -17,8 +17,17 @@ export interface DiagnosticCheck {
 
 export interface DoctorReport {
   checks: DiagnosticCheck[];
+  projectRoot?: string;
   project?: { name: string; environment: string; protected: boolean };
+  environment?: string | null;
   environmentState?: EnvironmentContextState;
+  configured?: boolean;
+  configPath?: string;
+  configValid?: boolean;
+  configuration: 'FOUND' | 'NOT_FOUND' | 'INVALID';
+  blockers: string[];
+  warnings: string[];
+  remediation?: string;
   lifecycle?: VaultLifecycleState;
   platform?: PlatformInfo;
   docker?: DockerDiagnostics;
@@ -46,23 +55,52 @@ export async function createDoctorReport(
   let health: VaultHealth | undefined;
   let authorized = false;
   let environmentState: EnvironmentContextState | undefined;
+  let projectRoot: string | undefined;
+    let resolvedEnvironment: string | null = null;
+  let configPath: string | undefined;
+  let configValid = false;
+  const blockers: string[] = [];
+  const warnings: string[] = [];
+    let remediation: string | undefined;
+  let contextResolved = false;
 
   try {
     const resolved = await contextLoader(directory, environment);
+    contextResolved = true;
+    projectRoot = resolved.projectRoot;
+      resolvedEnvironment = resolved.environment ?? null;
     environmentState = resolved.state;
+    configPath = resolved.configPath;
+    configValid = resolved.state === 'CONFIGURED';
     if (resolved.config) project = { name: resolved.config.project, environment: resolved.config.environment, protected: resolved.config.protected === true };
     if (resolved.state === 'SELECTED' && resolved.environment) {
-      checks.push({ name: 'Environment configuration', ok: false, detail: `Environment '${resolved.environment}' is selected but not configured. Run: devvault init-project` });
+      const detail = `Environment '${resolved.environment}' is selected but not configured. Run: devvault init-project`;
+      checks.push({ name: 'Environment configuration', ok: false, detail });
+      blockers.push(detail);
+      remediation = 'init-project';
     }
-  } catch {
+    if (resolved.state === 'INVALID') {
+      const detail = 'Environment configuration is invalid.';
+      checks.push({ name: 'Project configuration', ok: false, detail });
+      blockers.push(detail);
+    }
+  } catch (error) {
     environmentState = 'INVALID';
+    configValid = false;
+    const detail = error instanceof Error ? error.message : 'Environment configuration is invalid.';
+    blockers.push(detail);
+    checks.push({ name: 'Project configuration', ok: false, detail });
   }
 
-  if (!project) try {
+  const shouldLoadLegacyConfig = !project && (!contextResolved || (environmentState === 'NOT_SELECTED' && configLoader !== loadConfigForDiagnostics));
+  if (shouldLoadLegacyConfig) try {
     const config = await configLoader(directory, environment);
     project = { name: config.project, environment: config.environment, protected: config.protected === true };
+    if (!environmentState || environmentState === 'NOT_SELECTED') environmentState = 'CONFIGURED';
+    configValid = true;
     checks.push({ name: 'Project configuration', ok: true });
   } catch (error) {
+    if (!blockers.length) blockers.push(error instanceof Error ? error.message : 'Project configuration is invalid.');
     checks.push({
       name: 'Project configuration',
       ok: false,
@@ -95,6 +133,7 @@ export async function createDoctorReport(
     checks.push({ name: 'Vault initialized', ok: health.initialized });
     checks.push({ name: 'Vault unsealed', ok: !health.sealed });
   } catch (error) {
+    warnings.push(error instanceof Error ? error.message : 'Vault is unavailable.');
     checks.push({
       name: 'Vault reachable',
       ok: false,
@@ -112,8 +151,17 @@ export async function createDoctorReport(
   });
   return {
     checks,
-    lifecycle: lifecycle.state,
+    ...(projectRoot ? { projectRoot } : {}),
+      environment: resolvedEnvironment,
     ...(environmentState ? { environmentState } : {}),
+    configured: configValid,
+    ...(configPath ? { configPath } : {}),
+    configValid,
+    configuration: configValid ? 'FOUND' : environmentState === 'INVALID' ? 'INVALID' : 'NOT_FOUND',
+    blockers,
+    warnings,
+    ...(remediation ? { remediation } : {}),
+    lifecycle: lifecycle.state,
     ...(project ? { project } : {}),
     ...(context?.platform ? { platform: context.platform } : {}),
     ...(context?.docker ? { docker: context.docker } : {}),

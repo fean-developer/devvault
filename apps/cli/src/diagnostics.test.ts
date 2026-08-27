@@ -19,6 +19,8 @@ describe('doctor diagnostics', () => {
 
     expect(reportHasFailures(report)).toBe(false);
     expect(report.lifecycle).toBe('ready');
+    expect(report.environmentState).toBe('CONFIGURED');
+    expect(report.configuration).toBe('FOUND');
     expect(output).toContain('Vault reachable');
     expect(output).toContain('Project: my-api');
     expect(output).not.toContain('password');
@@ -30,8 +32,11 @@ describe('doctor diagnostics', () => {
         throw new Error('Vault is unavailable.');
       },
     }, async () => {
-      throw new Error('Could not find devvault.yaml from the current directory.');
-    });
+      throw new Error('Project configuration is invalid.');
+    }, undefined, undefined, async () => ({
+      projectRoot: '/project',
+      state: 'INVALID',
+    }));
 
     expect(reportHasFailures(report)).toBe(true);
     expect(report.checks).toEqual(expect.arrayContaining([
@@ -39,6 +44,7 @@ describe('doctor diagnostics', () => {
       expect.objectContaining({ name: 'Vault reachable', ok: false }),
     ]));
     expect(report.lifecycle).toBe('unavailable');
+    expect(report.configuration).toBe('INVALID');
   });
 
   it('reports missing project read capability', async () => {
@@ -74,6 +80,9 @@ describe('doctor diagnostics', () => {
     }));
 
     expect(report.environmentState).toBe('SELECTED');
+    expect(report.configured).toBe(false);
+    expect(report.configuration).toBe('NOT_FOUND');
+    expect(report.remediation).toBe('init-project');
     expect(report.checks).toEqual(expect.arrayContaining([
       expect.objectContaining({ name: 'Environment configuration', ok: false }),
       expect.objectContaining({ name: 'Vault reachable', ok: true }),
@@ -93,5 +102,21 @@ describe('doctor diagnostics', () => {
 
     expect(output).toContain('"environmentState":"SELECTED"');
     expect(output).not.toMatch(/token|password|secret-value/i);
+  });
+
+  it.each([
+    ['NOT_SELECTED', { projectRoot: '/project', state: 'NOT_SELECTED' as const }],
+    ['SELECTED', { projectRoot: '/project', environment: 'staging', state: 'SELECTED' as const }],
+    ['CONFIGURED', { projectRoot: '/project', environment: 'development', state: 'CONFIGURED' as const, config }],
+    ['INVALID', { projectRoot: '/project', environment: 'development', state: 'INVALID' as const }],
+  ])('serializes the %s environment state without sensitive fields', async (_state, context) => {
+    const report = await createDoctorReport('/project', {
+      health: async () => ({ initialized: true, sealed: false }),
+    }, async () => context.state === 'CONFIGURED' ? config : Promise.reject(new Error('Environment configuration is unavailable.')), undefined, undefined, async () => context);
+    const output = JSON.stringify(report);
+
+    expect(report.environmentState).toBe(context.state);
+    expect(report.configured).toBe(context.state === 'CONFIGURED');
+    expect(output).not.toMatch(/token|password|secret-value|authorization|unseal-key/i);
   });
 });

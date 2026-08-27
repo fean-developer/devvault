@@ -1,4 +1,8 @@
 # Changelog
+## [1.0.13] - 2026-08-27
+
+- Completed status and doctor JSON diagnostics for environment state, configuration and remediation metadata.
+
 ## [1.0.12] - 2026-08-27
 
 - Added protected `secret set` consent coverage, including denied writes and explicit `--yes` authorization.

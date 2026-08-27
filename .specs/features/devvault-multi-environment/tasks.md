@@ -629,6 +629,38 @@ Remediation: T-ENV-REM-03 adds real CLI child-process, mapping, path and non-per
 Status: PASS
 Evidence: focused runtime/config/E2E tests, lint, typecheck and build passed. Baseline E2E passed 3/3. Wrong-environment runtime mutation, persisted override mutation and wrong Vault path mutation were all KILLED in isolated scratch worktrees; real tree remained unchanged.
 
+## Remediation Task: Diagnostics JSON Completeness
+
+### T-ENV-REM-04: Complete diagnostics JSON context
+
+**What**: Add complete, sanitized Environment Context DTOs and real CLI evidence for `status --json` and `doctor --json` across all environment states.
+**Why**: Previous Verification: FAIL. Finding: diagnostics JSON did not completely represent environment state, configuration, lifecycle and remediation metadata.
+**Where**: `apps/cli/src/commands/status.ts`, `apps/cli/src/diagnostics.ts`, `tests/e2e/devvault-environment-context.test.ts`
+**Depends on**: T10
+**Requirements**: ENV-020, ENV-021, ENV-040
+**Design References**: `Command Integration`, `Security Enforcement`, `Testing Design`
+**Invariants**: INV-004, INV-005, INV-014, INV-018, INV-020, INV-026
+**Tests**: `corepack pnpm exec vitest run apps/cli/src/commands/status.test.ts apps/cli/src/diagnostics.test.ts tests/e2e/devvault-environment-context.test.ts`
+**Gate**: full
+**Done When**:
+
+- [x] Status JSON represents `NOT_SELECTED`, `SELECTED`, `CONFIGURED` and `INVALID` without conflating lifecycle states.
+- [x] Doctor JSON includes project root, environment, state, configuration validity, protected metadata, blockers, warnings and remediation when known.
+- [x] Real CLI proves `SELECTED -> CONFIGURED` through status/doctor JSON.
+- [x] Human/JSON state representation is consistent.
+- [x] Sensitive nested fields are absent.
+- [x] Diagnostics state and sensitive-field mutations are killed.
+**Evidence**: Focused tests passed 15/15; lint, typecheck and build passed. Mutation forcing/omitting environment state failed 9 tests, and mutation adding `token` to diagnostic JSON failed 6 tests; both exit code 1 and verdict KILLED in isolated scratch.
+**Commit**: `b7780f7` - `test(environment): complete diagnostics JSON context`
+
+## Diagnostics JSON Remediation Result
+
+Previous Verification: FAIL
+Finding: diagnostics JSON incomplete.
+Remediation: T-ENV-REM-04 adds complete status/doctor DTOs, real CLI transition evidence and sensitive-field assertions.
+Status: PASS
+Evidence: focused diagnostics tests and E2E passed; environment-state and sensitive-field mutations were KILLED; scratch was removed and the real tree remained intact.
+
 ## Tasks Gate
 
 The task plan covers all 40 requirements, includes test/evidence/gate fields for every task, contains no forward-phase dependency and keeps security tests executable.

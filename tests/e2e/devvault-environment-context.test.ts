@@ -15,6 +15,14 @@ async function runCli(cwd: string, args: string[], env: NodeJS.ProcessEnv = {}) 
   });
 }
 
+async function runDiagnosticCli(cwd: string, args: string[], env: NodeJS.ProcessEnv = {}) {
+  try {
+    return await runCli(cwd, args, env);
+  } catch (error) {
+    return error as { stdout: string; stderr: string };
+  }
+}
+
 function startVaultStub() {
   let requests = 0;
   const paths: string[] = [];
@@ -26,12 +34,14 @@ function startVaultStub() {
       paths.push(requestPath);
       const response = requestPath.includes('/metadata/')
         ? JSON.stringify({ data: { keys: ['database'] } })
+          : requestPath.includes('/sys/health')
+            ? JSON.stringify({ initialized: true, sealed: false })
           : requestPath.includes('/data/') && requestPath.includes('/development')
           ? JSON.stringify({ data: { data: { database: { username: 'dev-user', password: 'dev-password-marker' }, api: { key: 'dev-api-marker' } } } })
             : requestPath.includes('/data/') && requestPath.includes('/production')
             ? JSON.stringify({ data: { data: { database: { username: 'prod-user', password: 'prod-password-marker' }, api: { key: 'prod-api-marker' } } } })
             : '{}';
-      const status = requestPath.includes('/metadata/') || requestPath.includes('/data/') ? '200 OK' : '404 Not Found';
+      const status = requestPath.includes('/metadata/') || requestPath.includes('/data/') || requestPath.includes('/sys/health') ? '200 OK' : '404 Not Found';
       socket.end(`HTTP/1.1 ${status}\r\nContent-Type: application/json\r\nContent-Length: ${Buffer.byteLength(response)}\r\nConnection: close\r\n\r\n${response}`);
     });
   });
@@ -130,6 +140,56 @@ describe('real CLI environment context flow', () => {
       const paths = vault.paths();
       expect(paths.filter((path) => path.includes(`/data/projects/${project}/development`))).toHaveLength(1);
       expect(paths.filter((path) => path.includes(`/data/projects/${project}/production`))).toHaveLength(2);
+    } finally {
+      await vault.close();
+    }
+  });
+
+  it('reports selected and configured environment states through real status JSON', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'devvault-real-status-'));
+    const vault = await startVaultStub();
+    const project = basename(root).toLowerCase().replace(/[^a-z0-9-]/g, '-');
+    try {
+      await runCli(root, ['environment', 'set', 'staging']);
+      const selected = await runCli(root, ['status', '--json'], { VAULT_ADDR: vault.address });
+      const selectedReport = JSON.parse(selected.stdout) as Record<string, unknown>;
+      expect(selectedReport.environment).toBe('staging');
+      expect(selectedReport.environmentState).toBe('SELECTED');
+      expect(selectedReport.configured).toBe(false);
+      expect(selectedReport.configuration).toBe('NOT_FOUND');
+      expect(selectedReport.vault).toMatchObject({ reachable: true, lifecycle: 'READY' });
+      expect(selected.stdout).not.toMatch(/token|password|secret-value|authorization/i);
+      const selectedDoctor = await runDiagnosticCli(root, ['doctor', '--json'], { VAULT_ADDR: vault.address });
+      const selectedDoctorReport = JSON.parse(selectedDoctor.stdout) as Record<string, unknown>;
+      expect(selectedDoctorReport).toMatchObject({
+        projectRoot: root,
+        environment: 'staging',
+        environmentState: 'SELECTED',
+        configured: false,
+        configuration: 'NOT_FOUND',
+        remediation: 'init-project',
+      });
+      expect(selectedDoctor.stdout).not.toMatch(/token|password|secret-value|authorization/i);
+
+      await runCli(root, ['init-project']);
+      const configured = await runCli(root, ['status', '--json'], { VAULT_ADDR: vault.address });
+      const configuredReport = JSON.parse(configured.stdout) as Record<string, unknown>;
+      expect(configuredReport.environmentState).toBe('CONFIGURED');
+      expect(configuredReport.configured).toBe(true);
+      expect(configuredReport.configuration).toBe('FOUND');
+      expect(configuredReport.protected).toBe(false);
+      expect(configured.stdout).not.toMatch(/token|password|secret-value|authorization/i);
+      const configuredDoctor = await runDiagnosticCli(root, ['doctor', '--json'], { VAULT_ADDR: vault.address });
+      const configuredDoctorReport = JSON.parse(configuredDoctor.stdout) as Record<string, unknown>;
+      expect(configuredDoctorReport).toMatchObject({
+        projectRoot: root,
+        environment: 'staging',
+        environmentState: 'CONFIGURED',
+        configured: true,
+        configuration: 'FOUND',
+        project: { name: project, environment: 'staging', protected: false },
+      });
+      expect(configuredDoctor.stdout).not.toMatch(/token|password|secret-value|authorization/i);
     } finally {
       await vault.close();
     }
