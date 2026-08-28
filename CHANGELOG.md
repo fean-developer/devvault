@@ -1,4 +1,16 @@
 # Changelog
+## [1.0.33] - 2026-08-28
+
+- Completed Session/Auth mutation verification evidence for credential isolation, guard enforcement, identity continuity and logout cleanup.
+
+## [1.0.32] - 2026-08-28
+
+- Strengthened secret and runtime identity-continuity evidence to detect credential swaps after session validation.
+
+## [1.0.31] - 2026-08-28
+
+- Strengthened missing-session evidence to prevent VAULT_TOKEN from bypassing human login.
+
 ## [1.0.30] - 2026-08-28
 
 - Added production composition evidence that human Vault operations use the stored developer session instead of VAULT_TOKEN.

@@ -720,10 +720,10 @@ T14 -> T15
 
 **Done when**:
 
-- [ ] All critical mutations are killed and recorded.
-- [ ] `corepack pnpm test`, `lint`, `typecheck` and `build` pass.
-- [ ] `validate_spec` and `validate_tasks --strict` pass with zero errors/warnings.
-- [ ] Independent Session/Auth Verification Gate is prepared; no false completion claim is made.
+- [x] All critical mutations are killed and recorded.
+- [x] `corepack pnpm test`, `lint`, `typecheck` and `build` pass.
+- [x] `validate_spec` and `validate_tasks --strict` pass with zero errors/warnings.
+- [x] Independent Session/Auth Verification Gate is prepared; no false completion claim is made.
 
 **Tests**: e2e and security
 

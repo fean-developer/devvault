@@ -84,6 +84,10 @@ describe('real CLI environment context flow', () => {
       await expect(runCli(root, ['secret', 'list'], { VAULT_ADDR: vault.address, VAULT_TOKEN: 'administrative-token' })).resolves.toMatchObject({ stdout: 'database\n' });
       expect(vault.tokens()).toContain('e2e-developer-token');
       expect(vault.tokens()).not.toContain('administrative-token');
+      expect(vault.tokens()).not.toContain('swapped-secret-token');
+      await expect(runCli(root, ['run', '--', process.execPath, '-e', 'process.exit(0)'], { VAULT_ADDR: vault.address, VAULT_TOKEN: 'administrative-token' })).resolves.toMatchObject({ stdout: '' });
+      expect(vault.tokens()).not.toContain('administrative-token');
+      expect(vault.tokens()).not.toContain('swapped-run-token');
     } finally {
       await clearSession();
       await vault.close();
