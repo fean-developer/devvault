@@ -1,4 +1,8 @@
 # Changelog
+## [1.0.20] - 2026-08-28
+
+- Added secure login orchestration with metadata normalization and failed-login session preservation.
+
 ## [1.0.19] - 2026-08-28
 
 - Added centralized developer session resolution with remote validation and explicit non-authenticated state mapping.

@@ -368,9 +368,9 @@ T14 -> T15
 
 **Done when**:
 
-- [ ] Successful login replaces the session only after persistence succeeds.
-- [ ] Failed login preservation is proven.
-- [ ] Security tests pass.
+- [x] Successful login replaces the session only after persistence succeeds.
+- [x] Failed login preservation is proven.
+- [x] Security tests pass.
 
 **Tests**: unit and integration
 
