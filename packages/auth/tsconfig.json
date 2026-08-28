@@ -9,5 +9,5 @@
       "@devvault/core": ["packages/core/dist/index.d.ts"]
     }
   },
-  "include": ["src/index.ts"]
+  "include": ["src/index.ts", "src/session-store.ts"]
 }

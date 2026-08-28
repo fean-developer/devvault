@@ -1,6 +1,7 @@
 import type { CredentialStore } from '@devvault/core';
 
 export type { CredentialStore } from '@devvault/core';
+export * from './session-store.js';
 
 export class MemoryCredentialStore implements CredentialStore {
   private readonly values = new Map<string, string>();

@@ -1,4 +1,8 @@
 # Changelog
+## [1.0.15] - 2026-08-28
+
+- Added backend-scoped developer session persistence with token-only legacy compatibility and cross-backend isolation.
+
 ## [1.0.14] - 2026-08-27
 
 - Decoupled global `start` lifecycle from unavailable project-aware context while preserving configured project operations.

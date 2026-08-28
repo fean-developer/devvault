@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  CredentialStoreDeveloperSessionStore,
   MemoryCredentialStore,
   UserpassAuthenticationProvider,
 } from './index.js';
@@ -28,5 +29,44 @@ describe('authentication ports', () => {
     await expect(provider.login('alice', 'password')).resolves.toBe('session-token');
     await provider.logout('session-token');
     expect(calls).toEqual(['alice:password', 'revoke:session-token']);
+  });
+
+  it('stores typed records under a backend-scoped key and reads their metadata', async () => {
+    const credentials = new MemoryCredentialStore();
+    const sessions = new CredentialStoreDeveloperSessionStore(credentials);
+    const record = { token: 'alice-token', username: 'alice', authMount: 'userpass', leaseDuration: 3600 };
+
+    await sessions.replace('http://vault-a:8200', record);
+
+    await expect(sessions.read('http://vault-a:8200')).resolves.toEqual(record);
+    await expect(sessions.read('http://vault-b:8200')).resolves.toBeNull();
+  });
+
+  it('reads legacy token-only records without requiring metadata', async () => {
+    const credentials = new MemoryCredentialStore();
+    await credentials.set('session', 'legacy-token');
+    const sessions = new CredentialStoreDeveloperSessionStore(credentials);
+
+    await expect(sessions.read('http://127.0.0.1:8200')).resolves.toEqual({ token: 'legacy-token', authMount: 'userpass' });
+  });
+
+  it('does not reuse a legacy token-only record for another backend', async () => {
+    const credentials = new MemoryCredentialStore();
+    await credentials.set('session', 'legacy-token');
+    const sessions = new CredentialStoreDeveloperSessionStore(credentials, 'session', 'http://vault-a:8200');
+
+    await expect(sessions.read('http://vault-b:8200')).resolves.toBeNull();
+  });
+
+  it('clears scoped and legacy records without touching other backend records', async () => {
+    const credentials = new MemoryCredentialStore();
+    const sessions = new CredentialStoreDeveloperSessionStore(credentials);
+    await sessions.replace('http://vault-a:8200', { token: 'a-token', authMount: 'userpass' });
+    await sessions.replace('http://vault-b:8200', { token: 'b-token', authMount: 'userpass' });
+
+    await sessions.clear('http://vault-a:8200');
+
+    await expect(sessions.read('http://vault-a:8200')).resolves.toBeNull();
+    await expect(sessions.read('http://vault-b:8200')).resolves.toEqual({ token: 'b-token', authMount: 'userpass' });
   });
 });
