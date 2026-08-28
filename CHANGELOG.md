@@ -1,4 +1,8 @@
 # Changelog
+## [1.0.24] - 2026-08-28
+
+- Added shared session-guard enforcement before runtime secret execution and child-process launch.
+
 ## [1.0.23] - 2026-08-28
 
 - Added shared session-guard hooks to all secret commands before protected operations.

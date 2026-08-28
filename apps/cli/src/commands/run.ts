@@ -1,6 +1,10 @@
 import { Command } from 'commander';
 import type { ReturnTypeOfComposition } from '../composition-root.js';
 
+type SessionRequiredComposition = ReturnTypeOfComposition & {
+  requireValidSession?: () => Promise<unknown>;
+};
+
 export function registerRunCommand(program: Command, composition: ReturnTypeOfComposition): void {
   program
     .command('run')
@@ -14,6 +18,8 @@ export function registerRunCommand(program: Command, composition: ReturnTypeOfCo
       }
       const application = await composition.createProjectApplication();
       const config = await application.load(process.cwd(), options.environment);
+      const sessionComposition = composition as SessionRequiredComposition;
+      if (sessionComposition.requireValidSession) await sessionComposition.requireValidSession();
       const [command, ...args] = commandArguments;
       process.exitCode = await application.run(config, command, args);
     });

@@ -543,9 +543,9 @@ T14 -> T15
 
 **Done when**:
 
-- [ ] The required ordering is executable and asserted.
-- [ ] All non-active cases have zero secret/process side effects.
-- [ ] Successful run uses the validated developer identity.
+- [x] The required ordering is executable and asserted.
+- [x] All non-active cases have zero secret/process side effects.
+- [x] Successful run uses the validated developer identity.
 
 **Tests**: unit and integration
 
