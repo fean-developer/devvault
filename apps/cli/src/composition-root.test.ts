@@ -45,4 +45,23 @@ describe('composition root', () => {
     await writeFile(join(root, 'environments', 'staging', 'devvault.yaml'), 'version: 1\nproject: wrong\n');
     await expect(loadProjectContext(root)).resolves.toBeNull();
   });
+
+  it('exposes session guard and diagnostics without treating VAULT_TOKEN as a developer session', async () => {
+    const previous = process.env.VAULT_TOKEN;
+    const previousAddress = process.env.VAULT_ADDR;
+    process.env.VAULT_TOKEN = 'administrative-token';
+    process.env.VAULT_ADDR = 'http://session-source-isolation.test';
+    try {
+      const composition = createCompositionRoot();
+      expect(composition.requireValidSession).toBeDefined();
+      expect(composition.sessionDiagnostics).toBeDefined();
+      const session = await composition.sessionDiagnostics?.observe();
+      expect(session?.state).not.toBe('ACTIVE');
+    } finally {
+      if (previous === undefined) delete process.env.VAULT_TOKEN;
+      else process.env.VAULT_TOKEN = previous;
+      if (previousAddress === undefined) delete process.env.VAULT_ADDR;
+      else process.env.VAULT_ADDR = previousAddress;
+    }
+  });
 });

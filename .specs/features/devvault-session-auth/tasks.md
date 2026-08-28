@@ -633,9 +633,9 @@ T14 -> T15
 
 **Done when**:
 
-- [ ] Human and administrative dependency graphs are separate.
-- [ ] All normal human clients use the validated CredentialStore identity.
-- [ ] CLI integration tests pass.
+- [x] Human and administrative dependency graphs are separate.
+- [x] All normal human clients use the validated CredentialStore identity.
+- [x] CLI integration tests pass.
 
 **Tests**: unit and integration
 

@@ -1,5 +1,6 @@
 import { UserpassAuthenticationProvider } from '@devvault/auth';
-import { CapabilityBackendSelector, DefaultDeveloperLifecycleService, ProfileSetupValidator } from '@devvault/core';
+import { CredentialStoreDeveloperSessionStore } from '@devvault/auth';
+import { CapabilityBackendSelector, DefaultDeveloperLifecycleService, ProfileSetupValidator, SessionGuard, SessionResolver } from '@devvault/core';
 import { loadProjectConfig, resolveEnvironmentContext } from '@devvault/config';
 import { fileURLToPath } from 'node:url';
 import { existsSync } from 'node:fs';
@@ -17,6 +18,7 @@ import {
   defaultSetupStatePath,
 } from '@devvault/platform';
 import { HttpVaultClient } from '@devvault/vault-client';
+import { VaultSessionValidator } from '@devvault/vault-client';
 
 export type ReturnTypeOfComposition = ReturnType<typeof createCompositionRoot>;
 
@@ -34,6 +36,10 @@ export async function loadProjectContext(
 
 export function createCompositionRoot() {
   const credentialStore = new KeytarCredentialStore();
+  const developerVaultAddress = process.env.VAULT_ADDR ?? 'http://127.0.0.1:8200';
+  const developerSessionStore = new CredentialStoreDeveloperSessionStore(credentialStore, 'session', developerVaultAddress);
+  const sessionResolver = new SessionResolver(developerSessionStore, new VaultSessionValidator({ address: developerVaultAddress }), { backendIdentity: developerVaultAddress });
+  const sessionGuard = new SessionGuard(sessionResolver);
   const docker = new DockerComposeManager();
   const platform = detectPlatform();
   const setupStateStore = new FileSetupStateStore({ statePath: defaultSetupStatePath() });
@@ -108,14 +114,13 @@ export function createCompositionRoot() {
         session = null;
       }
       return new HttpVaultClient({
-        address: process.env.VAULT_ADDR ?? 'http://127.0.0.1:8200',
+        address: developerVaultAddress,
         token: process.env.VAULT_TOKEN ?? session ?? undefined,
       });
     },
     createDeveloperAuthentication: () => {
       return new UserpassAuthenticationProvider(new HttpVaultClient({
-        address: process.env.VAULT_ADDR ?? 'http://127.0.0.1:8200',
-        token: process.env.VAULT_TOKEN,
+        address: developerVaultAddress,
       }));
     },
     createLocalDeveloperUser: async (username: string, password: string) => {
@@ -127,18 +132,10 @@ export function createCompositionRoot() {
       await setupVault.createUserpassUser(username, password, [`devvault-${config.project}-${config.environment}-developer`]);
     },
     createProjectApplication: async () => {
-      return createProjectApplicationService(await (async () => {
-        let session: string | null = null;
-        try {
-          session = await credentialStore.get('session');
-        } catch {
-          session = null;
-        }
-        return new HttpVaultClient({
-          address: process.env.VAULT_ADDR ?? 'http://127.0.0.1:8200',
-          token: process.env.VAULT_TOKEN ?? session ?? undefined,
-        });
-      })());
+      const session = await sessionGuard.requireValidSession();
+      return createProjectApplicationService(new HttpVaultClient({ address: developerVaultAddress, token: session.credential }));
     },
+    requireValidSession: () => sessionGuard.requireValidSession(),
+    sessionDiagnostics: { observe: () => sessionResolver.resolveSummary() },
   };
 }

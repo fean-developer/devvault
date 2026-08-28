@@ -1,4 +1,8 @@
 # Changelog
+## [1.0.26] - 2026-08-28
+
+- Wired CredentialStore-backed session resolution and guards into human project operations, keeping administrative credentials separate.
+
 ## [1.0.25] - 2026-08-28
 
 - Added session-observing diagnostics for status and doctor while preserving independent Vault lifecycle reporting.
