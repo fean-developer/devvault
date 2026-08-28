@@ -16,8 +16,8 @@ function composition(config: { protected?: boolean }, calls: string[] = []): Ret
 }
 
 function guardedComposition(config: { protected?: boolean }, calls: string[] = []): ReturnTypeOfComposition {
-  const result = composition(config, calls) as ReturnTypeOfComposition & { requireValidSession: () => Promise<void> };
-  result.requireValidSession = async () => { calls.push('session'); };
+  const result = composition(config, calls) as ReturnTypeOfComposition & { requireValidSession: () => Promise<import('@devvault/core').ValidatedDeveloperSession> };
+  result.requireValidSession = async () => { calls.push('session'); return { state: 'ACTIVE', credential: 'session-token', validation: 'REMOTE_CONFIRMED' }; };
   return result;
 }
 
@@ -120,7 +120,7 @@ describe('secret command protected environment behavior', () => {
 
   it('blocks secret mutation before Vault access when the shared session guard fails', async () => {
     const calls: string[] = [];
-    const guarded = guardedComposition({}, calls) as ReturnTypeOfComposition & { requireValidSession: () => Promise<void> };
+    const guarded = guardedComposition({}, calls) as ReturnTypeOfComposition & { requireValidSession: () => Promise<import('@devvault/core').ValidatedDeveloperSession> };
     guarded.requireValidSession = async () => { throw new Error('SESSION_EXPIRED'); };
 
     await expect(runSecretSet(guarded, 'database.password', { yes: true }, {

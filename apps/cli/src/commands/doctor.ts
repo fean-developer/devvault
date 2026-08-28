@@ -15,6 +15,8 @@ export function registerDoctorCommand(program: Command, composition: ReturnTypeO
         undefined,
         { platform: composition.platform, docker: await composition.docker.diagnose() },
         options.environment,
+        undefined,
+        (composition as ReturnTypeOfComposition & { sessionDiagnostics?: { observe: () => Promise<import('@devvault/core').SafeSessionSummary> } }).sessionDiagnostics,
       );
       process.stdout.write(options.json ? `${JSON.stringify(report)}\n` : formatDoctorReport(report));
       if (reportHasFailures(report)) process.exitCode = 1;

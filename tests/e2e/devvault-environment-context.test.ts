@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 import { promisify } from 'node:util';
 import { describe, expect, it } from 'vitest';
+import { KeytarCredentialStore } from '../../packages/platform/src/index.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -32,7 +33,9 @@ function startVaultStub() {
       const requestLine = data.toString('utf8').split('\r\n', 1)[0] ?? '';
       const requestPath = requestLine.split(' ')[1] ?? '';
       paths.push(requestPath);
-      const response = requestPath.includes('/metadata/')
+      const response = requestPath.includes('/auth/token/lookup-self')
+        ? JSON.stringify({ auth: { expire_time: '2026-08-28T01:00:00Z' } })
+        : requestPath.includes('/metadata/')
         ? JSON.stringify({ data: { keys: ['database'] } })
           : requestPath.includes('/sys/health')
             ? JSON.stringify({ initialized: true, sealed: false })
@@ -41,7 +44,7 @@ function startVaultStub() {
             : requestPath.includes('/data/') && requestPath.includes('/production')
             ? JSON.stringify({ data: { data: { database: { username: 'prod-user', password: 'prod-password-marker' }, api: { key: 'prod-api-marker' } } } })
             : '{}';
-      const status = requestPath.includes('/metadata/') || requestPath.includes('/data/') || requestPath.includes('/sys/health') ? '200 OK' : '404 Not Found';
+      const status = requestPath.includes('/auth/token/lookup-self') || requestPath.includes('/metadata/') || requestPath.includes('/data/') || requestPath.includes('/sys/health') ? '200 OK' : '404 Not Found';
       socket.end(`HTTP/1.1 ${status}\r\nContent-Type: application/json\r\nContent-Length: ${Buffer.byteLength(response)}\r\nConnection: close\r\n\r\n${response}`);
     });
   });
@@ -59,10 +62,18 @@ function startVaultStub() {
   });
 }
 
+async function seedDeveloperSession(address: string): Promise<() => Promise<void>> {
+  const store = new KeytarCredentialStore();
+  const key = `session:${encodeURIComponent(address)}`;
+  await store.set(key, JSON.stringify({ token: 'e2e-developer-token', username: 'e2e-user', authMount: 'userpass' }));
+  return () => store.delete(key);
+}
+
 describe('real CLI environment context flow', () => {
   it('runs first-time selection, initialization, switching and explicit override', async () => {
     const root = await mkdtemp(join(tmpdir(), 'devvault-real-context-'));
     const vault = await startVaultStub();
+    const clearSession = await seedDeveloperSession(vault.address);
     try {
       await expect(runCli(root, ['environment', 'set', 'development'])).resolves.toMatchObject({ stdout: expect.stringContaining('State: SELECTED') });
       await expect(runCli(root, ['init-project'])).resolves.toMatchObject({ stdout: expect.stringContaining('environments/development/devvault.yaml') });
@@ -75,11 +86,12 @@ describe('real CLI environment context flow', () => {
       await expect(runCli(root, ['secret', 'list'], { VAULT_ADDR: vault.address })).resolves.toMatchObject({ stdout: 'database\n' });
       await expect(runCli(root, ['secret', 'list', '--environment', 'development'], { VAULT_ADDR: vault.address })).resolves.toMatchObject({ stdout: 'database\n' });
       await expect(readFile(join(root, '.devvault/context.json'), 'utf8')).resolves.toContain('production');
-      expect(vault.requests()).toBe(3);
+      expect(vault.requests()).toBe(6);
     } finally {
+      await clearSession();
       await vault.close();
     }
-  });
+  }, 30000);
 
   it('blocks selected-only secret access before contacting Vault', async () => {
     const root = await mkdtemp(join(tmpdir(), 'devvault-real-selected-'));
@@ -101,6 +113,7 @@ describe('real CLI environment context flow', () => {
     const project = basename(root).toLowerCase().replace(/[^a-z0-9-]/g, '-');
     const child = 'process.stdout.write(JSON.stringify({ username: process.env.DATABASE_USERNAME, password: process.env.DATABASE_PASSWORD, api: process.env.API_KEY, devOnly: process.env.DEV_ONLY, prodOnly: process.env.PROD_ONLY }));';
     const env = { VAULT_ADDR: vault.address };
+    const clearSession = await seedDeveloperSession(vault.address);
     try {
       await runCli(root, ['environment', 'set', 'development']);
       await runCli(root, ['init-project']);
@@ -141,6 +154,7 @@ describe('real CLI environment context flow', () => {
       expect(paths.filter((path) => path.includes(`/data/projects/${project}/development`))).toHaveLength(1);
       expect(paths.filter((path) => path.includes(`/data/projects/${project}/production`))).toHaveLength(2);
     } finally {
+      await clearSession();
       await vault.close();
     }
   });

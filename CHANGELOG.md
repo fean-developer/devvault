@@ -1,4 +1,8 @@
 # Changelog
+## [1.0.27] - 2026-08-28
+
+- Scoped session enforcement to protected operations while preserving session-independent project application construction.
+
 ## [1.0.26] - 2026-08-28
 
 - Wired CredentialStore-backed session resolution and guards into human project operations, keeping administrative credentials separate.

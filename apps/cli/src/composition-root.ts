@@ -1,6 +1,6 @@
 import { UserpassAuthenticationProvider } from '@devvault/auth';
 import { CredentialStoreDeveloperSessionStore } from '@devvault/auth';
-import { CapabilityBackendSelector, DefaultDeveloperLifecycleService, ProfileSetupValidator, SessionGuard, SessionResolver } from '@devvault/core';
+import { CapabilityBackendSelector, DefaultDeveloperLifecycleService, ProfileSetupValidator, SessionGuard, SessionResolver, type ValidatedDeveloperSession } from '@devvault/core';
 import { loadProjectConfig, resolveEnvironmentContext } from '@devvault/config';
 import { fileURLToPath } from 'node:url';
 import { existsSync } from 'node:fs';
@@ -131,9 +131,8 @@ export function createCompositionRoot() {
       const config = await loadProjectConfig(process.cwd());
       await setupVault.createUserpassUser(username, password, [`devvault-${config.project}-${config.environment}-developer`]);
     },
-    createProjectApplication: async () => {
-      const session = await sessionGuard.requireValidSession();
-      return createProjectApplicationService(new HttpVaultClient({ address: developerVaultAddress, token: session.credential }));
+    createProjectApplication: async (session?: ValidatedDeveloperSession) => {
+      return createProjectApplicationService(new HttpVaultClient({ address: developerVaultAddress, ...(session ? { token: session.credential } : {}) }));
     },
     requireValidSession: () => sessionGuard.requireValidSession(),
     sessionDiagnostics: { observe: () => sessionResolver.resolveSummary() },
