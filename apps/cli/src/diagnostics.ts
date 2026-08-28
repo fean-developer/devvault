@@ -1,12 +1,16 @@
 import type { ProjectConfig } from '@devvault/config';
 import { loadProjectConfig, resolveEnvironmentContext, type EnvironmentContextState, type ResolvedEnvironmentContext } from '@devvault/config';
 import type { VaultHealth } from '@devvault/vault-client';
-import { classifyVaultLifecycle, type VaultLifecycleState } from '@devvault/core';
+import { classifyVaultLifecycle, type SafeSessionSummary, type VaultLifecycleState } from '@devvault/core';
 import type { DockerDiagnostics, PlatformInfo } from '@devvault/platform';
 
 export interface DiagnosticClient {
   health(): Promise<VaultHealth>;
   checkCapabilities?(path: string): Promise<string[]>;
+}
+
+export interface SessionDiagnosticsProvider {
+  observe(): Promise<SafeSessionSummary>;
 }
 
 export interface DiagnosticCheck {
@@ -31,6 +35,7 @@ export interface DoctorReport {
   lifecycle?: VaultLifecycleState;
   platform?: PlatformInfo;
   docker?: DockerDiagnostics;
+  session?: SafeSessionSummary;
 }
 
 export async function loadConfigForDiagnostics(
@@ -47,6 +52,7 @@ export async function createDoctorReport(
   context?: { platform?: PlatformInfo; docker?: DockerDiagnostics },
   environment?: string,
   contextLoader: (directory: string, environment?: string) => Promise<ResolvedEnvironmentContext> = (directory, selected) => resolveEnvironmentContext(directory, selected, { mode: 'diagnostic', allowCandidateRoot: true }),
+  sessionProvider?: SessionDiagnosticsProvider,
 ): Promise<DoctorReport> {
   const checks: DiagnosticCheck[] = [
     { name: 'Node.js', ok: true, detail: process.version },
@@ -149,6 +155,14 @@ export async function createDoctorReport(
     authenticated: checks.some((check) => check.name === 'Vault reachable' && check.ok),
     authorized,
   });
+  let session: SafeSessionSummary | undefined;
+  if (sessionProvider) {
+    try {
+      session = await sessionProvider.observe();
+    } catch (error) {
+      warnings.push(error instanceof Error ? error.message : 'Developer session could not be observed.');
+    }
+  }
   return {
     checks,
     ...(projectRoot ? { projectRoot } : {}),
@@ -165,6 +179,7 @@ export async function createDoctorReport(
     ...(project ? { project } : {}),
     ...(context?.platform ? { platform: context.platform } : {}),
     ...(context?.docker ? { docker: context.docker } : {}),
+    ...(session ? { session } : {}),
   };
 }
 
@@ -177,6 +192,7 @@ export function formatDoctorReport(report: DoctorReport): string {
     lines.push('', `Project: ${report.project.name}`, `Environment: ${report.project.environment}`, `Protected: ${report.project.protected ? 'yes' : 'no'}`);
   }
   if (report.environmentState) lines.push(`Environment state: ${report.environmentState}`);
+  if (report.session) lines.push(`Developer session: ${report.session.state}${report.session.username ? ` (${report.session.username})` : ''}`);
   return `${lines.join('\n')}\n`;
 }
 

@@ -119,4 +119,16 @@ describe('doctor diagnostics', () => {
     expect(report.configured).toBe(context.state === 'CONFIGURED');
     expect(output).not.toMatch(/token|password|secret-value|authorization|unseal-key/i);
   });
+
+  it('reports session state separately from Vault lifecycle', async () => {
+    const report = await createDoctorReport('/project', {
+      health: async () => ({ initialized: true, sealed: false }),
+    }, async () => config, undefined, undefined, undefined, {
+      observe: async () => ({ state: 'EXPIRED', username: 'alice', validation: 'REMOTE_CONFIRMED' }),
+    });
+
+    expect(report.lifecycle).toBe('configured');
+    expect(report.session).toEqual({ state: 'EXPIRED', username: 'alice', validation: 'REMOTE_CONFIRMED' });
+    expect(JSON.stringify(report)).not.toMatch(/token|password|authorization/i);
+  });
 });

@@ -1,6 +1,11 @@
 import { Command } from 'commander';
 import type { ReturnTypeOfComposition } from '../composition-root.js';
 import { resolveEnvironmentContext, type EnvironmentContextState } from '@devvault/config';
+import type { SafeSessionSummary } from '@devvault/core';
+
+type SessionObservingComposition = ReturnTypeOfComposition & {
+  sessionDiagnostics?: { observe(): Promise<SafeSessionSummary> };
+};
 
 export interface StatusReport {
   project?: string;
@@ -21,6 +26,7 @@ export interface StatusReport {
     lifecycle: 'UNAVAILABLE' | 'NOT_INITIALIZED' | 'SEALED' | 'READY';
   };
   authentication: { authenticated: boolean; keyringAvailable: boolean };
+  session?: SafeSessionSummary;
 }
 
 export function registerStatusCommand(program: Command, composition: ReturnTypeOfComposition): void {
@@ -47,6 +53,7 @@ export function registerStatusCommand(program: Command, composition: ReturnTypeO
         keyringAvailable = false;
       }
       const environmentState = context?.state ?? 'INVALID';
+      const sessionDiagnostics = (composition as SessionObservingComposition).sessionDiagnostics;
       const status: StatusReport = {
         project: context?.config?.project,
         environment: context?.environment ?? null,
@@ -68,6 +75,7 @@ export function registerStatusCommand(program: Command, composition: ReturnTypeO
           lifecycle: !reachable ? 'UNAVAILABLE' : !health.initialized ? 'NOT_INITIALIZED' : health.sealed ? 'SEALED' : 'READY',
         },
         authentication: { authenticated, keyringAvailable },
+        ...(sessionDiagnostics ? { session: await sessionDiagnostics.observe() } : {}),
       };
       process.stdout.write(options.json ? `${JSON.stringify(status)}\n` : formatStatus(status));
     });
@@ -80,6 +88,7 @@ export function formatStatus(status: {
   configured: boolean;
   configuration: string;
   vault: { address: string; reachable: boolean; initialized: boolean; sealed: boolean; lifecycle: string };
+  session?: SafeSessionSummary;
 }): string {
   return [
     'DevVault Status',
@@ -91,6 +100,7 @@ export function formatStatus(status: {
     `Reachable: ${status.vault.reachable ? 'yes' : 'no'}`,
     `Initialized: ${status.vault.initialized ? 'yes' : 'no'}`,
     `Sealed: ${status.vault.sealed ? 'yes' : 'no'}`,
+    ...(status.session ? [`Developer session: ${status.session.state}${status.session.username ? ` (${status.session.username})` : ''}`] : []),
     '',
   ].join('\n');
 }

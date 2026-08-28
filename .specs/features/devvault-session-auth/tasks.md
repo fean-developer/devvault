@@ -588,9 +588,9 @@ T14 -> T15
 
 **Done when**:
 
-- [ ] Human and JSON diagnostics contain safe session summaries.
-- [ ] Lifecycle and session states remain orthogonal.
-- [ ] All observing-mode cases pass.
+- [x] Human and JSON diagnostics contain safe session summaries.
+- [x] Lifecycle and session states remain orthogonal.
+- [x] All observing-mode cases pass.
 
 **Tests**: unit and integration
 

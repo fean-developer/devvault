@@ -1,4 +1,8 @@
 # Changelog
+## [1.0.25] - 2026-08-28
+
+- Added session-observing diagnostics for status and doctor while preserving independent Vault lifecycle reporting.
+
 ## [1.0.24] - 2026-08-28
 
 - Added shared session-guard enforcement before runtime secret execution and child-process launch.

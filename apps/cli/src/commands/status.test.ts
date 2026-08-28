@@ -17,4 +17,15 @@ describe('status environment context output', () => {
     expect(output).toContain('Environment state: SELECTED');
     expect(output).toContain('Reachable: yes');
   });
+
+  it('renders session state separately from Vault lifecycle', () => {
+    const output = formatStatus({
+      project: 'my-project', environment: 'development', environmentState: 'CONFIGURED', configured: true, configuration: 'FOUND',
+      vault: { address: 'http://127.0.0.1:8200', reachable: true, initialized: true, sealed: false, lifecycle: 'READY' },
+      session: { state: 'NOT_AUTHENTICATED', validation: 'NOT_ATTEMPTED' },
+    });
+
+    expect(output).toContain('Developer session: NOT_AUTHENTICATED');
+    expect(output).not.toMatch(/token|password|secret-value/i);
+  });
 });
