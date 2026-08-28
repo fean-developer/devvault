@@ -193,9 +193,9 @@ T14 -> T15
 
 **Done when**:
 
-- [ ] Authentication and validation ports are distinct.
-- [ ] Existing callers have a compatibility path until later integration tasks.
-- [ ] Authentication tests pass.
+- [x] Authentication and validation ports are distinct.
+- [x] Existing callers have a compatibility path until later integration tasks.
+- [x] Authentication tests pass.
 
 **Tests**: unit and integration
 

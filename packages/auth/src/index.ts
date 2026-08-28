@@ -32,15 +32,38 @@ export interface AuthenticationProvider {
   logout(token: string): Promise<void>;
 }
 
-export class UserpassAuthenticationProvider implements AuthenticationProvider {
+export interface AuthenticationResult {
+  token: string;
+  username: string;
+  issuedAt: string;
+  leaseDuration: number;
+  authMount: string;
+}
+
+export interface DeveloperAuthenticator {
+  authenticate(username: string, password: string): Promise<AuthenticationResult>;
+}
+
+export class UserpassAuthenticationProvider implements AuthenticationProvider, DeveloperAuthenticator {
   constructor(
     private readonly client: UserpassClient,
     private readonly mount = 'userpass',
   ) {}
 
   async login(username: string, password: string): Promise<string> {
+    return (await this.authenticate(username, password)).token;
+  }
+
+  async authenticate(username: string, password: string): Promise<AuthenticationResult> {
     const session = await this.client.loginUserpass(this.mount, username, password);
-    return session.token;
+    if (!session.token) throw new Error('Vault authentication returned no session token.');
+    return {
+      token: session.token,
+      username,
+      issuedAt: new Date().toISOString(),
+      leaseDuration: session.leaseDuration,
+      authMount: this.mount,
+    };
   }
 
   async logout(token: string): Promise<void> {

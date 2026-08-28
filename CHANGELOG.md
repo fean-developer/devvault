@@ -1,4 +1,8 @@
 # Changelog
+## [1.0.16] - 2026-08-28
+
+- Separated normalized human authentication results from developer session validation while preserving the existing Userpass login interface.
+
 ## [1.0.15] - 2026-08-28
 
 - Added backend-scoped developer session persistence with token-only legacy compatibility and cross-backend isolation.

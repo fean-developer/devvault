@@ -31,6 +31,23 @@ describe('authentication ports', () => {
     expect(calls).toEqual(['alice:password', 'revoke:session-token']);
   });
 
+  it('normalizes Userpass authentication without including the password', async () => {
+    const provider = new UserpassAuthenticationProvider({
+      loginUserpass: async (_mount, username, password) => {
+        expect(username).toBe('alice');
+        expect(password).toBe('password');
+        return { token: 'session-token', leaseDuration: 3600 };
+      },
+      revokeSelf: async () => undefined,
+    });
+
+    const result = await provider.authenticate('alice', 'password');
+
+    expect(result).toMatchObject({ token: 'session-token', username: 'alice', leaseDuration: 3600, authMount: 'userpass' });
+    expect(result.issuedAt).toMatch(/T/);
+    expect(result).not.toHaveProperty('password');
+  });
+
   it('stores typed records under a backend-scoped key and reads their metadata', async () => {
     const credentials = new MemoryCredentialStore();
     const sessions = new CredentialStoreDeveloperSessionStore(credentials);
