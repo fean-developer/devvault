@@ -453,9 +453,9 @@ T14 -> T15
 
 **Done when**:
 
-- [ ] Return type is exactly `ValidatedDeveloperSession`.
-- [ ] Guard has no environment or credential-source dependency.
-- [ ] All non-active states are covered.
+- [x] Return type is exactly `ValidatedDeveloperSession`.
+- [x] Guard has no environment or credential-source dependency.
+- [x] All non-active states are covered.
 
 **Tests**: unit
 

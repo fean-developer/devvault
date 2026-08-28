@@ -1,4 +1,8 @@
 # Changelog
+## [1.0.22] - 2026-08-28
+
+- Added a centralized session guard that returns only validated developer sessions and blocks all non-active states.
+
 ## [1.0.21] - 2026-08-28
 
 - Added developer-session logout orchestration with best-effort remote revocation and unconditional local cleanup.
