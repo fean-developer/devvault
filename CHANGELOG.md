@@ -1,4 +1,12 @@
 # Changelog
+## [1.0.30] - 2026-08-28
+
+- Added production composition evidence that human Vault operations use the stored developer session instead of VAULT_TOKEN.
+
+## [1.0.29] - 2026-08-28
+
+- Added final Session/Auth mutation-discrimination evidence and verification preparation.
+
 ## [1.0.28] - 2026-08-28
 
 - Added Session/Auth E2E and security evidence for login recovery, session guards, diagnostics redaction and credential-source isolation.

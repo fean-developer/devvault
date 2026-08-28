@@ -26,10 +26,13 @@ async function runDiagnosticCli(cwd: string, args: string[], env: NodeJS.Process
 
 function startVaultStub() {
   let requests = 0;
+  const tokens: string[] = [];
   const paths: string[] = [];
   const server = createServer((socket) => {
     socket.once('data', (data) => {
       requests += 1;
+      const authorization = data.toString('utf8').match(/x-vault-token:\s*([^\r\n]+)/i)?.[1];
+      if (authorization) tokens.push(authorization.trim());
       const requestLine = data.toString('utf8').split('\r\n', 1)[0] ?? '';
       const requestPath = requestLine.split(' ')[1] ?? '';
       paths.push(requestPath);
@@ -48,7 +51,7 @@ function startVaultStub() {
       socket.end(`HTTP/1.1 ${status}\r\nContent-Type: application/json\r\nContent-Length: ${Buffer.byteLength(response)}\r\nConnection: close\r\n\r\n${response}`);
     });
   });
-  return new Promise<{ address: string; requests: () => number; paths: () => string[]; close: () => Promise<void> }>((resolve) => {
+  return new Promise<{ address: string; requests: () => number; paths: () => string[]; tokens: () => string[]; close: () => Promise<void> }>((resolve) => {
     server.listen(0, '127.0.0.1', () => {
       const address = server.address();
       if (!address || typeof address === 'string') throw new Error('Vault stub did not bind to a TCP port.');
@@ -56,6 +59,7 @@ function startVaultStub() {
         address: `http://127.0.0.1:${address.port}`,
         requests: () => requests,
         paths: () => [...paths],
+        tokens: () => [...tokens],
         close: () => new Promise((done) => server.close(() => done())),
       });
     });
@@ -70,6 +74,22 @@ async function seedDeveloperSession(address: string): Promise<() => Promise<void
 }
 
 describe('real CLI environment context flow', () => {
+  it('uses the stored developer session instead of VAULT_TOKEN in human operations', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'devvault-real-credential-source-'));
+    const vault = await startVaultStub();
+    const clearSession = await seedDeveloperSession(vault.address);
+    try {
+      await runCli(root, ['environment', 'set', 'development']);
+      await runCli(root, ['init-project']);
+      await expect(runCli(root, ['secret', 'list'], { VAULT_ADDR: vault.address, VAULT_TOKEN: 'administrative-token' })).resolves.toMatchObject({ stdout: 'database\n' });
+      expect(vault.tokens()).toContain('e2e-developer-token');
+      expect(vault.tokens()).not.toContain('administrative-token');
+    } finally {
+      await clearSession();
+      await vault.close();
+    }
+  });
+
   it('runs first-time selection, initialization, switching and explicit override', async () => {
     const root = await mkdtemp(join(tmpdir(), 'devvault-real-context-'));
     const vault = await startVaultStub();
