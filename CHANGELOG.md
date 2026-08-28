@@ -1,4 +1,8 @@
 # Changelog
+## [1.0.21] - 2026-08-28
+
+- Added developer-session logout orchestration with best-effort remote revocation and unconditional local cleanup.
+
 ## [1.0.20] - 2026-08-28
 
 - Added secure login orchestration with metadata normalization and failed-login session preservation.

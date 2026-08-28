@@ -410,9 +410,9 @@ T14 -> T15
 
 **Done when**:
 
-- [ ] Local cleanup is unconditional after a logout attempt.
-- [ ] Remote revoke remains best-effort.
-- [ ] Preservation tests pass.
+- [x] Local cleanup is unconditional after a logout attempt.
+- [x] Remote revoke remains best-effort.
+- [x] Preservation tests pass.
 
 **Tests**: unit and integration
 

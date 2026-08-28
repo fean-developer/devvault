@@ -18,6 +18,7 @@ export * from './session-model.js';
 export * from './session-errors.js';
 export * from './session-resolver.js';
 export * from './login-service.js';
+export * from './logout-service.js';
 
 export interface CredentialStore {
   get(key: string): Promise<string | null>;
