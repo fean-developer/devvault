@@ -1,4 +1,8 @@
 # Changelog
+## [1.0.19] - 2026-08-28
+
+- Added centralized developer session resolution with remote validation and explicit non-authenticated state mapping.
+
 ## [1.0.18] - 2026-08-28
 
 - Added safe semantic mapping for developer-session, authorization and Vault lifecycle failures.

@@ -324,9 +324,9 @@ T14 -> T15
 
 **Done when**:
 
-- [ ] All callers have one session classification authority.
-- [ ] Resolver output contains no token.
-- [ ] State matrix tests pass.
+- [x] All callers have one session classification authority.
+- [x] Resolver output contains no token.
+- [x] State matrix tests pass.
 
 **Tests**: unit and integration
 
