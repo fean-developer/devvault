@@ -1,4 +1,8 @@
 # Changelog
+## [1.0.28] - 2026-08-28
+
+- Added Session/Auth E2E and security evidence for login recovery, session guards, diagnostics redaction and credential-source isolation.
+
 ## [1.0.27] - 2026-08-28
 
 - Scoped session enforcement to protected operations while preserving session-independent project application construction.

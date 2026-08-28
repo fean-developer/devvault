@@ -678,9 +678,9 @@ T14 -> T15
 
 **Done when**:
 
-- [ ] Full human lifecycle and failure matrix are executable.
-- [ ] Security scans prove absence of sensitive data.
-- [ ] Environment Context regression tests remain green.
+- [x] Full human lifecycle and failure matrix are executable.
+- [x] Security scans prove absence of sensitive data.
+- [x] Environment Context regression tests remain green.
 
 **Tests**: e2e and security
 
