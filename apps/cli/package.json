@@ -1,6 +1,6 @@
 {
   "name": "@fean-developer/devvault-cli",
-  "version": "1.0.22",
+  "version": "1.0.23",
   "type": "module",
   "description": "Developer-first local secret runtime powered by HashiCorp Vault",
   "license": "MIT",

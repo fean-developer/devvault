@@ -1,4 +1,8 @@
 # Changelog
+## [1.0.23] - 2026-08-28
+
+- Added shared session-guard hooks to all secret commands before protected operations.
+
 ## [1.0.22] - 2026-08-28
 
 - Added a centralized session guard that returns only validated developer sessions and blocks all non-active states.

@@ -15,6 +15,12 @@ function composition(config: { protected?: boolean }, calls: string[] = []): Ret
   return { createProjectApplication: async () => application } as unknown as ReturnTypeOfComposition;
 }
 
+function guardedComposition(config: { protected?: boolean }, calls: string[] = []): ReturnTypeOfComposition {
+  const result = composition(config, calls) as ReturnTypeOfComposition & { requireValidSession: () => Promise<void> };
+  result.requireValidSession = async () => { calls.push('session'); };
+  return result;
+}
+
 function setComposition(config: { protected?: boolean }, calls: string[] = []): ReturnTypeOfComposition {
   const application = {
     load: async () => ({ version: 1 as const, project: 'my-api', ...config, environment: 'production', vault: { mount: 'secret', path: 'projects/my-api/production' }, runtime: { mappings: {} } }),
@@ -100,5 +106,27 @@ describe('secret command protected environment behavior', () => {
     await program.parseAsync(['node', 'devvault', 'secret', 'delete', 'database.password', '--yes']);
 
     expect(calls).toEqual(['delete']);
+  });
+
+  it('requires the shared session guard before a secret read', async () => {
+    const calls: string[] = [];
+    const program = new Command().exitOverride();
+    registerSecretCommand(program, guardedComposition({}, calls));
+
+    await program.parseAsync(['node', 'devvault', 'secret', 'get', 'database.password']);
+
+    expect(calls).toEqual(['session']);
+  });
+
+  it('blocks secret mutation before Vault access when the shared session guard fails', async () => {
+    const calls: string[] = [];
+    const guarded = guardedComposition({}, calls) as ReturnTypeOfComposition & { requireValidSession: () => Promise<void> };
+    guarded.requireValidSession = async () => { throw new Error('SESSION_EXPIRED'); };
+
+    await expect(runSecretSet(guarded, 'database.password', { yes: true }, {
+      confirm: async () => true,
+      readSecret: async () => 'must-not-be-read',
+    })).rejects.toThrow('SESSION_EXPIRED');
+    expect(calls).toEqual([]);
   });
 });

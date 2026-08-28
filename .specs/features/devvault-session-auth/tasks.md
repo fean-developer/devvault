@@ -499,9 +499,9 @@ T14 -> T15
 
 **Done when**:
 
-- [ ] All four secret subcommands share the same guard boundary.
-- [ ] Environment, session, consent and operation ordering is tested.
-- [ ] No fallback credential is reachable.
+- [x] All four secret subcommands share the same guard boundary.
+- [x] Environment, session, consent and operation ordering is tested.
+- [x] No fallback credential is reachable.
 
 **Tests**: unit and integration
 
