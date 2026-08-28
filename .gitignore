@@ -12,7 +12,13 @@ yarn-error.log*
 .env.*
 !.env.example
 .npm-dist/
-.specs/
+.specs/*
+!.specs/
+!.specs/features/
+!.specs/features/devvault-session-auth/
+!.specs/features/devvault-session-auth/spec.md
+!.specs/features/devvault-session-auth/design.md
+!.specs/features/devvault-session-auth/tasks.md
 .venv
 AGENTS.md
 # Ignora todo .github exceto workflows
