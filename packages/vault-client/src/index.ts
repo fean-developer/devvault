@@ -5,6 +5,7 @@ import {
 } from '@devvault/core';
 
 export * from './policies.js';
+export * from './session-validation.js';
 
 export interface VaultClientOptions {
   address: string;

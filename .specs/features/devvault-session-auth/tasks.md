@@ -236,9 +236,9 @@ T14 -> T15
 
 **Done when**:
 
-- [ ] Validator port is independent from `SessionResolver`.
-- [ ] No raw sensitive Vault response crosses the adapter boundary.
-- [ ] Error mapping tests pass.
+- [x] Validator port is independent from `SessionResolver`.
+- [x] No raw sensitive Vault response crosses the adapter boundary.
+- [x] Error mapping tests pass.
 
 **Tests**: unit and integration
 

@@ -1,4 +1,8 @@
 # Changelog
+## [1.0.17] - 2026-08-28
+
+- Added remote Vault developer-session validation with conservative authentication and infrastructure error semantics.
+
 ## [1.0.16] - 2026-08-28
 
 - Separated normalized human authentication results from developer session validation while preserving the existing Userpass login interface.
