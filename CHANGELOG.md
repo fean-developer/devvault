@@ -1,4 +1,8 @@
 # Changelog
+## [1.0.18] - 2026-08-28
+
+- Added safe semantic mapping for developer-session, authorization and Vault lifecycle failures.
+
 ## [1.0.17] - 2026-08-28
 
 - Added remote Vault developer-session validation with conservative authentication and infrastructure error semantics.

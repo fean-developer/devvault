@@ -279,9 +279,9 @@ T14 -> T15
 
 **Done when**:
 
-- [ ] Error outcomes are deterministic and machine-readable internally.
-- [ ] Human remediation is separate from sensitive error data.
-- [ ] All mapping tests pass.
+- [x] Error outcomes are deterministic and machine-readable internally.
+- [x] Human remediation is separate from sensitive error data.
+- [x] All mapping tests pass.
 
 **Tests**: unit
 

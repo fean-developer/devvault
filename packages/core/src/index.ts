@@ -15,6 +15,7 @@ export * from './setup-orchestrator.js';
 export * from './developer-lifecycle-ports.js';
 export * from './developer-lifecycle.js';
 export * from './session-model.js';
+export * from './session-errors.js';
 
 export interface CredentialStore {
   get(key: string): Promise<string | null>;
