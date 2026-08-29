@@ -1,5 +1,6 @@
 import type { ProjectConfig } from '@devvault/config';
 import type { SecretData } from '@devvault/vault-client';
+import { classifyVaultOperationError } from '@devvault/core';
 
 export interface SecretClient {
   readSecret(mount: string, path: string): Promise<SecretData>;
@@ -30,7 +31,12 @@ export async function getSecret(
   key: string,
 ): Promise<string | undefined> {
   const location = secretPath(config);
-  const data = await client.readSecret(location.mount, location.path);
+  let data: SecretData;
+  try {
+    data = await client.readSecret(location.mount, location.path);
+  } catch (error) {
+    classifyVaultOperationError(error, { operation: 'secret.get', project: config.project, environment: config.environment });
+  }
   return getNestedValue(data, key);
 }
 
@@ -39,7 +45,11 @@ export async function listSecretKeys(
   client: SecretClient,
 ): Promise<string[]> {
   const location = secretPath(config);
-  return client.listSecrets(location.mount, location.path);
+  try {
+    return await client.listSecrets(location.mount, location.path);
+  } catch (error) {
+    classifyVaultOperationError(error, { operation: 'secret.list', project: config.project, environment: config.environment });
+  }
 }
 
 export async function deleteSecret(
