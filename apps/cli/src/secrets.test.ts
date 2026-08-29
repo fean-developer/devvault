@@ -115,5 +115,64 @@ describe('secret operations', () => {
         `list:${config.vault.mount}:${config.vault.path}`,
       ]);
     });
+
+    it('setSecret maps a Vault 403 on write to AuthorizationDeniedError with no successful mutation', async () => {
+      const writes: unknown[] = [];
+      const client = {
+        readSecret: async () => ({}),
+        writeSecret: async (...args: unknown[]) => { writes.push(args); throw new VaultPermissionDeniedError(); },
+        listSecrets: async () => [],
+        deleteSecret: async () => undefined,
+      };
+
+      await expect(setSecret(config, client, 'database.password', 'value')).rejects.toMatchObject({
+        code: 'AUTHORIZATION_DENIED',
+        operation: 'secret.set',
+      });
+      expect(writes).toHaveLength(1);
+    });
+
+    it('setSecret leaves 401/503 unchanged (AZM5 boundary)', async () => {
+      await expect(setSecret(config, {
+        readSecret: async () => ({}),
+        writeSecret: async () => { throw new VaultAuthenticationError(); },
+        listSecrets: async () => [],
+        deleteSecret: async () => undefined,
+      }, 'k', 'v')).rejects.toBeInstanceOf(VaultAuthenticationError);
+
+      await expect(setSecret(config, {
+        readSecret: async () => ({}),
+        writeSecret: async () => { throw new VaultUnavailableError(); },
+        listSecrets: async () => [],
+        deleteSecret: async () => undefined,
+      }, 'k', 'v')).rejects.toBeInstanceOf(VaultUnavailableError);
+    });
+
+    it('deleteSecret maps a Vault 403 on the rewrite to AuthorizationDeniedError and never returns a value', async () => {
+      const client = {
+        readSecret: async () => ({ database: { password: 'value' } }),
+        writeSecret: async () => { throw new VaultPermissionDeniedError(); },
+        listSecrets: async () => [],
+        deleteSecret: async () => undefined,
+      };
+
+      await expect(deleteSecret(config, client, 'database.password')).rejects.toMatchObject({
+        code: 'AUTHORIZATION_DENIED',
+        operation: 'secret.delete',
+      });
+    });
+
+    it('deleteSecret still uses the data/<path> write, never the metadata delete endpoint', async () => {
+      const calls: string[] = [];
+      const client = {
+        readSecret: async () => ({ database: { password: 'value' } }),
+        writeSecret: async (mount: string, path: string) => { calls.push(`write:${mount}:${path}`); },
+        listSecrets: async () => [],
+        deleteSecret: async () => { calls.push('metadata-delete'); },
+      };
+
+      await expect(deleteSecret(config, client, 'database.password')).resolves.toBe(true);
+      expect(calls).toEqual([`write:${config.vault.mount}:${config.vault.path}`]);
+    });
   });
 });

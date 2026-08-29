@@ -20,9 +20,13 @@ export async function setSecret(
   value: string,
 ): Promise<void> {
   const location = secretPath(config);
-  const data = await client.readSecret(location.mount, location.path);
-  setNestedValue(data, key, value);
-  await client.writeSecret(location.mount, location.path, data);
+  try {
+    const data = await client.readSecret(location.mount, location.path);
+    setNestedValue(data, key, value);
+    await client.writeSecret(location.mount, location.path, data);
+  } catch (error) {
+    classifyVaultOperationError(error, { operation: 'secret.set', project: config.project, environment: config.environment });
+  }
 }
 
 export async function getSecret(
@@ -58,12 +62,16 @@ export async function deleteSecret(
   key: string,
 ): Promise<boolean> {
   const location = secretPath(config);
-  const data = await client.readSecret(location.mount, location.path);
-  const deleted = deleteNestedValue(data, key);
-  if (deleted) {
-    await client.writeSecret(location.mount, location.path, data);
+  try {
+    const data = await client.readSecret(location.mount, location.path);
+    const deleted = deleteNestedValue(data, key);
+    if (deleted) {
+      await client.writeSecret(location.mount, location.path, data);
+    }
+    return deleted;
+  } catch (error) {
+    classifyVaultOperationError(error, { operation: 'secret.delete', project: config.project, environment: config.environment });
   }
-  return deleted;
 }
 
 function setNestedValue(data: SecretData, key: string, value: string): void {
