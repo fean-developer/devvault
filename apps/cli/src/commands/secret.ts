@@ -29,6 +29,21 @@ export async function runSecretSet(
   process.stdout.write(`Secret stored: ${key}\n`);
 }
 
+export async function runSecretDelete(
+  composition: ReturnTypeOfComposition,
+  key: string,
+  options: { environment?: string; yes?: boolean },
+  dependencies: { confirm: (prompt: string) => Promise<boolean> } = { confirm: confirmMutation },
+): Promise<void> {
+  if (!options.yes) throw new Error('Deletion requires --yes.');
+  const config = await (await composition.createProjectApplication()).load(process.cwd(), options.environment);
+  const session = await requireDeveloperSession(composition);
+  const application = await composition.createProjectApplication(session);
+  if (config.protected && !await dependencies.confirm(`Current environment: ${config.environment}. This operation will modify a protected environment. Continue?`)) throw new Error('Protected environment mutation was not authorized.');
+  if (!await application.deleteSecret(config, key)) throw new Error(`Secret not found: ${key}`);
+  process.stdout.write(`Secret deleted: ${key}\n`);
+}
+
 export function registerSecretCommand(program: Command, composition: ReturnTypeOfComposition): void {
   program
     .command('secret')
@@ -63,12 +78,5 @@ export function registerSecretCommand(program: Command, composition: ReturnTypeO
       .argument('<key>', 'Secret key')
       .option('--yes', 'Confirm deletion')
       .option('--environment <name>', 'Environment override')
-      .action(async (key: string, options: { yes?: boolean; environment?: string }) => {
-        if (!options.yes) throw new Error('Deletion requires --yes.');
-        const config = await (await composition.createProjectApplication()).load(process.cwd(), options.environment);
-        const session = await requireDeveloperSession(composition);
-        const application = await composition.createProjectApplication(session);
-        if (!await application.deleteSecret(config, key)) throw new Error(`Secret not found: ${key}`);
-        process.stdout.write(`Secret deleted: ${key}\n`);
-      }));
+      .action((key: string, options: { yes?: boolean; environment?: string }) => runSecretDelete(composition, key, options)));
 }

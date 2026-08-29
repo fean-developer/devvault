@@ -1,7 +1,8 @@
 import { Command } from 'commander';
 import { describe, expect, it, vi } from 'vitest';
-import { registerSecretCommand, runSecretSet } from './secret.js';
+import { registerSecretCommand, runSecretDelete, runSecretSet } from './secret.js';
 import type { ReturnTypeOfComposition } from '../composition-root.js';
+import { AuthorizationDeniedError } from '@devvault/core';
 
 function composition(config: { protected?: boolean }, calls: string[] = []): ReturnTypeOfComposition {
   const application = {
@@ -27,7 +28,7 @@ function setComposition(config: { protected?: boolean }, calls: string[] = []): 
     setSecret: async () => { calls.push('set'); },
     getSecret: async () => undefined,
     listSecrets: async () => [],
-    deleteSecret: async () => false,
+    deleteSecret: async () => { calls.push('delete'); return true; },
     run: async () => 0,
   };
   return { createProjectApplication: async () => application } as unknown as ReturnTypeOfComposition;
@@ -98,10 +99,10 @@ describe('secret command protected environment behavior', () => {
     expect(calls).toEqual([]);
   });
 
-  it('allows protected deletion only with --yes', async () => {
+  it('allows unprotected deletion with --yes and no consent prompt', async () => {
     const calls: string[] = [];
     const program = new Command().exitOverride();
-    registerSecretCommand(program, composition({ protected: true }, calls));
+    registerSecretCommand(program, composition({}, calls));
 
     await program.parseAsync(['node', 'devvault', 'secret', 'delete', 'database.password', '--yes']);
 
@@ -128,5 +129,59 @@ describe('secret command protected environment behavior', () => {
       readSecret: async () => 'must-not-be-read',
     })).rejects.toThrow('SESSION_EXPIRED');
     expect(calls).toEqual([]);
+  });
+});
+
+describe('secret delete protected environment consent (AUTHZ-014)', () => {
+  it('sends zero delete calls when protected consent is declined (AZM16/AZM17)', async () => {
+    const calls: string[] = [];
+
+    await expect(runSecretDelete(setComposition({ protected: true }, calls), 'database.password', { yes: true }, {
+      confirm: async () => false,
+    })).rejects.toThrow('Protected environment mutation was not authorized.');
+    expect(calls).toEqual([]);
+  });
+
+  it('deletes only after protected consent is accepted', async () => {
+    const calls: string[] = [];
+
+    await runSecretDelete(setComposition({ protected: true }, calls), 'database.password', { yes: true }, {
+      confirm: async () => true,
+    });
+
+    expect(calls).toEqual(['delete']);
+  });
+
+  it('does not require protected confirmation for an unprotected delete', async () => {
+    const calls: string[] = [];
+
+    await runSecretDelete(setComposition({}, calls), 'database.password', { yes: true }, {
+      confirm: async () => { throw new Error('confirmation must not be requested'); },
+    });
+
+    expect(calls).toEqual(['delete']);
+  });
+
+  it('still requires --yes before evaluating protected consent', async () => {
+    await expect(runSecretDelete(setComposition({ protected: true }), 'database.password', {}, {
+      confirm: async () => { throw new Error('confirm must not be reached without --yes'); },
+    })).rejects.toThrow('Deletion requires --yes.');
+  });
+
+  it('does not let accepted consent override a Vault authorization denial (AZM10)', async () => {
+    const denyingComposition: ReturnTypeOfComposition = {
+      createProjectApplication: async () => ({
+        load: async () => ({ version: 1 as const, project: 'my-api', protected: true, environment: 'production', vault: { mount: 'secret', path: 'projects/my-api/production' }, runtime: { mappings: {} } }),
+        setSecret: async () => undefined,
+        getSecret: async () => undefined,
+        listSecrets: async () => [],
+        deleteSecret: async () => { throw new AuthorizationDeniedError({ operation: 'secret.delete', project: 'my-api', environment: 'production' }); },
+        run: async () => 0,
+      }),
+    } as unknown as ReturnTypeOfComposition;
+
+    await expect(runSecretDelete(denyingComposition, 'database.password', { yes: true }, {
+      confirm: async () => true,
+    })).rejects.toBeInstanceOf(AuthorizationDeniedError);
   });
 });
