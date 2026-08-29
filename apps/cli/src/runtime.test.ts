@@ -3,6 +3,7 @@ import { resolveRuntimeEnvironment, launchProcess } from './runtime.js';
 import { registerRunCommand } from './commands/run.js';
 import { Command } from 'commander';
 import type { ReturnTypeOfComposition } from './composition-root.js';
+import { AuthorizationDeniedError, VaultAuthenticationError, VaultPermissionDeniedError, VaultUnavailableError } from '@devvault/core';
 
 const config = {
   version: 1 as const,
@@ -25,6 +26,39 @@ describe('runtime', () => {
     await expect(resolveRuntimeEnvironment(config, {
       readSecret: async () => ({ database: {} }),
     })).rejects.toThrow('Secret not found for environment mapping: TEST_SECRET');
+  });
+
+  describe('authorization error classification', () => {
+    it('maps a Vault 403 on the single document read to AuthorizationDeniedError', async () => {
+      await expect(resolveRuntimeEnvironment(config, {
+        readSecret: async () => { throw new VaultPermissionDeniedError(); },
+      })).rejects.toBeInstanceOf(AuthorizationDeniedError);
+      await expect(resolveRuntimeEnvironment(config, {
+        readSecret: async () => { throw new VaultPermissionDeniedError(); },
+      })).rejects.toMatchObject({ code: 'AUTHORIZATION_DENIED', operation: 'run', project: 'my-api', environment: 'development' });
+    });
+
+    it('leaves a 401 unchanged (Session/Auth-owned, AZM6 boundary)', async () => {
+      await expect(resolveRuntimeEnvironment(config, {
+        readSecret: async () => { throw new VaultAuthenticationError(); },
+      })).rejects.toBeInstanceOf(VaultAuthenticationError);
+    });
+
+    it('leaves a 503 unchanged (infrastructure-owned)', async () => {
+      await expect(resolveRuntimeEnvironment(config, {
+        readSecret: async () => { throw new VaultUnavailableError(); },
+      })).rejects.toBeInstanceOf(VaultUnavailableError);
+    });
+
+    it('never returns a partial environment when the read is denied', async () => {
+      let resolved: unknown;
+      try {
+        resolved = await resolveRuntimeEnvironment(config, { readSecret: async () => { throw new VaultPermissionDeniedError(); } });
+      } catch {
+        resolved = undefined;
+      }
+      expect(resolved).toBeUndefined();
+    });
   });
 
   it('returns the child process exit code', async () => {

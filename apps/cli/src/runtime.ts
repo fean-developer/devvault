@@ -1,6 +1,7 @@
 import type { ProjectConfig } from '@devvault/config';
 import { spawn } from 'node:child_process';
 import type { SecretData } from '@devvault/vault-client';
+import { classifyVaultOperationError } from '@devvault/core';
 
 export interface RuntimeSecretClient {
   readSecret(mount: string, path: string): Promise<SecretData>;
@@ -11,7 +12,12 @@ export async function resolveRuntimeEnvironment(
   client: RuntimeSecretClient,
   baseEnvironment: NodeJS.ProcessEnv = process.env,
 ): Promise<NodeJS.ProcessEnv> {
-  const data = await client.readSecret(config.vault.mount, config.vault.path);
+  let data: SecretData;
+  try {
+    data = await client.readSecret(config.vault.mount, config.vault.path);
+  } catch (error) {
+    classifyVaultOperationError(error, { operation: 'run', project: config.project, environment: config.environment });
+  }
   const environment = { ...baseEnvironment };
 
   for (const [environmentName, secretPath] of Object.entries(config.runtime.mappings)) {

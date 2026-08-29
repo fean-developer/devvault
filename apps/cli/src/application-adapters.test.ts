@@ -1,10 +1,14 @@
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createProjectApplicationService, requireConfiguredEnvironment } from './application-adapters.js';
 import { HttpVaultClient } from '@devvault/vault-client';
 import { setActiveEnvironment } from '@devvault/config';
+import { AuthorizationDeniedError } from '@devvault/core';
+
+const spawnMock = vi.hoisted(() => vi.fn());
+vi.mock('node:child_process', () => ({ spawn: spawnMock }));
 
 function client(calls: string[]): HttpVaultClient {
   return new HttpVaultClient({
@@ -119,5 +123,25 @@ describe('project application environment guard', () => {
     await expect(application.load(root, 'development')).resolves.toMatchObject({ environment: 'development' });
     await expect(application.load(root, 'production')).rejects.toMatchObject({ code: 'ENVIRONMENT_NOT_CONFIGURED' });
     await expect(readFile(join(root, '.devvault/context.json'), 'utf8')).resolves.toContain('development');
+  });
+});
+
+describe('run authorization integration (AZM6/AZM7)', () => {
+  it('spawns zero child processes when the runtime secret read is denied', async () => {
+    spawnMock.mockClear();
+    const config = {
+      version: 1 as const,
+      project: 'my-api',
+      environment: 'development',
+      vault: { mount: 'secret', path: 'projects/my-api/development' },
+      runtime: { mappings: { TEST_SECRET: 'database.password' } },
+    };
+    const application = createProjectApplicationService(new HttpVaultClient({
+      address: 'http://vault',
+      fetchImpl: async () => new Response('{}', { status: 403 }),
+    }));
+
+    await expect(application.run(config, process.execPath, [])).rejects.toBeInstanceOf(AuthorizationDeniedError);
+    expect(spawnMock).not.toHaveBeenCalled();
   });
 });
