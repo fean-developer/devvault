@@ -12,6 +12,7 @@ import { createSetupDependencies, registerSetupCommand } from './commands/setup.
 import { registerStartCommand } from './commands/start.js';
 import { registerEnvironmentCommand } from './commands/environment.js';
 import { registerUserCommand } from './commands/user.js';
+import { formatCliErrorMessage } from './cli-error-presenter.js';
 
 declare const __DEVVAULT_VERSION__: string;
 
@@ -37,7 +38,6 @@ program
   .version(__DEVVAULT_VERSION__);
 
 program.parseAsync().catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : 'Command failed.';
-  process.stderr.write(`Error: ${message}\n`);
+  process.stderr.write(`${formatCliErrorMessage(error)}\n`);
   process.exitCode = 1;
 });
