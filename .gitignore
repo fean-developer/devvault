@@ -19,6 +19,10 @@ yarn-error.log*
 !.specs/features/devvault-session-auth/spec.md
 !.specs/features/devvault-session-auth/design.md
 !.specs/features/devvault-session-auth/tasks.md
+!.specs/features/devvault-authorization-integration/
+!.specs/features/devvault-authorization-integration/spec.md
+!.specs/features/devvault-authorization-integration/design.md
+!.specs/features/devvault-authorization-integration/tasks.md
 .venv
 AGENTS.md
 # Ignora todo .github exceto workflows
