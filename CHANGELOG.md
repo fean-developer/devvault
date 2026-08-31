@@ -1,4 +1,9 @@
 # Changelog
+## [1.0.34] - 2026-08-31
+
+- Fixed `devvault secret list` to enumerate flattened logical keys from the
+	project/environment KV v2 document instead of metadata child paths.
+
 ## [1.0.33] - 2026-08-28
 
 - Completed Session/Auth mutation verification evidence for credential isolation, guard enforcement, identity continuity and logout cleanup.

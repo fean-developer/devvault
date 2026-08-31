@@ -1,15 +1,16 @@
-# Release Notes — DevVault v1.0.33
+# Release Notes — DevVault v1.0.34
 
-**Release Date:** 2026-08-30
-**Version:** v1.0.33
-**Status:** MVP release candidate for the validated local-development scope
+**Release Date:** 2026-08-31
+**Version:** v1.0.34
+**Status:** Patch release for the validated local-development scope
 
 ## Highlights
 
-- Public npm package: `@fean-developer/devvault-cli`.
-- Local Vault lifecycle, project environments, Userpass developer sessions, secret management, runtime injection, diagnostics, and authorization denial handling.
-- Secrets are resolved only at runtime; DevVault does not create `.env` files.
-- The distributed package includes the MIT license, release notes, local Vault Compose files, and the `devvault` executable.
+- Fixed `devvault secret list` for DevVault's single-document KV v2 storage
+	model. It now returns sorted, flattened logical keys such as
+	`database.password` and `database.username`.
+- Secret values are never printed by `secret list`.
+- Missing or empty project/environment documents return an empty list.
 
 ## Validated Scope
 
@@ -29,7 +30,7 @@
 ## Upgrade
 
 ```bash
-npm install -g @fean-developer/devvault-cli@1.0.33
+npm install -g @fean-developer/devvault-cli@1.0.34
 devvault --version
 ```
 
