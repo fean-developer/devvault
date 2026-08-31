@@ -152,7 +152,7 @@ export async function setActiveEnvironment(projectRoot: string, environment: str
     await writeFile(temporary, `${JSON.stringify({ environment: name }, null, 2)}\n`, { mode: 0o600 });
     await rename(temporary, join(directory, 'context.json'));
   } finally {
-    try { await unlink(temporary); } catch { }
+    try { await unlink(temporary); } catch (error) { void error; }
   }
   const gitignore = join(projectRoot, '.gitignore');
   let contents = '';

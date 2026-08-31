@@ -13,16 +13,16 @@ yarn-error.log*
 !.env.example
 .npm-dist/
 .specs/*
-!.specs/
-!.specs/features/
-!.specs/features/devvault-session-auth/
-!.specs/features/devvault-session-auth/spec.md
-!.specs/features/devvault-session-auth/design.md
-!.specs/features/devvault-session-auth/tasks.md
-!.specs/features/devvault-authorization-integration/
-!.specs/features/devvault-authorization-integration/spec.md
-!.specs/features/devvault-authorization-integration/design.md
-!.specs/features/devvault-authorization-integration/tasks.md
+# !.specs/
+# !.specs/features/
+# !.specs/features/devvault-session-auth/
+# !.specs/features/devvault-session-auth/spec.md
+# !.specs/features/devvault-session-auth/design.md
+# !.specs/features/devvault-session-auth/tasks.md
+# !.specs/features/devvault-authorization-integration/
+# !.specs/features/devvault-authorization-integration/spec.md
+# !.specs/features/devvault-authorization-integration/design.md
+# !.specs/features/devvault-authorization-integration/tasks.md
 .venv
 AGENTS.md
 # Ignora todo .github exceto workflows
@@ -41,5 +41,7 @@ docs/*
 !docs/setup.md
 !docs/usage.md
 !docs/GUIA-USO-PT-BR.md
-!docs/artefatos/
+docs/artefatos/
 !docs/artefatos/**
+docs/artefatos/*
+

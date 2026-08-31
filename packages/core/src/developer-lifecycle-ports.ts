@@ -47,8 +47,18 @@ export interface LocalLifecyclePort {
   ensureDeveloperSession?(material: LocalBootstrapMaterial, project: { name: string; environment: string }): Promise<{ token: string; material: LocalBootstrapMaterial }>;
 }
 
+export type ProjectContextState = 'SELECTED' | 'CONFIGURED' | 'INVALID';
+
+export interface ResolvedProjectContext {
+  name: string;
+  environment: string;
+  state?: ProjectContextState;
+  projectRoot?: string;
+  configPath?: string;
+}
+
 export interface ProjectContextProvider {
-  load(): Promise<{ name: string; environment: string } | null>;
+  load(): Promise<ResolvedProjectContext | null>;
 }
 
 export interface DeveloperSessionStore {

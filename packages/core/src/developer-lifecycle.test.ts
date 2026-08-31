@@ -101,6 +101,29 @@ describe('DefaultDeveloperLifecycleService', () => {
     expect(calls).toEqual(['configure:my-api/production', 'session:my-api/production', 'save', 'session-store']);
   });
 
+  it('ignores selected but unconfigured project context for project-aware lifecycle work', async () => {
+    const calls: string[] = [];
+    const backend = createBackend('local-docker', { lifecycle: 'configured', kvValid: true, policyValid: true });
+    const service = new DefaultDeveloperLifecycleService({
+      ...lifecycleInfrastructure(),
+      backendSelector: createSelector(backend),
+      localBackend: backend,
+      projectContext: { load: async () => ({ name: 'my-api', environment: 'staging', state: 'SELECTED' as const }) },
+      localLifecycle: {
+        start: async () => undefined,
+        health: async () => ({ reachable: true, initialized: true, sealed: false }),
+        unseal: async () => undefined,
+        configure: async (value) => { calls.push(`configure:${value.name}/${value.environment}`); },
+        ensureDeveloperSession: async (_material, value) => { calls.push(`session:${value.name}/${value.environment}`); return { token: 'token', material: { rootToken: 'root', unsealKey: 'key' } }; },
+      },
+      bootstrapStore: { load: async () => ({ rootToken: 'root', unsealKey: 'key' }), save: async () => { calls.push('save'); } },
+      sessionStore: { set: async () => { calls.push('session-store'); } },
+    });
+
+    await expect(service.start({ mode: 'interactive' })).resolves.toMatchObject({ status: 'READY' });
+    expect(calls).toEqual([]);
+  });
+
   it('starts an unavailable local backend before validating it', async () => {
     let started = false;
     const backend: VaultBackend = {
