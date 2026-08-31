@@ -93,6 +93,71 @@ No `.env` file is created.
 
 ## Environments
 
+### Environment Context
+
+The active environment is the environment DevVault uses by default for project
+secret operations. Select it persistently from the project root:
+
+```bash
+devvault environment set development
+```
+
+This writes local context metadata to `.devvault/context.json`:
+
+```json
+{
+  "environment": "development"
+}
+```
+
+The context file contains only the selected environment. It is not a secret
+store; secrets remain in Vault.
+
+Subsequent `secret get`, `secret list`, `secret set`, `secret delete`, and
+`run` commands use the active environment unless given a command-scoped
+override.
+
+```text
+devvault environment set <env>
+            |
+            v
+    persistent context
+            |
+            v
+   subsequent commands
+
+--environment <env>
+            |
+            v
+   current command only
+            |
+            v
+   context remains unchanged
+```
+
+Use `--environment <name>` to target another configured environment for one
+invocation. It does not change the active context.
+
+```bash
+# Select development as the active environment.
+devvault environment set development
+
+# Uses development.
+devvault secret get database.url
+
+# Uses staging only for this command.
+devvault secret get database.url --environment staging
+
+# The active environment is still development.
+devvault status
+```
+
+DevVault does not silently assume `development`. When no environment is
+selected, commands requiring project configuration report `No environment
+selected.` and, when configured environments exist, list them and direct you
+to `devvault environment set <name>`. Use `devvault environment set <name>` to
+intentionally change the persistent active environment.
+
 ```bash
 devvault init-project --environment development
 devvault init-project --environment production
