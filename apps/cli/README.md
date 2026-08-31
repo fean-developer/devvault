@@ -16,8 +16,8 @@
 <a href="https://www.npmjs.com/package/@fean-developer/devvault-cli"><img src="https://img.shields.io/npm/dm/@fean-developer/devvault-cli" alt="npm downloads"></a>
 <a href="https://packagephobia.com/result?p=@fean-developer/devvault-cli"><img src="https://packagephobia.com/badge?p=@fean-developer/devvault-cli" alt="install size"></a>
 <a href="#platform-support"><img src="https://img.shields.io/badge/Linux-supported-2ea44f?logo=linux&amp;logoColor=white" alt="Linux supported"></a>
-<a href="#platform-support"><img src="https://img.shields.io/badge/WSL2-supported-2ea44f?logo=windows&amp;logoColor=white" alt="WSL2 supported"></a>
-<a href="#platform-support"><img src="https://img.shields.io/badge/macOS-supported-2ea44f?logo=apple&amp;logoColor=white" alt="macOS supported"></a>
+<a href="#platform-support"><img src="https://img.shields.io/badge/WSL2-tested%20with%20limitations-f9a825?logo=windows&amp;logoColor=white" alt="WSL2 tested with limitations"></a>
+<a href="#platform-support"><img src="https://img.shields.io/badge/macOS-unverified-6a737d?logo=apple&amp;logoColor=white" alt="macOS unverified"></a>
 </p>
 
 ---
@@ -40,7 +40,7 @@ DevVault is a CLI, not an application framework or a replacement for HashiCorp V
 
 - Node.js 20 or newer;
 - Docker Engine or Docker Desktop with Docker Compose;
-- Linux, macOS or WSL for the validated MVP scope;
+- Linux or WSL2 for the validated MVP scope;
 - an available OS keyring for developer sessions;
 - network access to npm during installation.
 
@@ -51,9 +51,10 @@ Native Windows, live remote Vault and Docker Desktop-specific behavior require a
 | Platform | Status |
 |---|---|
 | Linux | ✅ Supported and tested |
-| WSL2 | ✅ Supported and tested |
-| macOS | ✅ Supported |
-| Native Windows | 🚧 Planned |
+| WSL2 | ⚠️ Tested with limitations |
+| macOS | ⚪ Unverified |
+| Native Windows | ❌ Unsupported |
+| PowerShell → WSL | ⚠️ Tested with limitations |
 
 
 ## Installation
@@ -203,3 +204,9 @@ devvault login --username <name>
 Secrets stay in Vault and are resolved only when a process starts. Do not put tokens, passwords or secret values in project files, command arguments, logs or Git.
 
 This is a pre-1.0 MVP. A compromised workstation, Docker daemon or local user may access local secrets. Read the release notes before use.
+
+## Uninstall
+
+```bash
+npm uninstall -g @fean-developer/devvault-cli
+```
