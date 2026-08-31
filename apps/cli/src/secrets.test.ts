@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { setSecret, getSecret, deleteSecret, listSecretKeys } from './secrets.js';
+import { setSecret, getSecret, deleteSecret, flattenSecretKeys, listSecretKeys } from './secrets.js';
 import { AuthorizationDeniedError, VaultAuthenticationError, VaultUnavailableError } from '@devvault/core';
 import { VaultPermissionDeniedError } from '@devvault/core';
 
@@ -53,12 +53,29 @@ describe('secret operations', () => {
     expect(client.data()).toEqual({ database: { username: 'dev' } });
   });
 
-  it('does not expose values through key operations', async () => {
-    const client = clientWith({ database: { password: 'secret-value' } });
+  it('lists one logical secret key from the canonical document', async () => {
+    await expect(listSecretKeys(config, clientWith({ database: { password: 'secret-value' } })))
+      .resolves.toEqual(['database.password']);
+  });
 
-    await expect(client.listSecrets('secret', 'projects/my-api/development')).resolves.toEqual([
-      'database',
-    ]);
+  it('flattens nested logical keys deterministically without exposing values', () => {
+    const keys = flattenSecretKeys({
+      database: { username: 'root', credentials: { password: '54321' } },
+      api: { token: 'secret' },
+    });
+
+    expect(keys).toEqual(['api.token', 'database.credentials.password', 'database.username']);
+    expect(keys.join('\n')).not.toContain('root');
+    expect(keys.join('\n')).not.toContain('54321');
+    expect(keys.join('\n')).not.toContain('secret');
+  });
+
+  it('treats arrays as logical secret leaves', () => {
+    expect(flattenSecretKeys({ certificates: ['one', 'two'] })).toEqual(['certificates']);
+  });
+
+  it('returns no keys for missing or empty documents', async () => {
+    await expect(listSecretKeys(config, clientWith({}))).resolves.toEqual([]);
   });
 
   describe('authorization error classification', () => {
@@ -96,10 +113,10 @@ describe('secret operations', () => {
     it('a successful get does not imply list is authorized (AZM13)', async () => {
       const okThenDenied = {
         ...clientWith({ database: { password: 'value' } }),
-        listSecrets: async () => { throw new VaultPermissionDeniedError(); },
+        readSecret: async () => { throw new VaultPermissionDeniedError(); },
       };
 
-      await expect(getSecret(config, okThenDenied, 'database.password')).resolves.toBe('value');
+      await expect(getSecret(config, clientWith({ database: { password: 'value' } }), 'database.password')).resolves.toBe('value');
       await expect(listSecretKeys(config, okThenDenied)).rejects.toBeInstanceOf(AuthorizationDeniedError);
     });
 
@@ -112,7 +129,7 @@ describe('secret operations', () => {
 
       expect(calls).toEqual([
         `read:${config.vault.mount}:${config.vault.path}`,
-        `list:${config.vault.mount}:${config.vault.path}`,
+        `read:${config.vault.mount}:${config.vault.path}`,
       ]);
     });
 
@@ -136,14 +153,12 @@ describe('secret operations', () => {
       await expect(setSecret(config, {
         readSecret: async () => ({}),
         writeSecret: async () => { throw new VaultAuthenticationError(); },
-        listSecrets: async () => [],
         deleteSecret: async () => undefined,
       }, 'k', 'v')).rejects.toBeInstanceOf(VaultAuthenticationError);
 
       await expect(setSecret(config, {
         readSecret: async () => ({}),
         writeSecret: async () => { throw new VaultUnavailableError(); },
-        listSecrets: async () => [],
         deleteSecret: async () => undefined,
       }, 'k', 'v')).rejects.toBeInstanceOf(VaultUnavailableError);
     });

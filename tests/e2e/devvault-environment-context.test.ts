@@ -81,7 +81,7 @@ describe('real CLI environment context flow', () => {
     try {
       await runCli(root, ['environment', 'set', 'development']);
       await runCli(root, ['init-project']);
-      await expect(runCli(root, ['secret', 'list'], { VAULT_ADDR: vault.address, VAULT_TOKEN: 'administrative-token' })).resolves.toMatchObject({ stdout: 'database\n' });
+      await expect(runCli(root, ['secret', 'list'], { VAULT_ADDR: vault.address, VAULT_TOKEN: 'administrative-token' })).resolves.toMatchObject({ stdout: 'api.key\ndatabase.password\ndatabase.username\n' });
       expect(vault.tokens()).toContain('e2e-developer-token');
       expect(vault.tokens()).not.toContain('administrative-token');
       expect(vault.tokens()).not.toContain('swapped-secret-token');
@@ -103,12 +103,12 @@ describe('real CLI environment context flow', () => {
       await expect(runCli(root, ['init-project'])).resolves.toMatchObject({ stdout: expect.stringContaining('environments/development/devvault.yaml') });
       await expect(runCli(root, ['environment', 'current'])).resolves.toMatchObject({ stdout: expect.stringContaining('State: CONFIGURED') });
       await expect(runCli(root, ['environment', 'list'])).resolves.toMatchObject({ stdout: expect.stringContaining('development CONFIGURED ACTIVE') });
-      await expect(runCli(root, ['secret', 'list'], { VAULT_ADDR: vault.address })).resolves.toMatchObject({ stdout: 'database\n' });
+      await expect(runCli(root, ['secret', 'list'], { VAULT_ADDR: vault.address })).resolves.toMatchObject({ stdout: 'api.key\ndatabase.password\ndatabase.username\n' });
 
       await expect(runCli(root, ['environment', 'set', 'production'])).resolves.toMatchObject({ stdout: expect.stringContaining('State: SELECTED') });
       await expect(runCli(root, ['init-project'])).resolves.toMatchObject({ stdout: expect.stringContaining('environments/production/devvault.yaml') });
-      await expect(runCli(root, ['secret', 'list'], { VAULT_ADDR: vault.address })).resolves.toMatchObject({ stdout: 'database\n' });
-      await expect(runCli(root, ['secret', 'list', '--environment', 'development'], { VAULT_ADDR: vault.address })).resolves.toMatchObject({ stdout: 'database\n' });
+      await expect(runCli(root, ['secret', 'list'], { VAULT_ADDR: vault.address })).resolves.toMatchObject({ stdout: 'api.key\ndatabase.password\ndatabase.username\n' });
+      await expect(runCli(root, ['secret', 'list', '--environment', 'development'], { VAULT_ADDR: vault.address })).resolves.toMatchObject({ stdout: 'api.key\ndatabase.password\ndatabase.username\n' });
       await expect(readFile(join(root, '.devvault/context.json'), 'utf8')).resolves.toContain('production');
       expect(vault.requests()).toBe(6);
     } finally {

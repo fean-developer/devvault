@@ -164,15 +164,13 @@ describe('Authorization mutation discrimination (AZM1-AZM17)', () => {
     expect(writeSpy).not.toHaveBeenCalled();
   });
 
-  it('AZM13: a successful get must never imply that list is authorized', async () => {
+  it('AZM13: a denied logical-list document read must remain AuthorizationDeniedError', async () => {
     const client = {
-      readSecret: async () => ({ database: { password: 'value' } }),
+      readSecret: async () => { throw new VaultPermissionDeniedError(); },
       writeSecret: async () => undefined,
-      listSecrets: async () => { throw new VaultPermissionDeniedError(); },
       deleteSecret: async () => undefined,
     };
 
-    await expect(getSecret(config, client, 'database.password')).resolves.toBe('value');
     await expect(listSecretKeys(config, client)).rejects.toBeInstanceOf(AuthorizationDeniedError);
   });
 

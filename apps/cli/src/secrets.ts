@@ -5,7 +5,6 @@ import { classifyVaultOperationError } from '@devvault/core';
 export interface SecretClient {
   readSecret(mount: string, path: string): Promise<SecretData>;
   writeSecret(mount: string, path: string, data: SecretData): Promise<void>;
-  listSecrets(mount: string, path: string): Promise<string[]>;
   deleteSecret(mount: string, path: string): Promise<void>;
 }
 
@@ -50,10 +49,27 @@ export async function listSecretKeys(
 ): Promise<string[]> {
   const location = secretPath(config);
   try {
-    return await client.listSecrets(location.mount, location.path);
+    return flattenSecretKeys(await client.readSecret(location.mount, location.path));
   } catch (error) {
     classifyVaultOperationError(error, { operation: 'secret.list', project: config.project, environment: config.environment });
   }
+}
+
+export function flattenSecretKeys(data: SecretData): string[] {
+  const keys: string[] = [];
+
+  const visit = (value: unknown, path: string): void => {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      for (const [name, nestedValue] of Object.entries(value)) {
+        visit(nestedValue, path ? `${path}.${name}` : name);
+      }
+      return;
+    }
+    if (path) keys.push(path);
+  };
+
+  visit(data, '');
+  return keys.sort();
 }
 
 export async function deleteSecret(

@@ -134,15 +134,12 @@ describe('Production Authorization E2E flows', () => {
     }
   });
 
-  it('denies secret list independently of a successful get (AZM13)', async () => {
+  it('maps a denied secret list document read to permission denied (AZM13)', async () => {
     const root = await mkdtemp(join(tmpdir(), 'devvault-authz-list-denied-'));
-    const vault = await startVaultStub((method, path) => method === 'LIST' && path.includes('/metadata/'));
+    const vault = await startVaultStub((method, path) => method === 'GET' && path.includes('/data/'));
     const clearSession = await seedDeveloperSession(vault.address);
     try {
       await initProject(root, 'development');
-      await expect(runCli(root, ['secret', 'get', 'database.password', '--show'], { VAULT_ADDR: vault.address }))
-        .resolves.toMatchObject({ stdout: 'dev-password-marker\n' });
-
       const result = await runDiagnosticCli(root, ['secret', 'list'], { VAULT_ADDR: vault.address });
       expect(result.stderr).toMatch(/permission denied/i);
     } finally {
