@@ -19,6 +19,7 @@ await mkdir(join(target, 'dist'), { recursive: true });
 await mkdir(join(target, 'docs'), { recursive: true });
 await mkdir(join(target, 'infra', 'vault'), { recursive: true });
 await cp(join(source, 'dist', 'index.js'), join(target, 'dist', 'index.js'));
+await cp(join(root, 'LICENSE'), join(target, 'LICENSE'));
 await cp(join(source, 'README.md'), join(target, 'README.md'));
 await cp(join(source, 'RELEASE-NOTES.md'), join(target, 'RELEASE-NOTES.md'));
 await cp(join(source, 'assets'), join(target, 'assets'), { recursive: true });
@@ -38,7 +39,7 @@ const publishManifest = {
   discussion: rootPackageJson.discussion ?? packageJson.discussion,
   keywords: packageJson.keywords,
   bin: packageJson.bin,
-  files: [...packageJson.files, 'infra/vault/**'],
+  files: [...packageJson.files, 'LICENSE', 'infra/vault/**'],
   publishConfig: packageJson.publishConfig,
   engines: { node: '>=20' },
   dependencies: {
